@@ -79,6 +79,7 @@ td.calc-score {
 
 .btn-section {
 	position: relative;
+	right: 8%;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -90,7 +91,7 @@ td.calc-score {
 .btn-tbl {
 	table-layout: fixed;
 	border-spacing: 1vh;
-	width: 200%;
+	width: 296%;
 	height: 100%;
 	text-align: center;
 	font-weight: bold;
@@ -99,7 +100,7 @@ td.calc-score {
 }
 
 .btn-tbl td {
-	height: 15%;
+	height: 7.5%;
 	overflow: hidden;
 	border: 0.5vh solid white;
 	border-radius: 1vh;
@@ -108,6 +109,7 @@ td.calc-score {
 
 .small-btn {
 	font-size: 4vh;
+	font-weight: normal;
 }
 
 .large-btn {
@@ -121,19 +123,23 @@ td.calc-score {
 	background-repeat: no-repeat;
 }
 
+.btn-tbl td.hidden {
+	visibility: hidden;
+}
+
 .darts {
 	position: absolute;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	width: 100%;
-	margin-left: 0.25vh;
+	margin-left: -0.25vh;
 	font-size: 3vh;
 	text-align: center;
 	line-height: 1;
 	color: white;
 	top: 50%;
-	left: 50%;
+	left: 150%;
 	transform: translate(-50%, -50%);
 }
 
@@ -164,9 +170,9 @@ td.calc-score {
 	position: absolute;
 	width: 87.5%;
 	height: 35vh;
-	margin-left: 0.25vh;
+	margin-left: -0.25vh;
 	top: 50%;
-	left: 50%;
+	left: 150%;
 	transform: translate(-50%, -50%);
 	background: linear-gradient(#565656, #404040);
 	border-radius: 1vh;
@@ -176,7 +182,7 @@ td.calc-score {
 .darts .single {
 	border: 0.5vh solid white;
 	line-height: 7.5vh;
-	background: linear-gradient(#c8c8c8, #808080);
+	background: linear-gradient(#969696, #646464);
 }
 
 .darts .double {
@@ -204,9 +210,9 @@ td.calc-score {
 }
   
 .dartboard-img {
-	float: right;
 	width: auto;
 	height: auto;
+	margin-right: -0.25vh;
 	max-width: 99%;
 	max-height: 99vh;
 	filter: drop-shadow(0 0 4vh black);

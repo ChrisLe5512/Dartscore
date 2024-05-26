@@ -15,9 +15,7 @@
 </head>
 
 <body>
-
 	<main>
-
 		<aside>
 			<section class="scores-section">
 
@@ -53,41 +51,51 @@
 			</section>
 		</aside>
 
+		<section class="dartboard-section">
+			<img class="dartboard-img" src="dartboard_dull.webp" alt="Dartboard">	
+		</section>
+
 		<section class="btn-section">
+			<table class="btn-tbl">
+				<tbody>
+					<tr>
+						<td rowspan="2" colspan="2" class="large-btn">BUST</td>
+					</tr>
+					<tr><td class="hidden"></td></tr>
+					<tr><td class="hidden"></td></tr>
+					<tr>
+						<td class="hidden"></td>
+						<td class="small-btn">Darts</td>
+					</tr>
+					<tr>
+						<td class="hidden"></td>
+						<td rowspan="5" class="darts-btn"></td>
+					</tr>
+					<tr></tr>
+					<tr></tr>
+					<tr></tr>
+					<tr></tr>
+					<tr>
+						<td class="hidden"></td>
+						<td class="small-btn">Clear</td>
+					</tr>
+					<tr><td class="hidden"></td></tr>
+					<tr>
+						<td rowspan="2" colspan="2" class="large-btn">DONE</td>
+					</tr>
+					<tr><td class="hidden"></td></tr>
+				</tbody>
+			</table>
 			<div class="darts">
 				<span class="triple"><u>T19</u><br>57</span>
 				<span class="double"><u>D7</u><br>14</span>
 				<span class="single"><u>2</u><br></span>
 			</div>
-			<table class="btn-tbl">
-				<tbody>
-					<tr>
-						<td colspan="2" class="large-btn">BUST</td>
-					</tr>
-					<tr>
-						<td class="small-btn">&#8634;<br>RESET</td>
-					</tr>
-					<tr>
-						<td rowspan="3" class="darts-btn"></td>
-					</tr>
-					<tr></tr>
-					<tr></tr>
-					<tr>
-						<td class="small-btn">&#8630;<br>UNDO</td>
-					</tr>
-					<tr>
-						<td colspan="2" class="large-btn">DONE</td>
-					</tr>
-				</tbody>
-			</table>
 			<div class="darts-bg"></div>
 		</section>
 
-		<section class="dartboard-section">
-			<img class="dartboard-img" src="dartboard_dull.webp" alt="Dartboard">	
-		</section>
-
 		<!-- <div class="i1610"></div> -->
+		<!-- undo: &#8630; -->
 
 	</main>
 
