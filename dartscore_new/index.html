@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Darts Scoreboard</title>
+	<link rel="shortcut icon" href="icon.png">
+	<link rel="stylesheet" type="text/css" href="styles.css">
+
+	<script type="text/javascript">
+		document.body.style.transform = 1;
+	</script>
+
+</head>
+
+<body>
+
+	<main>
+
+		<aside>
+			<section class="scores-section">
+
+			</section>
+			
+			<section class="calc-section">
+				<table class="calc-tbl">
+					<tbody>
+						<tr>
+							<td>7</td>
+							<td>8</td>
+							<td>9</td>
+							<td class="backspace">&#10229;<br><b>&#10229;</b></td>
+						</tr>
+						<tr>
+							<td>4</td>
+							<td>5</td>
+							<td>6</td>
+							<td rowspan="2" class="calc-score"></td>
+						</tr>
+						<tr>
+							<td>1</td>
+							<td>2</td>
+							<td>3</td>
+						</tr>
+						<tr>
+							<td colspan="2">0</td>
+							<td>&#8634;</td>
+							<td>&#10003;</td>
+						</tr>
+					</tbody>
+				</table>
+			</section>
+		</aside>
+
+		<section class="btn-section">
+			<div class="darts">
+				<span class="triple"><u>T19</u><br>57</span>
+				<span class="double"><u>D7</u><br>14</span>
+				<span class="single"><u>2</u><br></span>
+			</div>
+			<table class="btn-tbl">
+				<tbody>
+					<tr>
+						<td colspan="2" class="large-btn">BUST</td>
+					</tr>
+					<tr>
+						<td class="small-btn">&#8634;<br>RESET</td>
+					</tr>
+					<tr>
+						<td rowspan="3" class="darts-btn"></td>
+					</tr>
+					<tr></tr>
+					<tr></tr>
+					<tr>
+						<td class="small-btn">&#8630;<br>UNDO</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="large-btn">DONE</td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="darts-bg"></div>
+		</section>
+
+		<section class="dartboard-section">
+			<img class="dartboard-img" src="dartboard_dull.webp" alt="Dartboard">	
+		</section>
+
+		<!-- <div class="i1610"></div> -->
+
+	</main>
+
+</body>
+
+</html>

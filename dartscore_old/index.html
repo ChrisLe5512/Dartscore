@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="apple-touch-icon" sizes="57x57" href="apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="apple-icon-144x144.png">
+    <script src="fastclick.min.js"></script>
+    <title>Dart Score</title>
+    <style>
+      body {margin: 0 auto;}
+
+      #bodyrect {
+        position: absolute;
+        width: 756px;
+        height: 1394px;
+        background: #404040;
+        border-left: 8px solid white;
+        border-bottom: 8px solid white;
+      }
+      #dartboardarea {
+        position: absolute;
+        top: 0;
+        left: 760px;
+        width: 1280px;
+        height: 1394px;
+        background: #000000;
+        border-left: 8px solid white;
+        border-right: 8px solid white;
+        border-bottom: 8px solid white;
+      }
+      #dartboard {
+        position: absolute;
+        width: 1200px;
+        height: 1200px;
+        top: 30px;
+        left: 810px;
+      }
+      .topcover {
+        z-index: 1;
+        font-family: "AvenirNextCondensed-Bold";
+        font-size: 180px;
+        font-weight: bolder;
+        color: black;
+        text-align: center;
+        text-shadow: 0 0 16px white;
+      }
+      .toplayer {
+        z-index: 1;
+      }
+      .botlayer {
+        z-index: -1;
+      }
+      .double {
+        position: absolute;
+	width: 140px;
+        height: 64px;
+        background: transparent;
+      }
+      .single1 {
+        position: absolute;
+	width: 110px;
+        height: 130px;
+        background: transparent;
+      }
+      .triple {
+        position: absolute;
+	width: 80px;
+        height: 70px;
+        background: transparent;
+      }
+      .single2 {
+        position: absolute;
+	width: 50px;
+        height: 140px;
+        background: transparent;
+      }
+      .outerbull {
+        position: absolute;
+        width: 176px;
+        height: 176px;
+        border-radius: 50%;
+        display: inline-block;
+        background: transparent;
+      }
+      .innerbull {
+        position: absolute;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: inline-block;
+        background: transparent;
+      }
+      .topbutton {
+        position: absolute;
+        top: 44px;
+        width: 180px;
+        height: 100px;
+        background: black;
+        border: 8px solid white;
+        border-radius: 20px;
+        font-family: "AvenirNextCondensed-Bold";
+        font-size: 66px;
+        line-height: 104px;
+        color: white;
+        text-align: center;
+      }
+      .dartbox {
+        position: absolute;
+        top: 1250px;
+        width: 300px;
+        height: 112px;
+        background: transparent;
+        border: 8px solid white;
+        border-radius: 20px;
+      }
+      .dartshow {
+        position: absolute;
+        top: 1258px;
+        width: 300px;
+        height: 112px;
+        font-family: "AvenirNextCondensed-Bold";
+        font-weight: bolder;
+        font-size: 84px;
+        color: white;
+        text-align: center;
+        font-weight: bold;
+      }
+      .dartimg {
+        position: absolute;
+        top: 1288px;
+        width: 240px;
+        height: 50px;
+      }
+      .dcovers {
+        position: absolute;
+        width: 300px;
+        height: 112px;
+        background: rgba(255,255,255,0.5);
+        border: 8px solid white;
+        border-radius: 20px;
+        top: 1250px;
+      }
+      .acovers {
+        position: absolute;
+        width: 300px;
+        height: 112px;
+        background: rgba(255,255,255,0.2);
+        border: 8px solid white;
+        border-radius: 20px;
+        top: 1250px;
+      }
+      .playernames {
+        position: absolute;
+        width: 552px;
+        height: 192px;
+        line-height: 160px;
+        border: 8px solid white;
+        border-top: none;
+        padding: 0 100px;
+        background: #404040;
+        font-family: "AvenirNextCondensed-Bold";
+        font-size: 88px;
+        color: white;
+      }
+      .finishes {
+        position: absolute;
+        left: 8px;
+        width: 752px;
+        height: 54px;
+        border-top: 4px solid white;
+        background: green;
+        font-family: "AvenirNextCondensed-DemiBold";
+        font-size: 54px;
+        text-align: center;
+        line-height: 56px;
+        color: white;
+      }
+      ::placeholder {
+        color: #606060;
+      }
+      .scorer {
+        position: absolute;
+        left: 8px;
+        width: 692px;
+        height: 192px;
+        padding: 0 30px;
+        background: rgba(255,255,255,0.2);
+      }
+      .scores {
+        position: absolute;
+        left: 408px;
+        width: 300px;
+        padding: 0 40px;
+        background: transparent;
+        font-family: "AvenirNextCondensed-Bold";
+        font-size: 128px;
+        text-align: right;
+        color: white;
+      }
+      .start {
+        position: absolute;
+        width: 764px;
+        top: 1156px;
+        font-family: "AvenirNextCondensed-Bold";
+        font-size: 164px;
+        text-align: center;
+        color: white;
+      }
+      .settings {
+        position: absolute;
+        appearance: none;
+        height: 108px;
+        background: white;
+        border: none;
+        border-radius: 16px;
+        font-family: "AvenirNextCondensed-Bold";
+        font-size: 80px;
+        text-align: center;
+        color: #404040;
+      }
+      .line {
+        position: absolute;
+        left: 43px;
+        width: 40px;
+        height: 5px;
+        background: white;
+      }
+      .topline {
+        position: absolute;
+        left: 34px;
+        width: 60px;
+        height: 60px;
+        background: transparent;
+        z-index: 1;
+        font-family: "AvenirNextCondensed-Bold";
+        font-size: 44px;
+        text-align: center;
+        color: white;
+      }
+      .botline {
+        position: absolute;
+        left: 34px;
+        width: 60px;
+        height: 60px;
+        background: transparent;
+        z-index: 1;
+        font-family: "AvenirNextCondensed-Bold";
+        font-size: 44px;
+        text-align: center;
+        color: white;
+      }
+      .buttons {
+        position: absolute;
+        width: 150px;
+        height: 128px;
+        background: white;
+        border: none;
+        border-radius: 16px;
+        font-family: "AvenirNextCondensed-DemiBold";
+        font-size: 88px;
+        text-align: center;
+        color: #404040;
+        line-height: 134px;
+      }
+      .calcshow {
+        position: absolute;
+        left: 538px;
+        top: 948px;
+        width: 200px;
+        height: 150px;
+        background: transparent;
+        font-family: "AvenirNextCondensed-Bold";
+        font-size: 120px;
+        text-align: center;
+        color: white;
+      }
+      .donebtn {
+        position: absolute;
+        top: 1252px;
+        left: 540px;
+        width: 184px;
+        height: 112px;
+        background: #404040;
+        border: 8px solid white;
+        border-radius: 16px;
+        font-family: "AvenirNextCondensed-DemiBold";
+        font-size: 64px;
+        text-align: center;
+        color: white;
+        line-height: 116px;
+      }
+
+    </style>
+  </head>
+  <body>
+
+    <div id="cd1" class="dcovers" style="left: 850px;"></div>
+    <div id="cd2" class="dcovers" style="left: 1250px;"></div>
+    <div id="cd3" class="dcovers" style="left: 1650px;"></div>
+    <div id="ca1" class="acovers" style="left: 850px;"></div>
+    <div id="ca2" class="acovers" style="left: 1250px;"></div>
+    <div id="ca3" class="acovers" style="left: 1650px;"></div>
+    <div id="dbtn" class="donebtn" onclick="calcFunc('done')">DONE</div>
+    <div id="calc" style="position: absolute;top: 802px;width: 752px;height: 592px;background: #404040;border: 8px solid white;border-top: none;"></div>
+    <div class="buttons" onclick="calcFunc('1')" style="top: 814px;left: 30px;">1</div>
+    <div class="buttons" onclick="calcFunc('4')" style="top: 960px;left: 30px;">4</div>
+    <div class="buttons" onclick="calcFunc('7')" style="top: 1106px;left: 30px;">7</div>
+    <div class="buttons" onclick="calcFunc('clear')" style="top: 1252px;left: 30px;font-size: 48px;">CLEAR</div>
+    <div class="buttons" onclick="calcFunc('2')" style="top: 814px;left: 200px;">2</div>
+    <div class="buttons" onclick="calcFunc('5')" style="top: 960px;left: 200px;">5</div>
+    <div class="buttons" onclick="calcFunc('8')" style="top: 1106px;left: 200px;">8</div>
+    <div class="buttons" onclick="calcFunc('0')" style="top: 1252px;left: 200px;">0</div>
+    <div class="buttons" onclick="calcFunc('3')" style="top: 814px;left: 370px;">3</div>
+    <div class="buttons" onclick="calcFunc('6')" style="top: 960px;left: 370px;">6</div>
+    <div class="buttons" onclick="calcFunc('9')" style="top: 1106px;left: 370px;">9</div>
+    <div class="buttons" onclick="calcFunc('back')" style="top: 1252px;left: 370px;font-size: 48px;">BACK</div>
+    <div id="calcval" class="calcshow"></div>
+    <div id="bodyrect"></div>
+    <div id="dartboardarea"></div>
+    <div id="namecover" style="position: absolute;width: 760px;height:802px;"></div>
+    <span id="cc0" onclick="gameOn()" style="position: absolute;width: 1200px;line-height: 1200px;border-radius: 600px;background: rgba(255,255,255,0.7);top: 30px;left: 810px;">DONE</span>
+    <div id="cc1" style="position: absolute;width: 180px;height: 100px;background: rgba(255,255,255,0.5);border: 8px solid white;border-radius: 20px;top: 44px;left: 1822px"></div>
+    <img id="dartboard" src="dartboard.png" onclick="dartScore('0')">
+    <div id="scorer1" class="scorer" style="top: 0;"></div>
+    <div id="scorer2" class="scorer" style="top: 200px;"></div>
+    <div id="scorer3" class="scorer" style="top: 400px;"></div>
+    <div id="scorer4" class="scorer" style="top: 600px;"></div>
+    <div id="finish1" class="finishes" style="top: 138px"></div>
+    <div id="finish2" class="finishes" style="top: 338px;"></div>
+    <div id="finish3" class="finishes" style="top: 538px;"></div>
+    <div id="finish4" class="finishes" style="top: 738px;"></div>
+    <div id="p1leg" class="topline" style="top: 19px;"></div>
+    <div id="p2leg" class="topline" style="top: 219px;"></div>
+    <div id="p3leg" class="topline" style="top: 419px;"></div>
+    <div id="p4leg" class="topline" style="top: 619px;"></div>
+    <div id="line1" class="line" style="top: 67px;"></div>
+    <div id="line2" class="line" style="top: 267px;"></div>
+    <div id="line3" class="line" style="top: 467px;"></div>
+    <div id="line4" class="line" style="top: 667px;"></div>
+    <div id="gameleg1" class="botline" style="top: 62px;"></div>
+    <div id="gameleg2" class="botline" style="top: 262px;"></div>
+    <div id="gameleg3" class="botline" style="top: 462px;"></div>
+    <div id="gameleg4" class="botline" style="top: 662px;"></div>
+    <textarea id="p1" class="playernames" placeholder="Player 1" style="top: 0;"></textarea>
+    <textarea id="p2" class="playernames" placeholder="Player 2" style="top: 200px;"></textarea>
+    <textarea id="p3" class="playernames" placeholder="Player 3" style="top: 400px;"></textarea>
+    <textarea id="p4" class="playernames" placeholder="Player 4" style="top: 600px;"></textarea>
+    <div id="s1" class="scores" style="top: -20px;"></div>
+    <div id="s2" class="scores" style="top: 180px;"></div>
+    <div id="s3" class="scores" style="top: 380px;"></div>
+    <div id="s4" class="scores" style="top: 580px;"></div>
+    <div id="start" onclick="startFunc()" class="start">START</div>
+    <div id="startat" class="settings" style="width: 306px;top: 878px;left:152px;">Start at:</div>
+    <select id="endscores" class="settings" style="width: 192px;top: 878px;left: 426px;line-height: 114px;">
+      <option>___</option>
+      <option value="301">301</option>
+      <option value="501">501</option>
+    </select>
+    <div id="legs" class="settings" style="width: 306px;top: 1018px;left: 152px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Legs:</div>
+    <select id="legnums" class="settings" style="width: 192px;top: 1018px;left: 426px;line-height: 116px;">
+      <option>___</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+
+    <div class="double" style="top: 138px;left: 1338px;transform: rotate(0deg);" onclick="dartScore('D20')"></div>
+    <div class="double" style="top: 160px;left: 1480px;transform: rotate(18deg);" onclick="dartScore('D1')"></div>
+    <div class="double" style="top: 224px;left: 1608px;transform: rotate(36deg);" onclick="dartScore('D18')"></div>
+    <div class="double" style="top: 326px;left: 1708px;transform: rotate(54deg);" onclick="dartScore('D4')"></div>
+    <div class="double" style="top: 452px;left: 1774px;transform: rotate(72deg);" onclick="dartScore('D13')"></div>
+    <div class="double" style="top: 594px;left: 1796px;transform: rotate(90deg);" onclick="dartScore('D6')"></div>
+    <div class="double" style="top: 736px;left: 1774px;transform: rotate(108deg);" onclick="dartScore('D10')"></div>
+    <div class="double" style="top: 862px;left: 1710px;transform: rotate(126deg);" onclick="dartScore('D15')"></div>
+    <div class="double" style="top: 964px;left: 1608px;transform: rotate(144deg);" onclick="dartScore('D2')"></div>
+    <div class="double" style="top: 1030px;left: 1480px;transform: rotate(162deg);" onclick="dartScore('D17')"></div>
+    <div class="double" style="top: 1052px;left: 1338px;transform: rotate(180deg);" onclick="dartScore('D3')"></div>
+    <div class="double" style="top: 1030px;left: 1196px;transform: rotate(198deg);" onclick="dartScore('D19')"></div>
+    <div class="double" style="top: 966px;left: 1070px;transform: rotate(216deg);" onclick="dartScore('D7')"></div>
+    <div class="double" style="top: 864px;left: 968px;transform: rotate(234deg);" onclick="dartScore('D16')"></div>
+    <div class="double" style="top: 736px;left: 904px;transform: rotate(252deg);" onclick="dartScore('D8')"></div>
+    <div class="double" style="top: 594px;left: 882px;transform: rotate(270deg);" onclick="dartScore('D11')"></div>
+    <div class="double" style="top: 452px;left: 904px;transform: rotate(288deg);" onclick="dartScore('D14')"></div>
+    <div class="double" style="top: 326px;left: 968px;transform: rotate(306deg);" onclick="dartScore('D9')"></div>
+    <div class="double" style="top: 224px;left: 1070px;transform: rotate(324deg);" onclick="dartScore('D12')"></div>
+    <div class="double" style="top: 160px;left: 1196px;transform: rotate(342deg);" onclick="dartScore('D5')"></div>
+
+    <div class="single1" style="top: 208px;left: 1354px;transform: rotate(0deg);" onclick="dartScore('2o')"></div>
+    <div class="single1" style="top: 226px;left: 1464px;transform: rotate(18deg);" onclick="dartScore('1')"></div>
+    <div class="single1" style="top: 274px;left: 1562px;transform: rotate(36deg);" onclick="dartScore('18')"></div>
+    <div class="single1" style="top: 352px;left: 1640px;transform: rotate(54deg);" onclick="dartScore('4')"></div>
+    <div class="single1" style="top: 452px;left: 1692px;transform: rotate(72deg);" onclick="dartScore('13')"></div>
+    <div class="single1" style="top: 560px;left: 1710px;transform: rotate(90deg);" onclick="dartScore('6')"></div>
+    <div class="single1" style="top: 670px;left: 1692px;transform: rotate(108deg);" onclick="dartScore('1o')"></div>
+    <div class="single1" style="top: 770px;left: 1642px;transform: rotate(126deg);" onclick="dartScore('15')"></div>
+    <div class="single1" style="top: 846px;left: 1564px;transform: rotate(144deg);" onclick="dartScore('2')"></div>
+    <div class="single1" style="top: 898px;left: 1466px;transform: rotate(162deg);" onclick="dartScore('17')"></div>
+    <div class="single1" style="top: 916px;left: 1354px;transform: rotate(180deg);" onclick="dartScore('3')"></div>
+    <div class="single1" style="top: 898px;left: 1246px;transform: rotate(198deg);" onclick="dartScore('19')"></div>
+    <div class="single1" style="top: 848px;left: 1146px;transform: rotate(216deg);" onclick="dartScore('7')"></div>
+    <div class="single1" style="top: 770px;left: 1068px;transform: rotate(234deg);" onclick="dartScore('16')"></div>
+    <div class="single1" style="top: 670px;left: 1018px;transform: rotate(252deg);" onclick="dartScore('8')"></div>
+    <div class="single1" style="top: 562px;left: 1002px;transform: rotate(270deg);" onclick="dartScore('11')"></div>
+    <div class="single1" style="top: 452px;left: 1018px;transform: rotate(288deg);" onclick="dartScore('14')"></div>
+    <div class="single1" style="top: 354px;left: 1068px;transform: rotate(306deg);" onclick="dartScore('9')"></div>
+    <div class="single1" style="top: 276px;left: 1146px;transform: rotate(324deg);" onclick="dartScore('12')"></div>
+    <div class="single1" style="top: 226px;left: 1246px;transform: rotate(342deg);" onclick="dartScore('5')"></div>
+
+    <div class="triple" style="top: 342px;left: 1368px;transform: rotate(0deg);" onclick="dartScore('T20')"></div>
+    <div class="triple" style="top: 354px;left: 1448px;transform: rotate(18deg);" onclick="dartScore('T1')"></div>
+    <div class="triple" style="top: 390px;left: 1520px;transform: rotate(36deg);" onclick="dartScore('T18')"></div>
+    <div class="triple" style="top: 448px;left: 1578px;transform: rotate(54deg);" onclick="dartScore('T4')"></div>
+    <div class="triple" style="top: 518px;left: 1614px;transform: rotate(72deg);" onclick="dartScore('T13')"></div>
+    <div class="triple" style="top: 598px;left: 1626px;transform: rotate(90deg);" onclick="dartScore('T6')"></div>
+    <div class="triple" style="top: 678px;left: 1614px;transform: rotate(108deg);" onclick="dartScore('T10')"></div>
+    <div class="triple" style="top: 748px;left: 1578px;transform: rotate(126deg);" onclick="dartScore('T15')"></div>
+    <div class="triple" style="top: 806px;left: 1520px;transform: rotate(144deg);" onclick="dartScore('T2')"></div>
+    <div class="triple" style="top: 842px;left: 1448px;transform: rotate(162deg);" onclick="dartScore('T17')"></div>
+    <div class="triple" style="top: 854px;left: 1370px;transform: rotate(180deg);" onclick="dartScore('T3')"></div>
+    <div class="triple" style="top: 842px;left: 1290px;transform: rotate(198deg);" onclick="dartScore('T19')"></div>
+    <div class="triple" style="top: 806px;left: 1218px;transform: rotate(216deg);" onclick="dartScore('T7')"></div>
+    <div class="triple" style="top: 750px;left: 1162px;transform: rotate(234deg);" onclick="dartScore('T16')"></div>
+    <div class="triple" style="top: 678px;left: 1126px;transform: rotate(252deg);" onclick="dartScore('T8')"></div>
+    <div class="triple" style="top: 598px;left: 1112px;transform: rotate(270deg);" onclick="dartScore('T11')"></div>
+    <div class="triple" style="top: 520px;left: 1126px;transform: rotate(288deg);" onclick="dartScore('T14')"></div>
+    <div class="triple" style="top: 448px;left: 1160px;transform: rotate(306deg);" onclick="dartScore('T9')"></div>
+    <div class="triple" style="top: 392px;left: 1216px;transform: rotate(324deg);" onclick="dartScore('T12')"></div>
+    <div class="triple" style="top: 354px;left: 1288px;transform: rotate(342deg);" onclick="dartScore('T5')"></div>
+
+    <div class="single2" style="top: 400px;left: 1384px;transform: rotate(0deg);" onclick="dartScore('2o')"></div>
+    <div class="single2" style="top: 408px;left: 1432px;transform: rotate(18deg);" onclick="dartScore('1')"></div>
+    <div class="single2" style="top: 430px;left: 1476px;transform: rotate(36deg);" onclick="dartScore('18')"></div>
+    <div class="single2" style="top: 464px;left: 1510px;transform: rotate(54deg);" onclick="dartScore('4')"></div>
+    <div class="single2" style="top: 506px;left: 1532px;transform: rotate(72deg);" onclick="dartScore('13')"></div>
+    <div class="single2" style="top: 556px;left: 1540px;transform: rotate(90deg);" onclick="dartScore('6')"></div>
+    <div class="single2" style="top: 604px;left: 1532px;transform: rotate(108deg);" onclick="dartScore('1o')"></div>
+    <div class="single2" style="top: 648px;left: 1510px;transform: rotate(126deg);" onclick="dartScore('15')"></div>
+    <div class="single2" style="top: 682px;left: 1476px;transform: rotate(144deg);" onclick="dartScore('2')"></div>
+    <div class="single2" style="top: 704px;left: 1434px;transform: rotate(162deg);" onclick="dartScore('17')"></div>
+    <div class="single2" style="top: 712px;left: 1384px;transform: rotate(180deg);" onclick="dartScore('3')"></div>
+    <div class="single2" style="top: 704px;left: 1336px;transform: rotate(198deg);" onclick="dartScore('19')"></div>
+    <div class="single2" style="top: 682px;left: 1294px;transform: rotate(216deg);" onclick="dartScore('7')"></div>
+    <div class="single2" style="top: 648px;left: 1260px;transform: rotate(234deg);" onclick="dartScore('16')"></div>
+    <div class="single2" style="top: 604px;left: 1236px;transform: rotate(252deg);" onclick="dartScore('8')"></div>
+    <div class="single2" style="top: 556px;left: 1228px;transform: rotate(270deg);" onclick="dartScore('11')"></div>
+    <div class="single2" style="top: 508px;left: 1236px;transform: rotate(288deg);" onclick="dartScore('14')"></div>
+    <div class="single2" style="top: 464px;left: 1258px;transform: rotate(306deg);" onclick="dartScore('9')"></div>
+    <div class="single2" style="top: 430px;left: 1294px;transform: rotate(324deg);" onclick="dartScore('12')"></div>
+    <div class="single2" style="top: 408px;left: 1336px;transform: rotate(342deg);" onclick="dartScore('5')"></div>
+
+    <span class="outerbull" style="top: 538px;left: 1322px;" onclick="dartScore('25')"></span>
+    <span class="innerbull" style="top: 592px;left: 1374px;" onclick="dartScore('BULL')"></span>
+    <div class="topbutton" style="left: 800px;" onclick="bustFunc()">BUST</div>
+    <div class="topbutton" style="left: 1822px;" onclick="gameOn()">DONE</div>
+
+    <img src="dart.png" class="dartimg" style="left: 890px;">
+    <div id="dart1Show" class="dartshow" style="left: 858px;">~</div>
+    <div class="dartbox" style="left: 850px;" onclick="retryFunc('d1')"></div>
+    <img src="dart.png" class="dartimg" style="left: 1290px;">
+    <div id="dart2Show" class="dartshow" style="left: 1258px;">~</div>
+    <div class="dartbox" style="left: 1250px;" onclick="retryFunc('d2')"></div>
+    <img src="dart.png" class="dartimg" style="left: 1690px;">
+    <div id="dart3Show" class="dartshow" style="left: 1658px;">~</div>
+    <div class="dartbox" style="left: 1650px;" onclick="retryFunc('d3')"></div>
+    <div id="cboard" style="position: absolute;top: 0;left: 760px;width: 1280px;height: 1394px;"></div>
+
+    <script>
+
+      var attachFastClick = Origami.fastclick;
+      attachFastClick(document.body);
+      var dart1 = undefined;
+      var dart2 = undefined;
+      var dart3 = undefined;
+      var currentDart = 0;
+      var cover0 = document.getElementById("cc0");
+      var cover1 = document.getElementById("cc1");
+      var coverD1 = document.getElementById("cd1");
+      var coverD2 = document.getElementById("cd2");
+      var coverD3 = document.getElementById("cd3");
+      var coverA1 = document.getElementById("ca1");
+      var coverA2 = document.getElementById("ca2");
+      var coverA3 = document.getElementById("ca3");
+      var coveredD1 = false;
+      var coveredD2 = false;
+      var coveredD3 = false;
+      var coveredA1 = false;
+      var coveredA2 = false;
+      var coveredA3 = false;
+      var retryOn = false;
+      var covered = false;
+      var defScore = 0;
+      var legNumber = 0;
+      var players = 0;
+      var canStart = true;
+      var scoreCover = document.getElementById("namecover");
+      var coverBoard = document.getElementById("cboard");
+      var p1a = false;
+      var p2a = false;
+      var p3a = false;
+      var p4a = false;
+      var scorer = 0;
+      var liveScore = 0;
+      var p1S = -0.1;
+      var p2S = -0.1;
+      var p3S = -0.1;
+      var p4S = -0.1;
+      var comScore;
+      var retried;
+      var scorer1Up = false;
+      var scorer2Up = false;
+      var scorer3Up = false;
+      var scorer4Up = false;
+      var bust = false;
+      var hip = 0;
+      var finiShow1 = false;
+      var finiShow2 = false;
+      var finiShow3 = false;
+      var finiShow4 = false;
+      var p1L = 0;
+      var p2L = 0;
+      var p3L = 0;
+      var p4L = 0;
+      var started = false;
+      var done1 = false;
+      var done2 = false;
+      var done3 = false;
+      var done4 = false;
+      var doneShow = false;
+      var coveredD = false;
+
+      function startFunc() {
+        var esval = document.getElementById("endscores").value;
+        var lnval = document.getElementById("legnums").value;
+        var player1 = document.getElementById("p1").value;
+        var player2 = document.getElementById("p2").value;
+        var player3 = document.getElementById("p3").value;
+        var player4 = document.getElementById("p4").value;
+        document.getElementById("bodyrect").classList.toggle("botlayer");
+        document.getElementById("startat").classList.toggle("botlayer");
+        document.getElementById("endscores").classList.toggle("botlayer");
+        document.getElementById("legs").classList.toggle("botlayer");
+        document.getElementById("legnums").classList.toggle("botlayer");
+        document.getElementById("start").classList.toggle("botlayer");
+        cover1.classList.toggle("toplayer");
+        coveredD = true;
+        if (esval == "301") {
+          defScore = 301;
+        } else if (esval == "501") {
+          defScore = 501;
+        } else {
+          alert("Please select a starting score to begin playing");
+          canStart = false;
+        }
+        if (lnval == "1") {
+          legNumber = 1;
+        } else if (lnval == "2") {
+          legNumber = 2;
+        } else if (lnval == "3") {
+          legNumber = 3;
+        } else if (lnval == "4") {
+          legNumber = 4;
+        } else if (lnval == "5") {
+          legNumber = 5;
+        } else {
+          alert("Please select the number of legs you would like to play");
+          canStart = false;
+        }
+        if (player1 != "") {
+          players ++;
+          p1a = true;
+          document.getElementById("p1leg").innerHTML = p1L;
+          document.getElementById("line1").classList.toggle("toplayer");
+          document.getElementById("gameleg1").innerHTML = legNumber;
+        }
+        if (player2 != "") {
+          players ++;
+          p2a = true;
+          document.getElementById("p2leg").innerHTML = p2L;
+          document.getElementById("line2").classList.toggle("toplayer");
+          document.getElementById("gameleg2").innerHTML = legNumber;
+        }
+        if (player3 != "") {
+          players ++;
+          p3a = true;
+          document.getElementById("p3leg").innerHTML = p3L;
+          document.getElementById("line3").classList.toggle("toplayer");
+          document.getElementById("gameleg3").innerHTML = legNumber;
+        }
+        if (player4 != "") {
+          players ++;
+          p4a = true;
+          document.getElementById("p4leg").innerHTML = p4L;
+          document.getElementById("line4").classList.toggle("toplayer");
+          document.getElementById("gameleg4").innerHTML = legNumber;
+        }
+        if (players == 0) {
+          alert("Please enter at least one player to play");
+          canStart = false;
+        }
+        if (canStart == false) {
+          location.reload();
+        } else {
+          if (p1a == false) {
+            document.getElementById("p1").value = " ";
+          } else {
+            document.getElementById('s1').innerHTML = defScore;
+            p1S = defScore;
+          }
+          if (p2a == false) {
+            document.getElementById("p2").value = " ";
+          } else {
+            document.getElementById('s2').innerHTML = defScore;
+            p2S = defScore;
+          }
+          if (p3a == false) {
+            document.getElementById("p3").value = " ";
+          } else {
+            document.getElementById('s3').innerHTML = defScore;
+            p3S = defScore;
+          }
+          if (p4a == false) {
+            document.getElementById("p4").value = " ";
+          } else {
+            document.getElementById('s4').innerHTML = defScore;
+            p4S = defScore;
+          }
+          if (started == false) {
+            scoreCover.classList.toggle("toplayer");
+            coverBoard.classList.toggle("botlayer");
+            started = true;
+          }
+          nextScorer();
+        }
+      }
+
+      function nextDart() {
+        if (retryOn == false) {
+          if (dart1 == undefined) {
+            dart1 = currentDart;
+            document.getElementById('dart1Show').innerHTML = comScore;
+            currentDart = 0;
+          } else if (dart2 == undefined) {
+            dart2 = currentDart;
+            document.getElementById('dart2Show').innerHTML = comScore;
+            currentDart = 0;
+          } else if (dart3 == undefined) {
+            dart3 = currentDart;
+            document.getElementById('dart3Show').innerHTML = comScore;
+            currentDart = 0;
+          }
+        }
+        if (dart1 != undefined && dart2 != undefined && dart3 != undefined) {
+          if (covered == false) {
+            cover0.classList.toggle("topcover");
+            covered = true;
+          }
+        }
+        if (retryOn == true) {
+          if (coveredD1 == true) {
+            coverD1.classList.toggle("toplayer");
+            coveredD1 = false;
+          }
+          if (coveredD2 == true) {
+            coverD2.classList.toggle("toplayer");
+            coveredD2 = false;
+          }
+          if (coveredD3 == true) {
+            coverD3.classList.toggle("toplayer");
+            coveredD3 = false;
+          }
+          if (coveredA1 == true) {
+            coverA1.classList.toggle("toplayer");
+            coveredA1 = false;
+          }
+          if (coveredA2 == true) {
+            coverA2.classList.toggle("toplayer");
+            coveredA2 = false;
+          }
+          if (coveredA3 == true) {
+            coverA3.classList.toggle("toplayer");
+            coveredA3 = false;
+          }
+          retryOn = false;
+        }
+      }
+
+      function dartScore(comScored) {
+        if (document.getElementById("calcval").innerHTML.length != 0) {
+          calcFunc('clear');
+        }
+        if (coveredD == true) {
+          cover1.classList.toggle("toplayer");
+          coveredD = false;
+        }
+        comScore = comScored;
+        if (comScored.indexOf('D') > -1) {
+          currentDart = 2*(comScored.replace( /^\D+/g, ''));
+        } else if (comScored.indexOf('T') > -1) {
+          currentDart = 3*(comScored.replace( /^\D+/g, ''));
+        } else if (comScored.indexOf('BULL') > -1) {
+          currentDart = 50;
+        } else if (comScored.indexOf('0') > -1) {
+	  currentDart = 0;
+	} else if (comScored.indexOf('2o') > -1) {
+	  currentDart = 20;
+	  comScore = 20;
+	} else if (comScored.indexOf('1o') > -1) {
+	  currentDart = 10;
+	  comScore = 10;
+	} else {
+          currentDart = comScored;
+        }
+        if (retryOn == true) {
+          if (retried == 'd1') {
+            dart1 = currentDart;
+            document.getElementById('dart1Show').innerHTML = comScore;
+          } else if (retried == 'd2') {
+            dart2 = currentDart;
+            document.getElementById('dart2Show').innerHTML = comScore;
+          } else if (retried == 'd3') {
+            dart3 = currentDart;
+            document.getElementById('dart3Show').innerHTML = comScore;
+          }
+        }
+        nextDart();
+      }
+
+      function calcFunc(number) {
+        resetFunc();
+        var calcV = document.getElementById("calcval");
+        var calcL = calcV.innerHTML.length;
+        if (number == '1' || number == '2' || number == '3' || number == '4' || number == '5' || number == '6' || number == '7' || number == '8' || number == '9') {
+          if (calcL < 3) {
+            calcV.innerHTML += number;
+          }
+        }
+        if (number == '0') {
+          if (calcV.innerHTML != "" && calcL < 3) {
+            calcV.innerHTML += number;
+          }
+        }
+        if (number == 'back') {
+          if (calcL > 0) {
+            calcV.innerHTML = calcV.innerHTML.slice(0, -1);
+          }
+        }
+        if (number == 'clear') {
+          calcV.innerHTML = "";
+        }
+        if (number == 'done') {
+          gameOn();
+          calcV.innerHTML = "";
+        }
+        var calcL = calcV.innerHTML.length;
+        if (calcL == 0) {
+          if (doneShow == true) {
+            document.getElementById("dbtn").classList.toggle("toplayer");
+            doneShow = false;
+          }
+        } else {
+          if (doneShow == false) {
+            document.getElementById("dbtn").classList.toggle("toplayer");
+            doneShow = true;
+          }
+        }
+      }
+
+      function retryFunc(retriedDart) {
+        retried = retriedDart;
+        retryOn = true;
+        if (covered == true) {
+          cover0.classList.toggle("topcover");
+          covered = false;
+        }
+        if (coveredD == false) {
+          cover1.classList.toggle("toplayer");
+          coveredD = true;
+        }
+        if (retriedDart.indexOf('d1') > -1) {
+          document.getElementById('dart1Show').innerHTML = "~";
+          coverA1.classList.toggle("toplayer");
+          coverD2.classList.toggle("toplayer");
+          coverD3.classList.toggle("toplayer");
+          coveredA1 = true;
+          coveredD2 = true;
+          coveredD3 = true;
+        } else if (retriedDart.indexOf('d2') > -1) {
+          document.getElementById('dart2Show').innerHTML = "~";
+          coverD1.classList.toggle("toplayer");
+          coverA2.classList.toggle("toplayer");
+          coverD3.classList.toggle("toplayer");
+          coveredD1 = true;
+          coveredA2 = true;
+          coveredD3 = true;
+        } else if (retriedDart.indexOf('d3') > -1) {
+          document.getElementById('dart3Show').innerHTML = "~";
+          coverD1.classList.toggle("toplayer");
+          coverD2.classList.toggle("toplayer");
+          coverA3.classList.toggle("toplayer");
+          coveredD1 = true;
+          coveredD2 = true;
+          coveredA3 = true;
+        }
+      }
+
+      function nextScorer() {
+        var scorer1 = document.getElementById("scorer1");
+        var scorer2 = document.getElementById("scorer2");
+        var scorer3 = document.getElementById("scorer3");
+        var scorer4 = document.getElementById("scorer4");
+        if (p4a == true) {
+          hip = 4;
+        } else if (p3a == true) {
+          hip = 3;
+        } else if (p2a == true) {
+          hip = 2;
+        } else if (p1a == true) {
+          hip = 1;
+        }
+        scorer ++;
+        if (scorer > hip) {
+          scorer = 1;
+        }
+        if (scorer1Up == true) {
+          scorer1.classList.toggle("toplayer");
+          finishFunc('s1', 'finish1');
+          scorer1Up = false;
+        }
+        if (scorer2Up == true) {
+          scorer2.classList.toggle("toplayer");
+          finishFunc('s2', 'finish2');
+          scorer2Up = false;
+        }
+        if (scorer3Up == true) {
+          scorer3.classList.toggle("toplayer");
+          finishFunc('s3', 'finish3');
+          scorer3Up = false;
+        }
+        if (scorer4Up == true) {
+          scorer4.classList.toggle("toplayer");
+          finishFunc('s4', 'finish4');
+          scorer4Up = false;
+        }
+        if (scorer == 1) {
+          if (p1a == true) {
+            scorer1.classList.toggle("toplayer");
+            scorer1Up = true;
+          } else {
+            scorer ++;
+          }
+        }
+        if (scorer == 2) {
+          if (p2a == true) {
+            scorer2.classList.toggle("toplayer");
+            scorer2Up = true;
+          } else {
+            scorer ++;
+          }
+        }
+        if (scorer == 3) {
+          if (p3a == true) {
+            scorer3.classList.toggle("toplayer");
+            scorer3Up = true;
+          } else {
+            scorer ++;
+          }
+        }
+        if (scorer == 4) {
+          if (p4a == true) {
+            scorer4.classList.toggle("toplayer");
+            scorer4Up = true;
+          } else {
+            nextScorer();
+          }
+        }
+      }
+
+      function gameOn() {
+        var lisc = document.getElementById("calcval").innerHTML;
+        if (dart1 != undefined || dart2 != undefined || dart3 != undefined) {
+          if (dart1 != undefined) {
+            liveScore += Number(dart1);
+          }
+          if (dart2 != undefined) {
+            liveScore += Number(dart2);
+          }
+          if (dart3 != undefined) {
+            liveScore += Number(dart3);
+          }
+        } else if (Number(lisc) < 181) {
+          liveScore = Number(lisc);
+        } else {
+          liveScore = 502;
+        }
+        if (scorer == 1) {
+          if (liveScore > p1S) {
+            resetFunc();
+            nextScorer();
+            bust = true;
+          } else {
+            p1S = p1S - liveScore;
+            document.getElementById('s1').innerHTML = p1S;
+            if (p1S == 0) {
+              p1L ++;
+              if (p1L == legNumber) {
+                if (confirm(document.getElementById("p1").value + " " + "won the game!\n\nWould you like to keep playing?")) {
+                  document.getElementById("p1leg").innerHTML = p1L;
+                  p1a = false;
+                  players --;
+                  if (players <= 0) {
+                    location.reload();
+                  }
+                } else {
+                  location.reload();
+                }
+              } else {
+                alert(document.getElementById("p1").value + " " + "won the leg!")
+                nextLeg();
+              }
+            }
+          }
+        } else if (scorer == 2) {
+          if (liveScore > p2S) {
+            resetFunc();
+            nextScorer();
+            bust = true;
+          } else {
+            p2S = p2S - liveScore;
+            document.getElementById('s2').innerHTML = p2S;
+            if (p2S == 0) {
+              p2L ++;
+              if (p2L == legNumber) {
+                if (confirm(document.getElementById("p2").value + " " + "won the game!\n\nWould you like to keep playing?")) {
+                  document.getElementById("p2leg").innerHTML = p2L;
+                  p2a = false;
+                  players --;
+                  if (players <= 0) {
+                    location.reload();
+                  }
+                } else {
+                  location.reload();
+                }
+              } else {
+                alert(document.getElementById("p2").value + " " + "won the leg!")
+                nextLeg();
+              }
+            }
+          }
+        } else if (scorer == 3) {
+          if (liveScore > p3S) {
+            resetFunc();
+            nextScorer();
+            bust = true;
+          } else {
+            p3S = p3S - liveScore;
+            document.getElementById('s3').innerHTML = p3S;
+            if (p3S == 0) {
+              p3L ++;
+              if (p3L == legNumber) {
+                if (confirm(document.getElementById("p3").value + " " + "won the game!\n\nWould you like to keep playing?")) {
+                  document.getElementById("p3leg").innerHTML = p3L;
+                  p3a = false;
+                  players --;
+                  if (players <= 0) {
+                    location.reload();
+                  }
+                } else {
+                  location.reload();
+                }
+              } else {
+                alert(document.getElementById("p3").value + " " + "won the leg!")
+                nextLeg();
+              }
+            }
+          }
+        } else if (scorer == 4) {
+          if (liveScore > p4S) {
+            resetFunc();
+            nextScorer();
+            bust = true;
+          } else {
+            p4S = p4S - liveScore;
+            document.getElementById('s4').innerHTML = p4S;
+            if (p4S == 0) {
+              p4L ++;
+              if (p4L == legNumber) {
+                if (confirm(document.getElementById("p4").value + " " + "won the game!\n\nWould you like to keep playing?")) {
+                  document.getElementById("p4leg").innerHTML = p4L;
+                  p4a = false;
+                  players --;
+                  if (players <= 0) {
+                    location.reload();
+                  }
+                } else {
+                  location.reload();
+                }
+              } else {
+                alert(document.getElementById("p4").value + " " + "won the leg!")
+                nextLeg();
+              }
+            }
+          }
+        }
+        resetFunc();
+        if (bust == false) {
+          nextScorer();
+        }
+        if (bust == true) {
+          bust = false;
+        }
+        if (p1S + p2S + p3S + p4S <= 0.6) {
+          location.reload();
+        }
+      }
+
+      function resetFunc() {
+        if (covered == true) {
+          cover0.classList.toggle("topcover");
+          covered = false;
+        }
+        if (coveredD == false) {
+          cover1.classList.toggle("toplayer");
+          coveredD = true;
+        }
+        liveScore = 0;
+        dart1 = undefined;
+        dart2 = undefined;
+        dart3 = undefined;
+        comScore = 0;
+        document.getElementById('dart1Show').innerHTML = "~";
+        document.getElementById('dart2Show').innerHTML = "~";
+        document.getElementById('dart3Show').innerHTML = "~";
+        if (retryOn == true) {
+          if (coveredD1 == true) {
+            coverD1.classList.toggle("toplayer");
+            coveredD1 = false;
+          }
+          if (coveredD2 == true) {
+            coverD2.classList.toggle("toplayer");
+            coveredD2 = false;
+          }
+          if (coveredD3 == true) {
+            coverD3.classList.toggle("toplayer");
+            coveredD3 = false;
+          }
+          if (coveredA1 == true) {
+            coverA1.classList.toggle("toplayer");
+            coveredA1 = false;
+          }
+          if (coveredA2 == true) {
+            coverA2.classList.toggle("toplayer");
+            coveredA2 = false;
+          }
+          if (coveredA3 == true) {
+            coverA3.classList.toggle("toplayer");
+            coveredA3 = false;
+          }
+          retryOn = false;
+        }
+      }
+
+      function nextLeg() {
+        var player1 = document.getElementById("p1").value;
+        var player2 = document.getElementById("p2").value;
+        var player3 = document.getElementById("p3").value;
+        var player4 = document.getElementById("p4").value;
+        var scorer1 = document.getElementById("scorer1");
+        var scorer2 = document.getElementById("scorer2");
+        var scorer3 = document.getElementById("scorer3");
+        var scorer4 = document.getElementById("scorer4");
+        resetFunc();
+        p1S = defScore;
+        p2S = defScore;
+        p3S = defScore;
+        p4S = defScore;
+        scorer = 0;
+        if (p1a == true) {
+          document.getElementById("p1leg").innerHTML = p1L;
+          document.getElementById("s1").innerHTML = defScore;
+          if (finiShow1 == true) {
+            document.getElementById("finish1").classList.toggle("toplayer");
+            finiShow1 = false;
+          }
+        } else {
+          if (player1 != " ") {
+            if (done1 == false) {
+              document.getElementById("p1leg").innerHTML = "";
+              document.getElementById("line1").classList.toggle("toplayer");
+              document.getElementById("gameleg1").innerHTML = "";
+              done1 = true;
+            }
+          }
+        }
+        if (p2a == true) {
+          document.getElementById("p2leg").innerHTML = p2L;
+          document.getElementById("s2").innerHTML = defScore;
+          if (finiShow2 == true) {
+            document.getElementById("finish2").classList.toggle("toplayer");
+            finiShow2 = false;
+          }
+        } else {
+          if (player2 != " ") {
+            if (done2 == false) {
+              document.getElementById("p2leg").innerHTML = "";
+              document.getElementById("line2").classList.toggle("toplayer");
+              document.getElementById("gameleg2").innerHTML = "";
+              done2 = true;
+            }
+          }
+        }
+        if (p3a == true) {
+          document.getElementById("p3leg").innerHTML = p3L;
+          document.getElementById("s3").innerHTML = defScore;
+          if (finiShow3 == true) {
+            document.getElementById("finish3").classList.toggle("toplayer");
+            finiShow3 = false;
+          }
+        } else {
+          if (player3 != " ") {
+            if (done3 == false) {
+              document.getElementById("p3leg").innerHTML = "";
+              document.getElementById("line3").classList.toggle("toplayer");
+              document.getElementById("gameleg3").innerHTML = "";
+              done3 = true;
+            }
+          }
+        }
+        if (p4a == true) {
+          document.getElementById("p4leg").innerHTML = p4L;
+          document.getElementById("s4").innerHTML = defScore;
+          if (finiShow4 == true) {
+            document.getElementById("finish4").classList.toggle("toplayer");
+            finiShow4 = false;
+          }
+        } else {
+          if (player4 != " ") {
+            if (done4 == false) {
+              document.getElementById("p4leg").innerHTML = "";
+              document.getElementById("line4").classList.toggle("toplayer");
+              document.getElementById("gameleg4").innerHTML = "";
+              done4 = true;
+            }
+          }
+        }
+        if (scorer1Up == true) {
+          scorer1.classList.toggle("toplayer");
+          scorer1Up = false;
+        }
+        if (scorer2Up == true) {
+          scorer2.classList.toggle("toplayer");
+          scorer2Up = false;
+        }
+        if (scorer3Up == true) {
+          scorer3.classList.toggle("toplayer");
+          scorer3Up = false;
+        }
+        if (scorer4Up == true) {
+          scorer4.classList.toggle("toplayer");
+          scorer4Up = false;
+        }
+      }
+
+      function bustFunc() {
+        if (covered == true) {
+          cover0.classList.toggle("topcover");
+          covered = false;
+        }
+        liveScore = 0;
+        dart1 = undefined;
+        dart2 = undefined;
+        dart3 = undefined;
+        comScore = 0;
+        document.getElementById('dart1Show').innerHTML = "~";
+        document.getElementById('dart2Show').innerHTML = "~";
+        document.getElementById('dart3Show').innerHTML = "~";
+        nextScorer();
+      }
+
+      const finishValue = {
+        '180': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '179': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '178': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '177': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '176': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '175': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '174': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '173': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '172': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '171': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '170': 'T20\t-\tT20\t-\tBULL',
+        '169': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '168': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '167': 'T20\t-\tT19\t-\tBULL',
+        '166': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '165': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '164': 'T20\t-\tT18\t-\tBULL',
+        '163': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '162': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '161': 'T20\t-\tT17\t-\tBULL',
+        '160': 'T20\t-\tT20\t-\tD20',
+        '159': '[\t~\t]\t-\t[\t~\t]\t-\t[\t~\t]',
+        '158': 'T20\t-\tT20\t-\tD19',
+        '157': 'T20\t-\tT19\t-\tD20',
+        '156': 'T20\t-\tT20\t-\tD18',
+        '155': 'T20\t-\tT19\t-\tD19',
+        '154': 'T20\t-\tT18\t-\tD20',
+        '153': 'T20\t-\tT19\t-\tD18',
+        '152': 'T20\t-\tT20\t-\tD16',
+        '151': 'T20\t-\tT17\t-\tD20',
+        '150': 'T20\t-\tT18\t-\tD18',
+        '149': 'T20\t-\tT19\t-\tD16',
+        '148': 'T20\t-\tT16\t-\tD20',
+        '147': 'T20\t-\tT17\t-\tD18',
+        '146': 'T20\t-\tT18\t-\tD16',
+        '145': 'T20\t-\tT15\t-\tD20',
+        '144': 'T20\t-\tT20\t-\tD12',
+        '143': 'T20\t-\tT17\t-\tD16',
+        '142': 'T20\t-\tT14\t-\tD20',
+        '141': 'T20\t-\tT19\t-\tD12',
+        '140': 'T20\t-\tT16\t-\tD16',
+        '139': 'T19\t-\tT14\t-\tD20',
+        '138': 'T20\t-\tT18\t-\tD12',
+        '137': 'T19\t-\tT16\t-\tD16',
+        '136': 'T20\t-\tT20\t-\tD8',
+        '135': 'T20\t-\tT17\t-\tD12',
+        '134': 'T20\t-\tT14\t-\tD16',
+        '133': 'T20\t-\tT19\t-\tD8',
+        '132': 'T20\t-\tT16\t-\tD12',
+        '131': 'T20\t-\tT13\t-\tD16',
+        '130': 'T20\t-\t20\t-\tBULL',
+        '129': 'T19\t-\tT16\t-\tD12',
+        '128': 'T18\t-\tT14\t-\tD16',
+        '127': 'T20\t-\tT17\t-\tD8',
+        '126': 'T19\t-\tT19\t-\tD6',
+        '125': 'T20\t-\tO-BULL\t-\tD20',
+        '124': 'T20\t-\tT16\t-\tD8',
+        '123': 'T19\t-\tT16\t-\tD9',
+        '122': 'T20\t-\tT18\t-\tD4',
+        '121': 'T17\t-\tT10\t-\tD20',
+        '120': 'T20\t-\t20\t-\tD20',
+        '119': 'T19\t-\tT10\t-\tD16',
+        '118': 'T20\t-\t18\t-\tD20',
+        '117': 'T20\t-\t17\t-\tD20',
+        '116': 'T20\t-\t16\t-\tD20',
+        '115': 'T20\t-\t15\t-\tD20',
+        '114': 'T20\t-\t14\t-\tD20',
+        '113': 'T20\t-\t13\t-\tD20',
+        '112': 'T20\t-\t12\t-\tD20',
+        '111': 'T20\t-\t19\t-\tD16',
+        '110': 'T20\t-\t18\t-\tD16',
+        '109': 'T19\t-\t20\t-\tD16',
+        '108': 'T20\t-\t16\t-\tD16',
+        '107': 'T19\t-\t18\t-\tD16',
+        '106': 'T20\t-\t14\t-\tD16',
+        '105': 'T19\t-\t16\t-\tD16',
+        '104': 'T18\t-\t18\t-\tD16',
+        '103': 'T20\t-\t3\t-\tD20',
+        '102': 'T20\t-\t10\t-\tD16',
+        '101': 'T20\t-\t1\t-\tD20',
+        '100': 'T20\t-\tD20',
+        '99': 'T19\t-\t10\t-\tD16',
+        '98': 'T20\t-\tD19',
+        '97': 'T19\t-\tD20',
+        '96': 'T20\t-\tD18',
+        '95': 'T19\t-\tD19',
+        '94': 'T18\t-\tD20',
+        '93': 'T19\t-\tD18',
+        '92': 'T20\t-\tD16',
+        '91': 'T17\t-\tD20',
+        '90': 'T20\t-\tD15',
+        '89': 'T19\t-\tD16',
+        '88': 'T16\t-\tD20',
+        '87': 'T17\t-\tD18',
+        '86': 'T18\t-\tD16',
+        '85': 'T15\t-\tD20',
+        '84': 'T20\t-\tD12',
+        '83': 'T17\t-\tD16',
+        '82': 'T14\t-\tD20',
+        '81': 'T19\t-\tD12',
+        '80': 'T20\t-\tD10',
+        '79': 'T13\t-\tD20',
+        '78': 'T18\t-\tD12',
+        '77': 'T19\t-\tD10',
+        '76': 'T20\t-\tD8',
+        '75': 'T17\t-\tD12',
+        '74': 'T14\t-\tD16',
+        '73': 'T19\t-\tD8',
+        '72': 'T16\t-\tD12',
+        '71': 'T13\t-\tD16',
+        '70': 'T10\t-\tD20',
+        '69': 'T15\t-\tD12',
+        '68': 'T20\t-\tD4',
+        '67': 'T17\t-\tD8',
+        '66': 'T10\t-\tD18',
+        '65': 'T19\t-\tD4',
+        '64': 'T16\t-\tD8',
+        '63': 'T13\t-\tD12',
+        '62': 'T10\t-\tD16',
+        '61': 'T15\t-\tD8',
+        '60': '20\t-\tD20',
+        '59': '19\t-\tD20',
+        '58': '18\t-\tD20',
+        '57': '17\t-\tD20',
+        '56': '16\t-\tD20',
+        '55': '15\t-\tD20',
+        '54': '14\t-\tD20',
+        '53': '13\t-\tD20',
+        '52': '12\t-\tD20',
+        '51': '11\t-\tD20',
+        '50': 'T10\t-\tD10',
+        '49': '9\t-\tD20',
+        '48': '16\t-\tD16',
+        '47': '15\t-\tD16',
+        '46': '14\t-\tD16',
+        '45': '13\t-\tD16',
+        '44': '12\t-\tD16',
+        '43': '11\t-\tD16',
+        '42': '10\t-\tD16',
+        '41': '9\t-\tD16',
+        '40': 'D20',
+        '39': '7\t-\tD16',
+        '38': 'D19',
+        '37': '17\t-\tD10',
+        '36': 'D18',
+        '35': '19\t-\tD8',
+        '34': 'D17',
+        '33': '17\t-\tD8',
+        '32': 'D16',
+        '31': '7\t-\tD12',
+        '30': 'D15',
+        '29': '17\t-\tD6',
+        '28': 'D14',
+        '27': '19\t-\tD4',
+        '26': 'D13',
+        '25': '17\t-\tD4',
+        '24': 'D12',
+        '23': '19\t-\tD2',
+        '22': 'D11',
+        '21': '17\t-\tD2',
+        '20': 'D10',
+        '19': '11\t-\tD4',
+        '18': 'D9',
+        '17': '13\t-\tD2',
+        '16': 'D8',
+        '15': '13\t-\tD1',
+        '14': 'D7',
+        '13': '11\t-\tD1',
+        '12': 'D6',
+        '11': '3\t-\tD4',
+        '10': 'D5',
+        '9': '1\t-\tD4',
+        '8': 'D4',
+        '7': '3\t-\tD2',
+        '6': 'D3',
+        '5': '1\t-\tD2',
+        '4': 'D2',
+        '3': '1\t-\tD1',
+        '2': 'D1',
+        '1': '1',
+      };
+
+      function finishFunc(sId, finishId) {
+        var fish1 = document.getElementById("finish1");
+        var fish2 = document.getElementById("finish2");
+        var fish3 = document.getElementById("finish3");
+        var fish4 = document.getElementById("finish4");
+        if (p1S <= 180 && p1S >= 1) {
+          if (finiShow1 == false) {
+            fish1.classList.toggle("toplayer");
+            finiShow1 = true;
+          }
+        }
+        if (p2S <= 180 && p2S >= 1) {
+          if (finiShow2 == false) {
+            fish2.classList.toggle("toplayer");
+            finiShow2 = true;
+          }
+        }
+        if (p3S <= 180 && p3S >= 1) {
+          if (finiShow3 == false) {
+            fish3.classList.toggle("toplayer");
+            finiShow3 = true;
+          }
+        }
+        if (p4S <= 180 && p4S >= 1) {
+          if (finiShow4 == false) {
+            fish4.classList.toggle("toplayer");
+            finiShow4 = true;
+          }
+        }
+        var s = document.getElementById(sId);
+        var f = document.getElementById(finishId);
+        var { textContent } = s;
+        var finishToUse = finishValue[textContent];
+        f.textContent = finishToUse;
+      }
+
+    </script>
+  </body>
+</html>
