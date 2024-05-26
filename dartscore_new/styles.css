@@ -11,6 +11,12 @@ html, body {
 	font-family: Agency FB, sans-serif;
 }
 
+body {
+	zoom: reset;
+	transform: scale(1);
+	transform-origin: 0 0;
+}
+
 main {
 	display: flex;
 	height: 100%;
@@ -25,6 +31,7 @@ aside {
 	width: 30%;
 	border-right: 0.5vh solid white;
 	background: linear-gradient(#484848, #161616);
+	z-index: 1;
 }
 
 /* SCORES */
@@ -50,28 +57,30 @@ aside {
 	font-size: 6vh;
 	font-weight: bold;
 	text-shadow: 0 0 0.5vh black;
-	line-height: 7.5vh;
+	line-height: 1vh;
 	color: white;
 }
 
 .calc-tbl td {
 	border: 0.5vh solid white;
 	border-radius: 1vh;
+	height: 7.5vh;
 	background: linear-gradient(#808080, #484848);
 }
 
 td.calc-score {
+	line-height: 5.5vh;
 	border: 0.5vh solid white;
 	background: linear-gradient(#323232, #323232);
 }
 
-.backspace {
+.back-score {
 	font-family: "Lucida Sans Unicode";
 	font-size: 5vh;
 	line-height: 2%;
 }
 
-.backspace b {
+.back-score b {
 	text-shadow: none;
 }
 
@@ -107,9 +116,14 @@ td.calc-score {
 	background: linear-gradient(#565656, #404040);
 }
 
-.small-btn {
+.clear-btn {
 	font-size: 4vh;
 	font-weight: normal;
+}
+
+.darts-val {
+	line-height: 1vh;
+	font-size: 6vh;
 }
 
 .large-btn {
@@ -169,7 +183,7 @@ td.calc-score {
 .darts-bg {
 	position: absolute;
 	width: 87.5%;
-	height: 35vh;
+	height: 34vh;
 	margin-left: -0.25vh;
 	top: 50%;
 	left: 150%;
