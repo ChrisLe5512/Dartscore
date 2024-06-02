@@ -68,13 +68,33 @@ aside {
 	background: linear-gradient(#808080, #484848);
 }
 
-td.calc-score {
-	line-height: 5.5vh;
-	border: 0.5vh solid white;
-	background: linear-gradient(#323232, #323232);
+.calc-tbl td.disabled {
+	color: #969696;
+	background: linear-gradient(#484848, #161616);
+	border: 0.5vh solid #969696;
 }
 
-.back-score {
+td.calc-score {
+	line-height: 5.5vh;
+	background: #323232;
+}
+
+td.calc-score.disabled {
+	background: #242424;
+	pointer-events: none;
+}
+
+td.calc-score b {
+	font-weight: normal;
+	color: #969696;
+}
+
+td.calc-score i {
+	font-style: normal;
+	font-weight: normal;
+}
+
+td.back-score {
 	font-family: "Lucida Sans Unicode";
 	font-size: 5vh;
 	line-height: 2%;
@@ -113,7 +133,14 @@ td.calc-score {
 	overflow: hidden;
 	border: 0.5vh solid white;
 	border-radius: 1vh;
-	background: linear-gradient(#565656, #404040);
+	background: linear-gradient(#808080, #404040);
+}
+
+.btn-tbl td.disabled {
+	color: #969696;
+	background: linear-gradient(#404040, #202020);
+	border: 0.5vh solid #969696;
+	pointer-events: none;
 }
 
 .clear-btn {
