@@ -227,8 +227,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		
 		let dartTotal = sector * multiplier;
 
-		debugSpan.textContent = `s${sector} ${color} x${multiplier} d${dartDisplay} t${dartTotal}`;
-
 		counted = false;
 		dartSpans.forEach(span => {
 			if (!counted && span.innerHTML.trim() === '') {
@@ -243,6 +241,8 @@ document.addEventListener('DOMContentLoaded', function() {
 				updateDarts();
 			}
 		});
+
+		debugSpan.textContent = `${dartDisplay}: ${sector}x${multiplier}=${dartTotal} (${color})`;
 
 	});
 
