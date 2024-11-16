@@ -2,13 +2,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	// GLOBAL
 
-	let score = '';
+	const testSpan = document.querySelector('.test');
 
 	function submitScore(score) {
 		// submit score
+		testSpan.textContent = score;
+		resetBtn.click();
+		dartsClear.click();
 	}
 
 	// CALCULATOR
+
+	let calcScore = '';
 
 	// Elements
 	const calcBtns = document.querySelectorAll('.calc-tbl td:not(.back-score):not(.reset-score):not(.calc-score):not(.check-score)');
@@ -16,21 +21,20 @@ document.addEventListener('DOMContentLoaded', function() {
 	const checkBtn = document.querySelector('.check-score');
 	const resetBtn = document.querySelector('.reset-score');
 	const scoreDisplay = document.querySelector('.calc-score');
-	const testSpan = document.querySelector('.test');
 	
 	// Update calculator score display
 	function updateDisplay() {
 		switch (true) {
-			case (score === ''): scoreDisplay.textContent = ''; break;
-			case (score === '0'): scoreDisplay.innerHTML = `<i>&#x25B4;</i><br>${score}<br><b>&#x25BE;</b>`; break;
-			case (score === '180'): scoreDisplay.innerHTML = `<b>&#x25B4;</b><br>${score}<br><i>&#x25BE;</i>`; break;
-			default: scoreDisplay.innerHTML = `<i>&#x25B4;</i><br>${score}<br><i>&#x25BE;</i>`;
+			case (calcScore === ''): scoreDisplay.textContent = ''; break;
+			case (calcScore === '0'): scoreDisplay.innerHTML = `<i>&#x25B4;</i><br>${calcScore}<br><b>&#x25BE;</b>`; break;
+			case (calcScore === '180'): scoreDisplay.innerHTML = `<b>&#x25B4;</b><br>${calcScore}<br><i>&#x25BE;</i>`; break;
+			default: scoreDisplay.innerHTML = `<i>&#x25B4;</i><br>${calcScore}<br><i>&#x25BE;</i>`;
 		}
 	}
 	
 	// Toggle disabled buttons
 	function toggleDisabled() {
-		if (score === '') {
+		if (calcScore === '') {
 			[backBtn, resetBtn, checkBtn, scoreDisplay].forEach(button => {
 				button.classList.add('disabled');
 				button.disabled = true;
@@ -43,20 +47,19 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	}
 
-	// Add to score
+	// Append to calcScore
 	function addScore(i) {
-		if (!score) score = '';
-		let newScore = String(parseInt(score + i));
-		testSpan.innerHTML = newScore;
-		if (newScore <= 180) score = newScore;
+		if (!calcScore) calcScore = '';
+		let newScore = String(parseInt(calcScore + i));
+		if (newScore <= 180) calcScore = newScore;
 		updateDisplay();
 		toggleDisabled();
 	}
 
-	// Increment score
+	// Increment calcScore
 	function incScore(inc) {
-		var newScore = String(parseInt(score) + inc);
-		if (newScore >= 0 && newScore <= 180) score = newScore;
+		var newScore = String(parseInt(calcScore) + inc);
+		if (newScore >= 0 && newScore <= 180) calcScore = newScore;
 		updateDisplay();
 		toggleDisabled();
 	}
@@ -70,25 +73,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	// backBtn click event
 	backBtn.addEventListener('click', function() {
-		if (backBtn.disabled) return;
-		score = score.slice(0, -1);
+		calcScore = calcScore.slice(0, -1);
 		updateDisplay();
 		toggleDisabled();
 	});
 
 	// checkBtn click event
 	checkBtn.addEventListener('click', function() {
-		if (checkBtn.disabled) return;
-		submitScore(score);
-		score = '';
-		updateDisplay();
-		toggleDisabled();
+		submitScore(parseInt(calcScore));
 	});
 
 	// resetBtn click event
 	resetBtn.addEventListener('click', function() {
-		if (resetBtn.disabled) return;
-		score = '';
+		calcScore = '';
 		updateDisplay();
 		toggleDisabled();
 	});
@@ -99,15 +96,27 @@ document.addEventListener('DOMContentLoaded', function() {
 		const btnHeight = rect.height;
 		const btnTop = rect.top;
 		const clickY = event.clientY;
-
 		if (clickY < (btnTop + (btnHeight / 2))) incScore(1); else incScore(-1);
 	});
 
 	// DARTBOARD
 
+	const [dartsBust, dartsDone] = document.querySelectorAll('.large-btn');
 	const dartSpans = document.querySelectorAll('.darts span');
 	const dartsClear = document.querySelector('.darts-clear');
 	const dartsTotal = document.querySelector('.darts-total');
+
+	// dartsBust click event
+	dartsBust.addEventListener('click', function() {
+		submitScore(0);
+	});
+
+	// dartsDone click event
+	dartsDone.addEventListener('click', function() {
+		submitScore(parseInt(dartsTotal.textContent));
+		dartsClear.click();
+		updateDarts();
+	});
 
 	function updateDarts() {
 		let total = 0;
@@ -125,11 +134,13 @@ document.addEventListener('DOMContentLoaded', function() {
 			dartsClear.classList.add('disabled');
 			dartsTotal.textContent = '';
 			dartsTotal.classList.add('disabled');
+			dartsDone.classList.add('disabled');
 		} else {
 			dartsClear.textContent = 'Clear';
 			dartsClear.classList.remove('disabled');
 			dartsTotal.textContent = total;
 			dartsTotal.classList.remove('disabled');
+			dartsDone.classList.remove('disabled');
 		}
 	}
 
@@ -140,7 +151,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 		updateDarts();
 	});
-
 
 	dartSpans.forEach(span => {
 		span.addEventListener('click', function() {
