@@ -325,8 +325,13 @@ td.back-score {
 	pointer-events: auto;
 }
 
-.test {
-	color: white;
+.debug-span {
+	position: absolute;
+	top: 96vh;
+	left: 37vw;
+	color: aqua;
+	font-size: 3vh;
+	font-weight: bold;
 }
 
 .i1610 {

@@ -2,11 +2,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	// GLOBAL
 
-	const testSpan = document.querySelector('.test');
+	const debugSpan = document.querySelector('.debug-span');
 
 	function submitScore(score) {
 		// submit score
-		testSpan.textContent = score;
+		debugSpan.textContent = score;
 		resetBtn.click();
 		dartsClear.click();
 	}
@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		
 		let dartTotal = sector * multiplier;
 
-		testSpan.textContent = `s${sector} ${color} x${multiplier} d${dartDisplay} t${dartTotal}`;
+		debugSpan.textContent = `s${sector} ${color} x${multiplier} d${dartDisplay} t${dartTotal}`;
 
 		counted = false;
 		dartSpans.forEach(span => {
