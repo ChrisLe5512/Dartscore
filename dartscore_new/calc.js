@@ -16,48 +16,39 @@ document.addEventListener('DOMContentLoaded', function() {
 	const checkBtn = document.querySelector('.check-score');
 	const resetBtn = document.querySelector('.reset-score');
 	const scoreDisplay = document.querySelector('.calc-score');
+	const testSpan = document.querySelector('.test');
 	
 	// Update calculator score display
 	function updateDisplay() {
-		if (score === '') {
-			scoreDisplay.textContent = '';
-		} else if (score === '0') {
-			scoreDisplay.innerHTML = `<i>&#x25B4;</i><br>${score}<br><b>&#x25BE;</b>`;
-		} else if (score === '180') {
-			scoreDisplay.innerHTML = `<b>&#x25B4;</b><br>${score}<br><i>&#x25BE;</i>`;
-		} else {
-			scoreDisplay.innerHTML = `<i>&#x25B4;</i><br>${score}<br><i>&#x25BE;</i>`;
+		switch (true) {
+			case (score === ''): scoreDisplay.textContent = ''; break;
+			case (score === '0'): scoreDisplay.innerHTML = `<i>&#x25B4;</i><br>${score}<br><b>&#x25BE;</b>`; break;
+			case (score === '180'): scoreDisplay.innerHTML = `<b>&#x25B4;</b><br>${score}<br><i>&#x25BE;</i>`; break;
+			default: scoreDisplay.innerHTML = `<i>&#x25B4;</i><br>${score}<br><i>&#x25BE;</i>`;
 		}
 	}
 	
 	// Toggle disabled buttons
 	function toggleDisabled() {
 		if (score === '') {
-			backBtn.classList.add('disabled');
-			resetBtn.classList.add('disabled');
-			checkBtn.classList.add('disabled');
-			scoreDisplay.classList.add('disabled');
-			backBtn.disabled = true;
-			resetBtn.disabled = true;
-			checkBtn.disabled = true;
-			scoreDisplay.disabled = true;
+			[backBtn, resetBtn, checkBtn, scoreDisplay].forEach(button => {
+				button.classList.add('disabled');
+				button.disabled = true;
+			});
 		} else {
-			backBtn.classList.remove('disabled');
-			resetBtn.classList.remove('disabled');
-			checkBtn.classList.remove('disabled');
-			scoreDisplay.classList.remove('disabled');
-			backBtn.disabled = false;
-			resetBtn.disabled = false;
-			checkBtn.disabled = false;
-			scoreDisplay.disabled = false;
+			[backBtn, resetBtn, checkBtn, scoreDisplay].forEach(button => {
+				button.classList.remove('disabled');
+				button.disabled = false;
+			});1
 		}
 	}
 
 	// Add to score
 	function addScore(i) {
-		if (score === '0') score = '';
-		var newScore = score + i;
-		if (newScore <= 180 && newScore != '00') score = newScore;
+		if (!score) score = '';
+		let newScore = String(parseInt(score + i));
+		testSpan.innerHTML = newScore;
+		if (newScore <= 180) score = newScore;
 		updateDisplay();
 		toggleDisabled();
 	}
@@ -122,19 +113,23 @@ document.addEventListener('DOMContentLoaded', function() {
 		let total = 0;
 		dartSpans.forEach(span => {
 			if (span.innerHTML.trim() != '') {
-				if (span.classList.contains('single')) {
-					total += parseInt(span.textContent);
-				} else {
+				if (span.innerHTML.trim().includes('<br>')) {
 					total += parseInt(span.innerHTML.split('<br>')[1]);
+				} else {
+					total += parseInt(span.innerHTML.split('<u>')[1]);
 				}
 			}
 		});
-		if (total === 0) {
+		if (!(Array.from(dartSpans).some(span => span.textContent.trim() !== ''))) {
 			dartsClear.textContent = 'Darts';
+			dartsClear.classList.add('disabled');
 			dartsTotal.textContent = '';
+			dartsTotal.classList.add('disabled');
 		} else {
 			dartsClear.textContent = 'Clear';
+			dartsClear.classList.remove('disabled');
 			dartsTotal.textContent = total;
+			dartsTotal.classList.remove('disabled');
 		}
 	}
 
@@ -172,30 +167,31 @@ document.addEventListener('DOMContentLoaded', function() {
 		const angle = (Math.round(Math.atan2(clickY, clickX) * (180 / Math.PI)) + 450) % 360;
 
 		let sector;
+		let color;
 		switch (true) {
-			case (distance <= 6): sector = 50; break;
-			case (distance <= 17): sector = 25; break;
-			case (angle <= 9): sector = 20; break;
-			case (angle <= 27): sector = 1; break;
-			case (angle <= 45): sector = 18; break;
-			case (angle <= 63): sector = 4; break;
-			case (angle <= 81): sector = 13; break;
-			case (angle <= 99): sector = 6; break;
-			case (angle <= 117): sector = 10; break;
-			case (angle <= 135): sector = 15; break;
-			case (angle <= 153): sector = 2; break;
-			case (angle <= 171): sector = 17; break;
-			case (angle <= 189): sector = 3; break;
-			case (angle <= 207): sector = 19; break;
-			case (angle <= 225): sector = 7; break;
-			case (angle <= 243): sector = 16; break;
-			case (angle <= 261): sector = 8; break;
-			case (angle <= 279): sector = 11; break;
-			case (angle <= 297): sector = 14; break;
-			case (angle <= 315): sector = 9; break;
-			case (angle <= 333): sector = 12; break;
-			case (angle <= 351): sector = 5; break;
-			default: sector = 20;
+			case (distance <= 6): sector = 50; color = 'black'; break;
+			case (distance <= 17): sector = 25; color = 'white'; break;
+			case (angle <= 9): sector = 20; color = 'black'; break;
+			case (angle <= 27): sector = 1; color = 'white'; break;
+			case (angle <= 45): sector = 18; color = 'black'; break;
+			case (angle <= 63): sector = 4; color = 'white'; break;
+			case (angle <= 81): sector = 13; color = 'black'; break;
+			case (angle <= 99): sector = 6; color = 'white'; break;
+			case (angle <= 117): sector = 10; color = 'black'; break;
+			case (angle <= 135): sector = 15; color = 'white'; break;
+			case (angle <= 153): sector = 2; color = 'black'; break;
+			case (angle <= 171): sector = 17; color = 'white'; break;
+			case (angle <= 189): sector = 3; color = 'black'; break;
+			case (angle <= 207): sector = 19; color = 'white'; break;
+			case (angle <= 225): sector = 7; color = 'black'; break;
+			case (angle <= 243): sector = 16; color = 'white'; break;
+			case (angle <= 261): sector = 8; color = 'black'; break;
+			case (angle <= 279): sector = 11; color = 'white'; break;
+			case (angle <= 297): sector = 14; color = 'black'; break;
+			case (angle <= 315): sector = 9; color = 'white'; break;
+			case (angle <= 333): sector = 12; color = 'black'; break;
+			case (angle <= 351): sector = 5; color = 'white'; break;
+			default: sector = 20; color = 'black';
 		}
 
 		let multiplier;
@@ -204,40 +200,35 @@ document.addEventListener('DOMContentLoaded', function() {
 			case (distance <= 46): multiplier = 3; break;
 			case (distance <= 68): multiplier = 1; break;
 			case (distance <= 83): multiplier = 2; break;
-			default: multiplier = 0;
+			default: multiplier = 0; color = 'zero';
 		}
 
 		let dartDisplay = '';
-		if (sector === 50) {
-			dartDisplay = 'B';
+		if (sector <= 20) {
+			if (multiplier === 2) dartDisplay = 'D';
+			else if (multiplier === 3) dartDisplay = 'T';
+			if (multiplier) dartDisplay += sector;
+			else dartDisplay = '0';
 		} else if (sector === 25) {
 			dartDisplay = 'OB';
 		} else {
-			if (multiplier === 2) {
-				dartDisplay = 'D';
-			} else if (multiplier === 3) {
-				dartDisplay = 'T';
-			}
-			dartDisplay += sector;
+			dartDisplay = 'B';
 		}
 		
 		let dartTotal = sector * multiplier;
-		if (dartTotal === 0) return;
+
+		testSpan.textContent = `s${sector} ${color} x${multiplier} d${dartDisplay} t${dartTotal}`;
 
 		counted = false;
 		dartSpans.forEach(span => {
 			if (!counted && span.innerHTML.trim() === '') {
-				if (multiplier === 1 && sector != 25 && sector != 50) {
-					span.innerHTML = `<u>${dartDisplay}</u>`;
-					span.classList.add('single');
-				} else {
-					span.innerHTML = `<u>${dartDisplay}</u><br>${dartTotal}`;
-					if (multiplier === 2 || sector === 25) {
-						span.classList.add('double');
-					} else if (multiplier === 3 || sector === 50) {
-						span.classList.add('triple');
-					}
+				span.innerHTML = `<u>${dartDisplay}</u>`;
+				if (multiplier > 1 || sector > 20) {
+					span.innerHTML += `<br>${dartTotal}`;
+					if (color === 'black') color = 'red';
+					else color = 'green';
 				}
+				span.classList.add(color);
 				counted = true;
 				updateDarts();
 			}

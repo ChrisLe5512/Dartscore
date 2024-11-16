@@ -108,6 +108,52 @@ td.back-score {
 
 /* BUTTONS */
 
+.hist-section {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	width: 0;
+	pointer-events: none;
+	z-index: 1;
+}
+
+.hist-tbl {
+	table-layout: fixed;
+	border-spacing: 1vh;
+	width: 12.5vw;
+	height: 100%;
+	text-align: center;
+	font-weight: bold;
+	text-shadow: 0 0 1vh black;
+	color: white;
+}
+
+.hist-tbl td {
+	height: 7.5%;
+	font-size: 6vh;
+	line-height: 1;
+	overflow: hidden;
+	border: 0.5vh solid white;
+	border-radius: 1vh;
+	background: linear-gradient(#808080, #404040);
+	pointer-events: auto;
+	cursor: pointer;
+}
+
+.hist-tbl td.disabled {
+	color: #969696;
+	background: linear-gradient(#404040, #202020);
+	border: 0.5vh solid #969696;
+	cursor: default;
+}
+
+.hist-tbl td.hidden {
+	height: 67%;
+	visibility: hidden;
+	pointer-events: none;
+}
+
 .btn-section {
 	position: relative;
 	right: 8%;
@@ -115,7 +161,7 @@ td.back-score {
 	flex-direction: column;
 	justify-content: center;
 	width: 8%;
-	/* background: linear-gradient(#969696, #646464); */
+	pointer-events: none;
 }
 
 .btn-tbl {
@@ -135,13 +181,31 @@ td.back-score {
 	border: 0.5vh solid white;
 	border-radius: 1vh;
 	background: linear-gradient(#808080, #404040);
+	pointer-events: auto;
 }
 
 .btn-tbl td.disabled {
 	color: #969696;
 	background: linear-gradient(#404040, #202020);
 	border: 0.5vh solid #969696;
+	cursor: default;
+}
+
+.btn-tbl td.hidden {
+	visibility: hidden;
 	pointer-events: none;
+}
+
+.btn-tbl td.darts-btn {
+	background-image: url('dart.webp');
+	background-size: 80% 95%;
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+.large-btn {
+	font-size: 6vh;
+	cursor: pointer;
 }
 
 .darts-clear {
@@ -154,22 +218,6 @@ td.back-score {
 	line-height: 1vh;
 	font-size: 6vh;
 	cursor: default;
-}
-
-.large-btn {
-	font-size: 6vh;
-	z-index: 3;
-}
-
-.btn-tbl td.darts-btn {
-	background-image: url('dart.webp');
-	background-size: 80% 95%;
-	background-position: center;
-	background-repeat: no-repeat;
-}
-
-.btn-tbl td.hidden {
-	visibility: hidden;
 }
 
 .darts {
@@ -194,9 +242,8 @@ td.back-score {
 	margin: 1vh 0;
 	border: 0.5vh solid transparent;
 	border-radius: 1.5vh;
-	background-color: #16161664;
 	text-shadow: 0 0 0.5vh black;
-	/* box-shadow: 0 0 1vh black; */
+	pointer-events: auto;
 }
 
 .darts u {
@@ -204,6 +251,40 @@ td.back-score {
 	font-weight: bold;
 	text-decoration-thickness: 0.25vh;
 	text-underline-offset: 0.25vh;
+}
+
+.darts .black {
+	border: 0.5vh solid white;
+	line-height: 7.5vh;
+	background: linear-gradient(#646464, #161616);
+	cursor: pointer;
+}
+
+.darts .white {
+	border: 0.5vh solid white;
+	line-height: 7.5vh;
+	background: linear-gradient(#f0f0f0, #969696);
+	cursor: pointer;
+}
+
+.darts .red {
+	border: 0.5vh solid white;
+	background: linear-gradient(#ff3216, #962412);
+	cursor: pointer;
+}
+
+.darts .green {
+	border: 0.5vh solid white;
+	background: linear-gradient(#48c832, #368024);
+	cursor: pointer;
+}
+
+.darts .zero {
+	color: #c8c8c8;
+	border: 0.5vh solid #c8c8c8;
+	line-height: 7.5vh;
+	background: linear-gradient(#242424, #000000);
+	cursor: pointer;
 }
 
 .darts-img {
@@ -221,31 +302,7 @@ td.back-score {
 	transform: translate(-50%, -50%);
 	background: linear-gradient(#565656, #404040);
 	border-radius: 1vh;
-	z-index: -1;
 }
-
-.darts .single {
-	border: 0.5vh solid white;
-	line-height: 7.5vh;
-	background: linear-gradient(#969696, #646464);
-	cursor: pointer;
-}
-
-.darts .double {
-	border: 0.5vh solid white;
-	background: linear-gradient(#48c832, #489632);
-	cursor: pointer;
-}
-
-.darts .triple {
-	border: 0.5vh solid white;
-	background: linear-gradient(#c83216, #963216);
-	cursor: pointer;
-}
-
-/* .selected {
-	border: 0.5vh solid white;
-} */
 
 /* DARTBOARD */
   
@@ -264,8 +321,12 @@ td.back-score {
 	max-width: 99%;
 	max-height: 99vh;
 	filter: drop-shadow(0 0 4vh black);
-	z-index: 1;
 	cursor: crosshair;
+	pointer-events: auto;
+}
+
+.test {
+	color: white;
 }
 
 .i1610 {
@@ -275,4 +336,7 @@ td.back-score {
 	width: 100%;
 	height: 62.5vw;
 	background-color: red;
+	border: 0.5vh solid white;
+	box-sizing: border-box;
+	z-index: 2;
 }
