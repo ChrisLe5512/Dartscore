@@ -105,6 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	const dartSpans = document.querySelectorAll('.darts span');
 	const dartsClear = document.querySelector('.darts-clear');
 	const dartsTotal = document.querySelector('.darts-total');
+	const dbSec = document.querySelector('.dartboard-section');
 
 	// dartsBust click event
 	dartsBust.addEventListener('click', function() {
@@ -144,6 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	}
 
+	// dartsClear click event
 	dartsClear.addEventListener('click', function() {
 		dartSpans.forEach(span => {
 			span.innerHTML = '';
@@ -152,6 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		updateDarts();
 	});
 
+	// dartSpans click events
 	dartSpans.forEach(span => {
 		span.addEventListener('click', function() {
 			this.innerHTML = '';
@@ -166,6 +169,24 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	});
 
+	// dbSec click event
+	dbSec.addEventListener('click', function(event) {
+		if (event.target === this) {
+			let counted = false;
+			dartSpans.forEach(span => {
+				if (!counted && span.innerHTML.trim() === '') {
+					span.innerHTML = `<u>0</u>`;
+					span.classList.add('zero');
+					counted = true;
+					updateDarts();
+				}
+			});
+
+			debugSpan.textContent = `${dartDisplay}: ${sector}x${multiplier}=${dartTotal} (${color})`;
+		}
+	});
+
+	// Dartboard click event
 	document.getElementById('dartboard').addEventListener('click', function(event) {
 		const rect = this.getBoundingClientRect();
 		const centerX = rect.left + rect.width / 2;
@@ -227,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		
 		let dartTotal = sector * multiplier;
 
-		counted = false;
+		let counted = false;
 		dartSpans.forEach(span => {
 			if (!counted && span.innerHTML.trim() === '') {
 				span.innerHTML = `<u>${dartDisplay}</u>`;

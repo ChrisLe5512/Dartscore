@@ -29,7 +29,7 @@ section {
 
 aside {
 	width: 30%;
-	border-right: 0.5vh solid white;
+	border-right: 2px solid white;
 	background: linear-gradient(#484848, #161616);
 	z-index: 1;
 }
@@ -39,7 +39,7 @@ aside {
 .scores-section {
 	height: 60%;
 	box-sizing: border-box;
-	border-bottom: 0.5vh solid white;
+	border-bottom: 2px solid white;
 }
 
 /* CALCULATOR */
@@ -50,7 +50,7 @@ aside {
 
 .calc-tbl {
 	table-layout: fixed;
-	border-spacing: 1vh;
+	border-spacing: 4px;
 	width: 100%;
 	height: 100%;
 	text-align: center;
@@ -62,8 +62,8 @@ aside {
 }
 
 .calc-tbl td {
-	border: 0.5vh solid white;
-	border-radius: 1vh;
+	border: 2px solid white;
+	border-radius: 6px;
 	height: 7.5vh;
 	background: linear-gradient(#808080, #484848);
 	cursor: pointer;
@@ -72,13 +72,14 @@ aside {
 .calc-tbl td.disabled {
 	color: #969696;
 	background: linear-gradient(#484848, #161616);
-	border: 0.5vh solid #969696;
+	border: 2px solid #969696;
 	pointer-events: none;
 }
 
 td.calc-score {
-	line-height: 5.5vh;
+	line-height: 5.25vh;
 	background: #323232;
+	text-shadow: 0 0 1vh black;
 }
 
 td.calc-score.disabled {
@@ -94,12 +95,13 @@ td.calc-score b {
 td.calc-score i {
 	font-style: normal;
 	font-weight: normal;
+	text-shadow: none;
 }
 
 td.back-score {
 	font-family: "Lucida Sans Unicode";
 	font-size: 5vh;
-	line-height: 2%;
+	line-height: 5%;
 }
 
 .back-score b {
@@ -120,7 +122,7 @@ td.back-score {
 
 .hist-tbl {
 	table-layout: fixed;
-	border-spacing: 1vh;
+	border-spacing: 4px;
 	width: 12.5vw;
 	height: 100%;
 	text-align: center;
@@ -134,8 +136,8 @@ td.back-score {
 	font-size: 6vh;
 	line-height: 1;
 	overflow: hidden;
-	border: 0.5vh solid white;
-	border-radius: 1vh;
+	border: 2px solid white;
+	border-radius: 6px;
 	background: linear-gradient(#808080, #404040);
 	pointer-events: auto;
 	cursor: pointer;
@@ -144,12 +146,12 @@ td.back-score {
 .hist-tbl td.disabled {
 	color: #969696;
 	background: linear-gradient(#404040, #202020);
-	border: 0.5vh solid #969696;
+	border: 2px solid #969696;
 	cursor: default;
 }
 
 .hist-tbl td.hidden {
-	height: 67%;
+	height: 64%;
 	visibility: hidden;
 	pointer-events: none;
 }
@@ -166,7 +168,7 @@ td.back-score {
 
 .btn-tbl {
 	table-layout: fixed;
-	border-spacing: 1vh;
+	border-spacing: 4px;
 	width: 296%;
 	height: 100%;
 	text-align: center;
@@ -178,8 +180,8 @@ td.back-score {
 .btn-tbl td {
 	height: 7.5%;
 	overflow: hidden;
-	border: 0.5vh solid white;
-	border-radius: 1vh;
+	border: 2px solid white;
+	border-radius: 6px;
 	background: linear-gradient(#808080, #404040);
 	pointer-events: auto;
 }
@@ -187,7 +189,7 @@ td.back-score {
 .btn-tbl td.disabled {
 	color: #969696;
 	background: linear-gradient(#404040, #202020);
-	border: 0.5vh solid #969696;
+	border: 2px solid #969696;
 	cursor: default;
 }
 
@@ -215,7 +217,7 @@ td.back-score {
 }
 
 .darts-total {
-	line-height: 1vh;
+	line-height: 1.5vh;
 	font-size: 6vh;
 	cursor: default;
 }
@@ -229,7 +231,7 @@ td.back-score {
 	margin-left: -0.25vh;
 	font-size: 3vh;
 	text-align: center;
-	line-height: 1;
+	line-height: 1.05;
 	color: white;
 	top: 50%;
 	left: 150%;
@@ -237,11 +239,11 @@ td.back-score {
 }
 
 .darts span {
-	width: 65%;
-	height: 8vh;
+	width: 70%;
+	height: 8.65vh;
 	margin: 1vh 0;
-	border: 0.5vh solid transparent;
-	border-radius: 1.5vh;
+	border: 2px solid transparent;
+	border-radius: 6px;
 	text-shadow: 0 0 0.5vh black;
 	pointer-events: auto;
 }
@@ -250,40 +252,39 @@ td.back-score {
 	font-size: 5vh;
 	font-weight: bold;
 	text-decoration-thickness: 0.25vh;
-	text-underline-offset: 0.25vh;
+	text-underline-offset: 0.5vh;
 }
 
 .darts .black {
-	border: 0.5vh solid white;
-	line-height: 7.5vh;
+	border-color: white;
+	line-height: 8vh;
 	background: linear-gradient(#646464, #161616);
 	cursor: pointer;
 }
 
 .darts .white {
-	border: 0.5vh solid white;
-	line-height: 7.5vh;
-	background: linear-gradient(#f0f0f0, #969696);
+	border-color: white;
+	line-height: 8vh;
+	background: linear-gradient(#c8c8c8, #808080);
 	cursor: pointer;
 }
 
 .darts .red {
-	border: 0.5vh solid white;
+	border-color: white;
 	background: linear-gradient(#ff3216, #962412);
 	cursor: pointer;
 }
 
 .darts .green {
-	border: 0.5vh solid white;
+	border-color: white;
 	background: linear-gradient(#48c832, #368024);
 	cursor: pointer;
 }
 
 .darts .zero {
-	color: #c8c8c8;
-	border: 0.5vh solid #c8c8c8;
-	line-height: 7.5vh;
-	background: linear-gradient(#242424, #000000);
+	border-color: white;
+	line-height: 8vh;
+	background: black;
 	cursor: pointer;
 }
 
@@ -301,7 +302,7 @@ td.back-score {
 	left: 150%;
 	transform: translate(-50%, -50%);
 	background: linear-gradient(#565656, #404040);
-	border-radius: 1vh;
+	border-radius: 6px;
 }
 
 /* DARTBOARD */
@@ -312,6 +313,7 @@ td.back-score {
 	justify-content: center;
 	width: 62%;
 	max-width: 62%;
+	cursor: crosshair;
 }
   
 #dartboard {
@@ -341,7 +343,31 @@ td.back-score {
 	width: 100%;
 	height: 62.5vw;
 	background-color: red;
-	border: 0.5vh solid white;
+	border: 2px solid white;
+	box-sizing: border-box;
+	z-index: 2;
+}
+
+.i169 {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 56.25vw;
+	background-color: red;
+	border: 2px solid white;
+	box-sizing: border-box;
+	z-index: 2;
+}
+
+.i43 {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 75vw;
+	background-color: red;
+	border: 2px solid white;
 	box-sizing: border-box;
 	z-index: 2;
 }
