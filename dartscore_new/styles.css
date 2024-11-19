@@ -39,36 +39,104 @@ aside {
 .scores-section {
 	height: 60%;
 	box-sizing: border-box;
+	/* border-collapse: collapse; */
 	border-bottom: 2px solid white;
 }
 
 .scores-tbl {
+	table-layout: fixed;
     width: 100%;
-	height: 100%;
+	height: 25%;
     border-spacing: 0;
     color: white;
 	font-weight: bold;
 	line-height: 1;
 	background: red;
-    /* text-align: center; */
 }
 
-.scores-tbl td {
-    /* border: 1px solid white; */
-    /* vertical-align: middle; */
-    padding: 0.5vh 0;
-	display: flex;
-	align-items: center;
-	/* background: linear-gradient(#484848, #242424); */
-}
-
-.player-info {
-	height: 15%;
-	background: linear-gradient(#484848, #242424);
+.player-row {
+	height: 17%;
 	border-bottom: 2px solid gray;
+	background: linear-gradient(#484848, #242424);
 }
 
-.player-info div {
+.player-wins {
+	width: 4vh;
+	font-size: 3.5vh;
+	font-weight: bold;
+	text-align: center;
+	text-shadow: 0 0 0.5vh black;
+	line-height: 1.05;
+	/* background: blue; */
+}
+
+.player-name {
+	/* max-width: 60%; */
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 6.5vh;
+	text-align: left;
+	text-shadow: 0 0 1vh black;
+	padding-top: 0.25vh;
+	/* background: green; */
+}
+
+.player-score {
+	width: 12vh;
+	padding-right: 1vw;
+	font-size: 7.5vh;
+	font-weight: bold;
+	text-align: right;
+	text-shadow: 0 0 1vh black;
+	/* background: aqua; */
+}
+
+.history-row {
+	height: 8%;
+	background: #161616;
+}
+
+.history {
+	/* height: 100%; */
+	overflow-x: auto;
+	white-space: nowrap;
+	padding-left: 1vw;
+	border-bottom: 2px solid white;
+}
+
+.fade {
+	margin-left: auto;
+	width: 8vw;
+	height: 100%;
+	background: linear-gradient(to right, transparent, red);
+	pointer-events: none;
+}
+
+.history span {
+	color: #c8c8c8;
+	font-size: 2.25vh;
+	font-weight: normal;
+	padding-right: 0.5vw;
+	line-height: 1.35;
+	vertical-align: center;
+}
+
+.history span b {
+	color: white;
+}
+
+.finish {
+	width: 40%;
+	font-size: 3vh;
+	font-weight: bold;
+	text-align: right;
+	padding-right: 1vw;
+	color: #00c800;
+	border-bottom: 2px solid white;
+}
+
+/* .player-info div {
 	padding: 0 1vw;
 	font-size: 2vw;
 	text-shadow: 0 0 0.5vh black;
@@ -77,11 +145,9 @@ aside {
 .player-name {
 	width: 72%;
     font-size: 5vw;
-    /* margin-top: 1vh; */
 	text-shadow: 0 0 1vh black;
 	white-space: nowrap;
 	overflow: hidden;
-	/* background: red; */
 }
 
 .player-score {
@@ -90,17 +156,16 @@ aside {
 	text-shadow: 0 0 1vh black;
 	text-decoration: underline;
 	padding-bottom: 0.75vh;
-    /* background: linear-gradient(#484848, #242424); */
 }
 
 .score-details {
+	width: 100%;
     height: 10%;
     display: flex;
     font-size: 1.5vw;
 	font-weight: normal;
     background: #161616;
 	border-bottom: 2px solid white;
-    /* padding: 1vh 0; */
 }
 
 .history {
@@ -109,17 +174,15 @@ aside {
     overflow-x: auto;
     white-space: nowrap;
     padding: 0.5vh 1vw;
-    width: 60%;
-	/* background: black; */
+    width: 80%;
 }
 
 .finish {
+	width: 20%;
     font-size: 1.5vw;
     font-weight: bold;
     color: lightgreen;
-	/* text-align: center; */
-    /* margin-top: 1vh; */
-}
+} */
 
 .scrollable {
     overflow-x: auto;
@@ -192,11 +255,8 @@ td.calc-score i {
 td.back-score {
 	font-family: "Lucida Sans Unicode";
 	font-size: 5vh;
-	line-height: 5%;
-}
-
-.back-score b {
-	text-shadow: none;
+	line-height: 1.25%;
+	text-shadow: 0 0 0.5vh #00000064;
 }
 
 /* BUTTONS */
@@ -254,11 +314,11 @@ td.back-score {
 
 .btn-section {
 	position: relative;
-	right: 8%;
+	right: 7.9vw;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-	width: 8%;
+	width: 8vw;
 	pointer-events: none;
 }
 
