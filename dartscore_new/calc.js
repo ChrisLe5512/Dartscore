@@ -3,14 +3,76 @@ document.addEventListener('DOMContentLoaded', function() {
 	// GLOBAL
 
 	const debugSpan = document.querySelector('.debug-span');
+	let globalScore = 0;
+	let index = 0;
+	const checkout = document.querySelector('.checkout');
 
 	function submitScore(score) {
 		// submit score
-		debugSpan.textContent = score;
+		// debugSpan.textContent = score;
+
+		globalScore = score;
+
+		let co = getCheckout(score);
+
+		checkout.innerHTML = co;
+
 		resetBtn.click();
 		dartsClear.click();
 	}
 
+	function getCheckout(score, idx = 0) {
+		// Define the scoring options
+		const singles = Array.from({ length: 20 }, (_, i) => `${i + 1}`);
+		const doubles = Array.from({ length: 20 }, (_, i) => `D${i + 1}`);
+		const trebles = Array.from({ length: 20 }, (_, i) => `T${i + 1}`);
+		const specials = ['B', 'OB'];
+	
+		const values = {
+			B: 50,
+			OB: 25,
+			...Object.fromEntries(singles.map(s => [s, parseInt(s)])),
+			...Object.fromEntries(doubles.map(d => [d, 2 * parseInt(d.slice(1))])),
+			...Object.fromEntries(trebles.map(t => [t, 3 * parseInt(t.slice(1))]))
+		};
+		
+		// Helper function to calculate score for a sequence
+		const calculateScore = sequence => sequence.reduce((sum, dart) => sum + values[dart], 0);
+	
+		// Brute-force combinations
+		const results = [];
+		const maxDarts = score <= 40 ? 2 : 3; // Always consider 2 darts for scores <= 40
+	
+		// Prioritize darts: trebles first, then doubles, then singles, sorted by largest numbers
+		const allDarts = [...trebles, ...doubles, ...singles, ...specials].sort((a, b) => values[b] - values[a]);
+	
+		// Find the minimum number of darts for the given score
+		for (let darts = 1; darts <= maxDarts; darts++) {
+			const recurse = (path = [], remaining = darts) => {
+				const currentScore = calculateScore(path);
+				if (remaining === 0) {
+					// Valid if the score matches exactly and ends with a valid double or bull
+					const lastDart = path[path.length - 1];
+					if (currentScore === score && (lastDart.startsWith('D') || lastDart === 'B')) results.push(path);
+					return;
+				}
+				for (const dart of allDarts) if (currentScore + values[dart] <= score) recurse([...path, dart], remaining - 1);
+			};
+			recurse();
+		}
+
+		if (results.length === 0) return '';
+		idx %= results.length;
+		return `&#127919; ${results[idx].join(' ')}`;
+	}	// TODO: Limit dart count to optimal again
+
+	// checkout click event
+	checkout.addEventListener('click', function() {
+		checkout.innerHTML = getCheckout(globalScore, ++index);
+	});
+
+
+	
 	// CALCULATOR
 
 	let calcScore = '';
@@ -197,32 +259,14 @@ document.addEventListener('DOMContentLoaded', function() {
 		const distance = Math.round(Math.sqrt(clickX * clickX + clickY * clickY) / (rect.width / 2) * 100);
 		const angle = (Math.round(Math.atan2(clickY, clickX) * (180 / Math.PI)) + 450) % 360;
 
+		const sectors = [50, 25, 20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+		const colors = ['zero', 'black', 'white', 'red', 'green'];
+		
 		let sector;
-		let color;
 		switch (true) {
-			case (distance <= 6): sector = 50; color = 'black'; break;
-			case (distance <= 17): sector = 25; color = 'white'; break;
-			case (angle <= 9): sector = 20; color = 'black'; break;
-			case (angle <= 27): sector = 1; color = 'white'; break;
-			case (angle <= 45): sector = 18; color = 'black'; break;
-			case (angle <= 63): sector = 4; color = 'white'; break;
-			case (angle <= 81): sector = 13; color = 'black'; break;
-			case (angle <= 99): sector = 6; color = 'white'; break;
-			case (angle <= 117): sector = 10; color = 'black'; break;
-			case (angle <= 135): sector = 15; color = 'white'; break;
-			case (angle <= 153): sector = 2; color = 'black'; break;
-			case (angle <= 171): sector = 17; color = 'white'; break;
-			case (angle <= 189): sector = 3; color = 'black'; break;
-			case (angle <= 207): sector = 19; color = 'white'; break;
-			case (angle <= 225): sector = 7; color = 'black'; break;
-			case (angle <= 243): sector = 16; color = 'white'; break;
-			case (angle <= 261): sector = 8; color = 'black'; break;
-			case (angle <= 279): sector = 11; color = 'white'; break;
-			case (angle <= 297): sector = 14; color = 'black'; break;
-			case (angle <= 315): sector = 9; color = 'white'; break;
-			case (angle <= 333): sector = 12; color = 'black'; break;
-			case (angle <= 351): sector = 5; color = 'white'; break;
-			default: sector = 20; color = 'black';
+			case (distance <= 6): sector = 50; break;
+			case (distance <= 17): sector = 25; break;
+			default: sector = sectors[Math.floor((angle + 8) / 18) % 20 + 2];
 		}
 
 		let multiplier;
@@ -231,8 +275,12 @@ document.addEventListener('DOMContentLoaded', function() {
 			case (distance <= 46): multiplier = 3; break;
 			case (distance <= 68): multiplier = 1; break;
 			case (distance <= 83): multiplier = 2; break;
-			default: multiplier = 0; color = 'zero';
+			default: multiplier = 0;
 		}
+
+		let color = colors[!!multiplier + (!!multiplier * sectors.indexOf(sector)) % 2 + (multiplier > 1 || sector > 20 ? 2 : 0)];
+
+		// debugSpan.textContent = `${sector}x${multiplier} (${color})`;
 
 		let dartDisplay = '';
 		if (sector <= 20) {
@@ -252,18 +300,14 @@ document.addEventListener('DOMContentLoaded', function() {
 		dartSpans.forEach(span => {
 			if (!counted && span.innerHTML.trim() === '') {
 				span.innerHTML = `<u>${dartDisplay}</u>`;
-				if (multiplier > 1 || sector > 20) {
-					span.innerHTML += `<br>${dartTotal}`;
-					if (color === 'black') color = 'red';
-					else color = 'green';
-				}
+				if (multiplier > 1 || sector > 20) span.innerHTML += `<br>${dartTotal}`;
 				span.classList.add(color);
 				counted = true;
 				updateDarts();
 			}
 		});
 
-		debugSpan.textContent = `${dartDisplay}: ${sector}x${multiplier}=${dartTotal} (${color})`;
+		// debugSpan.textContent = `${dartDisplay}: ${sector}x${multiplier}=${dartTotal} (${color})`;
 
 	});
 
