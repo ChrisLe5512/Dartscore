@@ -54,9 +54,12 @@ aside {
 	background: red;
 }
 
+.scores-tbl .active {
+	background: linear-gradient(#c8c8c8, #646464);
+}
+
 .player-row {
-	height: 17%;
-	border-bottom: 2px solid gray;
+	height: 10vh;
 	background: linear-gradient(#484848, #242424);
 }
 
@@ -67,19 +70,23 @@ aside {
 	text-align: center;
 	text-shadow: 0 0 0.5vh black;
 	line-height: 1.05;
-	/* background: blue; */
 }
 
-.player-name {
-	/* max-width: 60%; */
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+.player-name input {
+	width: 100%;
+	border: none;
+	background: transparent;
+	color: inherit;
+	font-size: inherit;
+	font-family: inherit;
+	font-weight: inherit;
 	font-size: 6.5vh;
 	text-align: left;
 	text-shadow: 0 0 1vh black;
 	padding-top: 0.25vh;
-	/* background: green; */
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .player-score {
@@ -93,25 +100,29 @@ aside {
 }
 
 .history-row {
-	height: 8%;
+	height: 5vh;
 	background: #161616;
 }
 
+.scores-tbl .hidden {
+	display: none;
+}
+
 .history {
-	/* height: 100%; */
 	overflow-x: auto;
 	white-space: nowrap;
 	padding-left: 1vw;
 	border-bottom: 2px solid white;
+	border-top: 2px solid #969696;
 }
 
-.fade {
+/* .fade {
 	margin-left: auto;
 	width: 8vw;
 	height: 100%;
 	background: linear-gradient(to right, transparent, red);
 	pointer-events: none;
-}
+} */
 
 .history span {
 	color: #c8c8c8;
@@ -134,6 +145,22 @@ aside {
 	padding-right: 1vw;
 	color: #00c800;
 	border-bottom: 2px solid white;
+	border-top: 2px solid #969696;
+}
+
+.add-player {
+	text-align: center;
+	width: 100%;
+	/* height: 99%; */
+	background: linear-gradient(#484848, #161616);
+}
+
+.add-player td {
+	font-size: 6vh;
+	border-bottom: 2px solid white;
+	box-sizing: border-box;
+	height: 15vh;
+	cursor: pointer;
 }
 
 .scrollable {

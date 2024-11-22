@@ -3,22 +3,122 @@ document.addEventListener('DOMContentLoaded', function() {
 	// GLOBAL
 
 	const debugSpan = document.querySelector('.debug-span');
-	let globalScore = 0;
-	let index = 0;
-	const checkout = document.querySelector('.checkout');
+
+	let playerWins = [];
+	let playerNames = [];
+	let playerScores = [];
+	let playerHistory = [];
+	let playerCheckout = [];
+	let activePlayer = 0;
+
+	let startScore = 501;
+	let legCount = 3;
+	let setCount = 2;
+
+	function updatePlayers() {
+		playerWins = Array.from(document.querySelectorAll('.player-wins')).map(win => [0, 0]);
+		playerNames = Array.from(document.querySelectorAll('.player-name input')).map(input => input.value);
+		playerScores = Array.from(document.querySelectorAll('.player-score')).map(score => startScore);
+		playerHistory = Array.from(document.querySelectorAll('.history')).map(history => [null]);
+		playerCheckout = Array.from(document.querySelectorAll('.checkout')).map(checkout => null);
+	}
+
+	// Add player click event
+	document.querySelector('.add-player').addEventListener('click', function() {
+		let playerRow = document.createElement('tr');
+		playerRow.classList.add('player-row');
+		playerRow.innerHTML = `
+			<td class="player-wins"><u>0</u><br>0</td>
+			<td colspan="5" class="player-name"><input type="text" value="Player ${playerNames.length + 1}"></td>
+			<td class="player-score">${startScore}</td>
+		`;
+		let historyRow = document.createElement('tr');
+		historyRow.classList.add('history-row');
+		historyRow.innerHTML = `
+			<td colspan="7" class="history scrollable"></td>
+			<td colspan="2" class="checkout hidden"></td>
+		`;
+		const scoresTblBody = document.querySelector('.scores-tbl tbody');
+		scoresTblBody.insertBefore(playerRow, scoresTblBody.lastElementChild);
+		scoresTblBody.insertBefore(historyRow, scoresTblBody.lastElementChild);
+		updatePlayers();
+		if (playerNames.length === 1) cyclePlayers();
+		if (playerNames.length >= 4) document.querySelector('.add-player').classList.add('hidden');
+		const playerNameInput = playerRow.querySelector('.player-name input');
+		playerNameInput.focus();
+		playerNameInput.select();
+		playerNameInput.addEventListener('keydown', function(event) {
+			if (event.key === 'Enter') {
+				playerNameInput.blur();
+			}
+		});
+	});
 
 	function submitScore(score) {
-		// submit score
-		// debugSpan.textContent = score;
 
-		globalScore = score;
+		// Update player scores
+		if (score <= playerScores[activePlayer]) {
+			playerScores[activePlayer] -= score;
+			playerHistory[activePlayer].push(score);
+			playerCheckout[activePlayer] = getCheckout(playerScores[activePlayer]);
 
-		let co = getCheckout(score);
+			const playerRow = document.querySelectorAll('.player-row')[activePlayer];
+			const playerScoreCell = playerRow.querySelector('.player-score');
+			playerScoreCell.textContent = playerScores[activePlayer];
 
-		checkout.innerHTML = co;
+			const historyRow = document.querySelectorAll('.history-row')[activePlayer];
+			const checkoutCell = historyRow.querySelector('.checkout');
+			const historyCell = historyRow.querySelector('.history');
+
+			if (playerCheckout[activePlayer]) {
+				historyCell.setAttribute('colspan', '5');
+				checkoutCell.classList.remove('hidden');
+				checkoutCell.innerHTML = playerCheckout[activePlayer];
+			} else {
+				historyCell.setAttribute('colspan', '7');
+				checkoutCell.classList.add('hidden');
+			}
+
+			const scoreSpan = document.createElement('span');
+			scoreSpan.innerHTML = `<b>${score}</b>`;
+			historyCell.insertBefore(scoreSpan, historyCell.firstChild);
+
+			if (playerScores[activePlayer] === 0) {
+				playerWins[activePlayer][0]++;
+				if (playerWins[activePlayer][0] === legCount) {
+					playerWins[activePlayer][0] = 0;
+					playerWins[activePlayer][1]++;
+					if (playerWins[activePlayer][1] === setCount) {
+						alert(`${playerNames[activePlayer]} wins!`);
+					}
+				}
+
+				playerScores[activePlayer] = startScore;
+				playerHistory[activePlayer] = [null];
+				playerCheckout[activePlayer] = null;
+				cyclePlayers();
+			}
+
+			// Update player wins
+			playerWins.forEach((wins, idx) => {
+				const playerRow = document.querySelectorAll('.player-row')[idx];
+				const playerWinsCell = playerRow.querySelector('.player-wins');
+				playerWinsCell.innerHTML = `<u>${wins[0]}</u><br>${wins[1]}`;
+			});
+		}
 
 		resetBtn.click();
 		dartsClear.click();
+
+		cyclePlayers();
+	}
+
+	function cyclePlayers() {
+		activePlayer = (activePlayer + 1) % playerNames.length;
+		document.querySelectorAll('.player-row').forEach((row, idx) => {
+			if (idx === activePlayer) row.classList.add('active');
+			else row.classList.remove('active');
+		});
 	}
 
 	function getCheckout(score, idx = 0) {
@@ -41,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 		// Brute-force combinations
 		const results = [];
-		const maxDarts = score <= 40 ? 2 : 3; // Always consider 2 darts for scores <= 40
+		const maxDarts = score <= 60 ? 2 : 3; // Always consider 2 darts for scores <= 40
 	
 		// Prioritize darts: trebles first, then doubles, then singles, sorted by largest numbers
 		const allDarts = [...trebles, ...doubles, ...singles, ...specials].sort((a, b) => values[b] - values[a]);
@@ -64,14 +164,12 @@ document.addEventListener('DOMContentLoaded', function() {
 		if (results.length === 0) return '';
 		idx %= results.length;
 		return `&#127919; ${results[idx].join(' ')}`;
-	}	// TODO: Limit dart count to optimal again
+	}
 
 	// checkout click event
-	checkout.addEventListener('click', function() {
-		checkout.innerHTML = getCheckout(globalScore, ++index);
-	});
-
-
+	// checkout.addEventListener('click', function() {
+	// 	checkout.innerHTML = getCheckout(globalScore, ++index);
+	// });
 	
 	// CALCULATOR
 
