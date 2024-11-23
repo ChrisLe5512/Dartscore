@@ -15,6 +15,51 @@
 
 <body>
 	<main>
+		<div class="settings-background">
+			<section class="settings-section">
+				<table class="settings-tbl">
+					<tbody>
+						<tr>
+							<td colspan="2">
+								<label for="start-score">Start Score:</label>
+								<select id="start-score" name="start-score">
+									<option value="301">301</option>
+									<option value="501">501</option>
+									<option value="701">701</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<label for="num-legs">Number of Legs:</label>
+								<input type="number" id="num-legs" name="num-legs" min="1" value="3">
+							</td>
+							<td>
+								<label for="num-sets">Number of Sets:</label>
+								<input type="number" id="num-sets" name="num-sets" min="1" value="2">
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2">
+								<table class="players-tbl">
+									<tbody>
+										<tr class="player-row">
+											<td><input type="text" value="Player 1"></td>
+											<td class="move-up disabled">&#x25B2;</td>
+											<td class="move-down disabled">&#x25BC;</td>
+											<td class="delete-player disabled">&#10006;</td>
+										</tr>
+										<tr class="add-player">
+											<td colspan="4">+</td>
+										</tr>
+									</tbody>
+								</table>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</section>
+		</div>
 		<aside>
 			<section class="scores-section">
 				<table class="scores-tbl">
