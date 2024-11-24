@@ -29,7 +29,7 @@ section {
 
 aside {
 	width: 30%;
-	border-right: 2px solid white;
+	border-right: 3.7px solid white;
 	background: linear-gradient(#484848, #161616);
 	z-index: 1;
 }
@@ -49,7 +49,7 @@ aside {
 
 .settings-section {
 	background: linear-gradient(#484848, #161616);
-	border: 2px solid white;
+	border: 3.7px solid white;
 	border-radius: 10px;
 	padding: 2vh;
 	width: 50%;
@@ -73,7 +73,7 @@ aside {
 	background: #242424;
 	border: 1px solid #969696;
 	color: white;
-	border-radius: 5px;
+	border-radius: 10px;
 }
 
 /* SCORES */
@@ -82,7 +82,7 @@ aside {
 	height: 60%;
 	box-sizing: border-box;
 	/* border-collapse: collapse; */
-	border-bottom: 2px solid white;
+	border-bottom: 3.7px solid white;
 }
 
 .scores-tbl {
@@ -112,6 +112,12 @@ aside {
 	text-align: center;
 	text-shadow: 0 0 0.5vh black;
 	line-height: 1.05;
+	padding-left: 1vw;
+}
+
+.player-wins i {
+	font-size: 2.5vh;
+	font-style: normal;
 }
 
 .player-name input {
@@ -154,8 +160,8 @@ aside {
 	overflow-x: auto;
 	white-space: nowrap;
 	padding-left: 1vw;
-	border-bottom: 2px solid white;
-	border-top: 2px solid #969696;
+	border-bottom: 3.7px solid white;
+	border-top: 3.7px solid #969696;
 }
 
 /* .fade {
@@ -186,8 +192,8 @@ aside {
 	text-align: right;
 	padding-right: 1vw;
 	color: #00c800;
-	border-bottom: 2px solid white;
-	border-top: 2px solid #969696;
+	border-bottom: 3.7px solid white;
+	border-top: 3.7px solid #969696;
 }
 
 .add-player {
@@ -199,7 +205,7 @@ aside {
 
 .add-player td {
 	font-size: 6vh;
-	border-bottom: 2px solid white;
+	border-bottom: 3.7px solid white;
 	box-sizing: border-box;
 	height: 15vh;
 	cursor: pointer;
@@ -225,7 +231,7 @@ aside {
 
 .calc-tbl {
 	table-layout: fixed;
-	border-spacing: 4px;
+	border-spacing: 5px;
 	width: 100%;
 	height: 100%;
 	text-align: center;
@@ -237,17 +243,27 @@ aside {
 }
 
 .calc-tbl td {
-	border: 2px solid white;
-	border-radius: 6px;
+	border: 3.7px solid white;
+	border-radius: 10px;
 	height: 7.5vh;
 	background: linear-gradient(#808080, #484848);
 	cursor: pointer;
 }
 
+.calc-tbl td:not(.calc-score):active {
+	background: linear-gradient(#484848, #202020);
+	font-size: 5.5vh;
+}
+
+.calc-tbl td.back-score:active {
+	background: linear-gradient(#484848, #202020);
+	font-size: 4.75vh;
+}
+
 .calc-tbl td.disabled {
 	color: #969696;
 	background: linear-gradient(#484848, #161616);
-	border: 2px solid #969696;
+	border: 3.7px solid #969696;
 	pointer-events: none;
 }
 
@@ -294,7 +310,7 @@ td.back-score {
 
 .ctrl-tbl {
 	table-layout: fixed;
-	border-spacing: 4px;
+	border-spacing: 5px;
 	width: 12.5vw;
 	height: 100%;
 	text-align: center;
@@ -308,8 +324,8 @@ td.back-score {
 	font-size: 6vh;
 	line-height: 1;
 	overflow: hidden;
-	border: 2px solid white;
-	border-radius: 6px;
+	border: 3.7px solid white;
+	border-radius: 10px;
 	background: linear-gradient(#808080, #404040);
 	pointer-events: auto;
 	cursor: pointer;
@@ -318,7 +334,7 @@ td.back-score {
 .ctrl-tbl td.disabled {
 	color: #969696;
 	background: linear-gradient(#404040, #202020);
-	border: 2px solid #969696;
+	border: 3.7px solid #969696;
 	cursor: default;
 }
 
@@ -345,7 +361,7 @@ td.back-score {
 
 .btn-tbl {
 	table-layout: fixed;
-	border-spacing: 4px;
+	border-spacing: 5px;
 	width: 296%;
 	height: 100%;
 	text-align: center;
@@ -357,8 +373,8 @@ td.back-score {
 .btn-tbl td {
 	height: 7.5%;
 	overflow: hidden;
-	border: 2px solid white;
-	border-radius: 6px;
+	border: 3.7px solid white;
+	border-radius: 10px;
 	background: linear-gradient(#808080, #404040);
 	pointer-events: auto;
 }
@@ -366,7 +382,7 @@ td.back-score {
 .btn-tbl td.disabled {
 	color: #969696;
 	background: linear-gradient(#404040, #202020);
-	border: 2px solid #969696;
+	border: 3.7px solid #969696;
 	cursor: default;
 }
 
@@ -419,8 +435,8 @@ td.back-score {
 	width: 70%;
 	height: 8.65vh;
 	margin: 1vh 0;
-	border: 2px solid transparent;
-	border-radius: 6px;
+	border: 3.7px solid transparent;
+	border-radius: 10px;
 	text-shadow: 0 0 0.5vh black;
 	pointer-events: auto;
 }
@@ -479,7 +495,7 @@ td.back-score {
 	left: 150%;
 	transform: translate(-50%, -50%);
 	background: linear-gradient(#565656, #404040);
-	border-radius: 6px;
+	border-radius: 10px;
 }
 
 /* DARTBOARD */
@@ -533,7 +549,7 @@ td.back-score {
 	width: 100%;
 	height: 62.5vw;
 	background-color: red;
-	border: 2px solid white;
+	border: 3.7px solid white;
 	box-sizing: border-box;
 	z-index: 2;
 }
@@ -545,7 +561,7 @@ td.back-score {
 	width: 100%;
 	height: 56.25vw;
 	background-color: red;
-	border: 2px solid white;
+	border: 3.7px solid white;
 	box-sizing: border-box;
 	z-index: 2;
 }
@@ -557,7 +573,7 @@ td.back-score {
 	width: 100%;
 	height: 75vw;
 	background-color: red;
-	border: 2px solid white;
+	border: 3.7px solid white;
 	box-sizing: border-box;
 	z-index: 2;
 }

@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
 		let playerRow = document.createElement('tr');
 		playerRow.classList.add('player-row');
 		playerRow.innerHTML = `
-			<td class="player-wins"><u>0</u><br>0</td>
-			<td colspan="5" class="player-name"><input type="text" value="Player ${playerNames.length + 1}"></td>
+			<td class="player-wins"><u>0<i>/3</i></u><br>0<i>/2</i></td>
+			<td colspan="5" class="player-name"><input type="text" value=" Player ${playerNames.length + 1}"></td>
 			<td class="player-score">${startScore}</td>
 		`;
 		let historyRow = document.createElement('tr');
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			playerWins.forEach((wins, idx) => {
 				const playerRow = document.querySelectorAll('.player-row')[idx];
 				const playerWinsCell = playerRow.querySelector('.player-wins');
-				playerWinsCell.innerHTML = `<u>${wins[0]}</u><br>${wins[1]}`;
+				playerWinsCell.innerHTML = `<u>${wins[0]}</u><i>${legCount}</i><br>${wins[1]}<i>${setCount}</i>`;
 			});
 		}
 
@@ -349,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Dartboard click event
 	document.getElementById('dartboard').addEventListener('click', function(event) {
 		const rect = this.getBoundingClientRect();
-		const centerX = rect.left + rect.width / 2;
+		const centerX = rect.left + (rect.width / 2) + 2;
 		const centerY = rect.top + rect.height / 2;
 		const clickX = event.clientX - centerX;
 		const clickY = event.clientY - centerY;
@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		switch (true) {
 			case (distance <= 6): sector = 50; break;
 			case (distance <= 17): sector = 25; break;
-			default: sector = sectors[Math.floor((angle + 8) / 18) % 20 + 2];
+			default: sector = sectors[Math.floor((angle + 9) / 18) % 20 + 2];
 		}
 
 		let multiplier;
@@ -406,9 +406,8 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 
 		// debugSpan.textContent = `${dartDisplay}: ${sector}x${multiplier}=${dartTotal} (${color})`;
+		// debugSpan.textContent = `${clickX}, ${clickY}, ${distance}, ${angle}`;
 
 	});
 
 });
-
-// bull: 6%, obull: 17%
