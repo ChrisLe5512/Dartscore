@@ -90,13 +90,13 @@ aside {
     width: 100%;
 	height: 25%;
     border-spacing: 0;
-    color: white;
+    color: #f0f0f0;
 	font-weight: bold;
 	line-height: 1;
-	background: red;
 }
 
 .scores-tbl .active {
+	color: white;
 	background: linear-gradient(#c8c8c8, #646464);
 }
 
@@ -106,18 +106,41 @@ aside {
 }
 
 .player-wins {
-	width: 4vh;
+	width: 0.6vh;
 	font-size: 3.5vh;
 	font-weight: bold;
 	text-align: center;
 	text-shadow: 0 0 0.5vh black;
-	line-height: 1.05;
+	line-height: 1.1;
 	padding-left: 1vw;
+	text-underline-offset: 0.4vh;
 }
 
-.player-wins i {
+.player-wins u {
+	text-decoration-color: #c8c8c8;
+}
+
+.active .player-wins {
+	color: white;
+}
+
+.active .player-wins u {
+	text-decoration-color: #e1e1e1;
+}
+
+.target-wins {
+	color: #c8c8c8;
+	padding-top: 0.15vh;
+	width: 4vh;
 	font-size: 2.5vh;
-	font-style: normal;
+	font-weight: bold;
+	text-align: center;
+	text-shadow: 0 0 0.5vh black;
+	line-height: 1.25;
+}
+
+.active .target-wins {
+	color: #e1e1e1;
 }
 
 .player-name input {
@@ -131,10 +154,10 @@ aside {
 	font-size: 6.5vh;
 	text-align: left;
 	text-shadow: 0 0 1vh black;
-	padding-top: 0.25vh;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	text-indent: 0.5vh;
 }
 
 .player-score {
@@ -524,22 +547,12 @@ td.back-score {
 	position: absolute;
 	bottom: 1.5vh;
 	left: 37.5vw;
-	color: white;
-	font-size: 3vh;
+	color: #161616;
+	font-size: 2.5vh;
 	font-weight: bold;
 	text-underline-offset: 0.25vh;
 	line-height: 0.5;
 	text-align: center;
-}
-
-.debug-span i {
-	font-size: 2.5vh;
-	font-weight: normal;
-	font-style: normal;
-}
-
-.debug-span u {
-	text-decoration-thickness: 0.25vh;
 }
 
 .i1610 {

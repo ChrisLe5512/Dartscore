@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
+	
+	// Save data on any update
+	document.addEventListener('click', saveData);
+	document.addEventListener('keydown', saveData);
 
 	// GLOBAL
 
@@ -10,33 +14,86 @@ document.addEventListener('DOMContentLoaded', function() {
 	let playerHistory = [];
 	let playerCheckout = [];
 	let activePlayer = 0;
-
 	let startScore = 501;
 	let legCount = 3;
 	let setCount = 2;
+
+	function saveData() {
+		const data = {
+			playerWins,
+			playerNames,
+			playerScores,
+			playerHistory,
+			playerCheckout,
+			activePlayer,
+			startScore,
+			legCount,
+			setCount,
+		};
+		localStorage.setItem('dartGameData', JSON.stringify(data));
+	}
+	
+	function loadData() {
+		const data = JSON.parse(localStorage.getItem('dartGameData'));
+		console.log(data);
+		if (data) {
+			playerWins = data.playerWins;
+			playerNames = data.playerNames;
+			playerScores = data.playerScores;
+			playerHistory = data.playerHistory;
+			playerCheckout = data.playerCheckout;
+			activePlayer = data.activePlayer;
+			startScore = data.startScore;
+			legCount = data.legCount;
+			setCount = data.setCount;
+
+			addPlayer();
+
+			for (let i = 0; i < playerNames.length; i++) {
+				addPlayer(playerWins[i], playerNames[i], playerScores[i], playerHistory[i], playerCheckout[i]);
+			}
+			// playerCheckout.forEach((checkout, idx) => {
+			// 	const checkoutCell = historyRows[idx].querySelector('.checkout');
+			// 	if (checkout) {
+			// 		checkoutCell.classList.remove('hidden');
+			// 		checkoutCell.innerHTML = checkout;
+			// 	} else {
+			// 		checkoutCell.classList.add('hidden');
+			// 	}
+			// });
+			// cyclePlayers(activePlayer);
+		}
+	}
+
+	loadData();
 
 	function updatePlayers() {
 		playerWins = Array.from(document.querySelectorAll('.player-wins')).map(win => [0, 0]);
 		playerNames = Array.from(document.querySelectorAll('.player-name input')).map(input => input.value);
 		playerScores = Array.from(document.querySelectorAll('.player-score')).map(score => startScore);
-		playerHistory = Array.from(document.querySelectorAll('.history')).map(history => [null]);
-		playerCheckout = Array.from(document.querySelectorAll('.checkout')).map(checkout => null);
+		playerHistory = Array.from(document.querySelectorAll('.history')).map(history => []);
+		playerCheckout = Array.from(document.querySelectorAll('.checkout')).map(checkout => '');
 	}
 
 	// Add player click event
 	document.querySelector('.add-player').addEventListener('click', function() {
+		addPlayer();
+	});
+
+	function addPlayer(wins = [0, 0], name = `Player ${playerNames.length + 1}`, score = startScore, history = [], checkout = '') {
 		let playerRow = document.createElement('tr');
 		playerRow.classList.add('player-row');
 		playerRow.innerHTML = `
-			<td class="player-wins"><u>0<i>/3</i></u><br>0<i>/2</i></td>
-			<td colspan="5" class="player-name"><input type="text" value=" Player ${playerNames.length + 1}"></td>
-			<td class="player-score">${startScore}</td>
+			<td class="player-wins"><u>${wins[0]}&#8196;&#8196;</u><br>${wins[1]}</td>
+			<td class="target-wins">/${legCount}<br>/${setCount}</td>
+			<td colspan="4" class="player-name"><input type="text" value="${name}"></td>
+			<td class="player-score">${score}</td>
 		`;
 		let historyRow = document.createElement('tr');
 		historyRow.classList.add('history-row');
 		historyRow.innerHTML = `
-			<td colspan="7" class="history scrollable"></td>
-			<td colspan="2" class="checkout hidden"></td>
+			<td colspan="7" class="history scrollable">${history}</td>
+			<td colspan="2" class="checkout hidden">${checkout}</td>
 		`;
 		const scoresTblBody = document.querySelector('.scores-tbl tbody');
 		scoresTblBody.insertBefore(playerRow, scoresTblBody.lastElementChild);
@@ -52,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				playerNameInput.blur();
 			}
 		});
-	});
+	}
 
 	function submitScore(score) {
 
@@ -84,27 +141,20 @@ document.addEventListener('DOMContentLoaded', function() {
 			historyCell.insertBefore(scoreSpan, historyCell.firstChild);
 
 			if (playerScores[activePlayer] === 0) {
-				playerWins[activePlayer][0]++;
-				if (playerWins[activePlayer][0] === legCount) {
+				// playerWins[activePlayer][0]++;
+				if (++playerWins[activePlayer][0] === legCount) {
 					playerWins[activePlayer][0] = 0;
-					playerWins[activePlayer][1]++;
-					if (playerWins[activePlayer][1] === setCount) {
+					// playerWins[activePlayer][1]++;
+					if (++playerWins[activePlayer][1] === setCount) {
 						alert(`${playerNames[activePlayer]} wins!`);
 					}
 				}
-
-				playerScores[activePlayer] = startScore;
-				playerHistory[activePlayer] = [null];
-				playerCheckout[activePlayer] = null;
-				cyclePlayers();
+				resetBtn.click();
+				dartsClear.click();
+				resetScores();
+				cyclePlayers(0);
+				return;
 			}
-
-			// Update player wins
-			playerWins.forEach((wins, idx) => {
-				const playerRow = document.querySelectorAll('.player-row')[idx];
-				const playerWinsCell = playerRow.querySelector('.player-wins');
-				playerWinsCell.innerHTML = `<u>${wins[0]}</u><i>${legCount}</i><br>${wins[1]}<i>${setCount}</i>`;
-			});
 		}
 
 		resetBtn.click();
@@ -113,8 +163,23 @@ document.addEventListener('DOMContentLoaded', function() {
 		cyclePlayers();
 	}
 
-	function cyclePlayers() {
-		activePlayer = (activePlayer + 1) % playerNames.length;
+	function resetScores() {
+		playerWins.forEach((wins, idx) => {
+			const playerRow = document.querySelectorAll('.player-row')[idx];
+			const playerWinsCell = playerRow.querySelector('.player-wins');
+			let winsText = `<u>${wins[0]}&#8196;&#8196;</u><br>${wins[1]}&#8196;&#8196;`.replace('1&#', '&nbsp;1&nbsp;&#');
+			playerWinsCell.innerHTML = winsText;
+		});
+		playerScores = Array.from({ length: playerNames.length }, () => startScore);
+		// playerHistory = Array.from({ length: playerNames.length }, () => [null]);
+		playerCheckout = Array.from({ length: playerNames.length }, () => '');
+		document.querySelectorAll('.player-score').forEach((score, idx) => score.textContent = startScore);
+		// document.querySelectorAll('.history').forEach(history => history.innerHTML = '');
+		document.querySelectorAll('.checkout').forEach(checkout => checkout.innerHTML = '');
+	}
+
+	function cyclePlayers(next = activePlayer + 1) {
+		activePlayer = next % playerNames.length;
 		document.querySelectorAll('.player-row').forEach((row, idx) => {
 			if (idx === activePlayer) row.classList.add('active');
 			else row.classList.remove('active');
@@ -269,14 +334,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	// dartsBust click event
 	dartsBust.addEventListener('click', function() {
-		submitScore(0);
+		if (!dartsBust.classList.contains('disabled')) submitScore(0);
 	});
 
 	// dartsDone click event
 	dartsDone.addEventListener('click', function() {
-		submitScore(parseInt(dartsTotal.textContent));
-		dartsClear.click();
-		updateDarts();
+		if (!dartsDone.classList.contains('disabled')) {
+			submitScore(parseInt(dartsTotal.textContent));
+			dartsClear.click();
+			updateDarts();
+		}
 	});
 
 	function updateDarts() {
@@ -342,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				}
 			});
 
-			debugSpan.textContent = `${dartDisplay}: ${sector}x${multiplier}=${dartTotal} (${color})`;
+			// debugSpan.textContent = `${dartDisplay}: ${sector}x${multiplier}=${dartTotal} (${color})`;
 		}
 	});
 
@@ -406,7 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 
 		// debugSpan.textContent = `${dartDisplay}: ${sector}x${multiplier}=${dartTotal} (${color})`;
-		// debugSpan.textContent = `${clickX}, ${clickY}, ${distance}, ${angle}`;
+		debugSpan.innerHTML = `(${parseInt(clickX)}, ${parseInt(clickY)}) ${distance} ${angle}&deg;`;
 
 	});
 
