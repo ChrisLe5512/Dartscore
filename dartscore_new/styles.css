@@ -546,13 +546,13 @@ td.back-score {
 .debug-span {
 	position: absolute;
 	bottom: 1.5vh;
-	left: 37.5vw;
+	right: 16.5vw;
 	color: #161616;
 	font-size: 2.5vh;
 	font-weight: bold;
 	text-underline-offset: 0.25vh;
 	line-height: 0.5;
-	text-align: center;
+	text-align: right;
 }
 
 .i1610 {

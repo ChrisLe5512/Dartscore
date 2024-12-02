@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	}
 
-	loadData();
+	// loadData();
 
 	function updatePlayers() {
 		playerWins = Array.from(document.querySelectorAll('.player-wins')).map(win => [0, 0]);
@@ -230,6 +230,30 @@ document.addEventListener('DOMContentLoaded', function() {
 		idx %= results.length;
 		return `&#127919; ${results[idx].join(' ')}`;
 	}
+
+	document.querySelector('.full-screen').addEventListener('click', function () {
+		const doc = document.documentElement;
+		if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+			// Enter fullscreen mode
+			if (doc.requestFullscreen) {
+				doc.requestFullscreen();
+			} else if (doc.webkitRequestFullscreen) {
+				doc.webkitRequestFullscreen(); // Safari compatibility
+			} else if (doc.msRequestFullscreen) {
+				doc.msRequestFullscreen(); // Older Microsoft browsers
+			}
+		} else {
+			// Exit fullscreen mode
+			if (document.exitFullscreen) {
+				document.exitFullscreen();
+			} else if (document.webkitExitFullscreen) {
+				document.webkitExitFullscreen(); // Safari compatibility
+			} else if (document.msExitFullscreen) {
+				document.msExitFullscreen(); // Older Microsoft browsers
+			}
+		}
+	});
+		
 
 	// checkout click event
 	// checkout.addEventListener('click', function() {
