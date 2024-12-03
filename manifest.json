@@ -1,7 +1,7 @@
 {
 	"name": "Dartscore",
 	"short_name": "Dartscore",
-	"start_url": "/",
+	"start_url": "/Dartscore",
 	"display": "standalone",
 	"background_color": "#000000",
 	"theme_color": "#000000",
