@@ -16,6 +16,14 @@ body {
 	zoom: reset;
 	transform: scale(1);
 	transform-origin: 0 0;
+	overscroll-behavior: none;
+	touch-action: manipulation;
+}
+
+@supports (inset: 0px) {
+	body {
+		padding-bottom: env(safe-area-inset-bottom);
+	}
 }
 
 body.fullscreen {
