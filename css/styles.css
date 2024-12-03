@@ -6,6 +6,7 @@
 html, body {
 	margin: 0;
 	padding: 0;
+	width: 100%;
 	height: 100%;
 	overflow: hidden;
 	font-family: "Agency FB", sans-serif;
@@ -15,6 +16,17 @@ body {
 	zoom: reset;
 	transform: scale(1);
 	transform-origin: 0 0;
+}
+
+body.fullscreen {
+	padding-bottom: calc(env(safe-area-inset-bottom) + 20px); /* Extend content */
+}
+
+.fullscreen {
+	-webkit-app-region: no-drag;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
 }
 
 main {
