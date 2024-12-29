@@ -14,8 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	let playerHistory = [];
 	let playerCheckout = [];
 	let activePlayer = 0;
-	let startScore = 501;
-	let legCount = 3;
+	let startScore = 301;
+	let legCount = 2;
 	let setCount = 2;
 
 	function saveData() {
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		playerRow.classList.add('player-row');
 		playerRow.innerHTML = `
 			<td class="player-wins"><u>${wins[0]}&#8196;&#8196;</u><br>${wins[1]}</td>
-			<td class="target-wins">/${legCount}<br>/${setCount}</td>
+			<td class="target-wins">&nbsp;/${legCount}<br>&nbsp;/${setCount}</td>
 			<td colspan="4" class="player-name"><input type="text" value="${name}"></td>
 			<td class="player-score">${score}</td>
 		`;
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		playerWins.forEach((wins, idx) => {
 			const playerRow = document.querySelectorAll('.player-row')[idx];
 			const playerWinsCell = playerRow.querySelector('.player-wins');
-			let winsText = `<u>${wins[0]}&#8196;&#8196;</u><br>${wins[1]}&#8196;&#8196;`.replace('1&#', '&nbsp;1&nbsp;&#');
+			let winsText = `<u>${wins[0]}&#8196;&#8196;</u><br>${wins[1]}&#8196;&#8196;`;
 			playerWinsCell.innerHTML = winsText;
 		});
 		playerScores = Array.from({ length: playerNames.length }, () => startScore);
@@ -231,8 +231,19 @@ document.addEventListener('DOMContentLoaded', function() {
 		return `&#127919; ${results[idx].join(' ')}`;
 	}
 
-	document.querySelector('.full-screen').addEventListener('click', function () {
+	document.querySelector('.full-screen').addEventListener('click', toggleFullscreen);
+
+	document.addEventListener('keydown', function (event) {
+		// Detect F11 key
+		if (event.key === 'F11') {
+			event.preventDefault(); // Prevent the default F11 behavior (browser's native fullscreen)
+			toggleFullscreen();
+		}
+	});
+
+	function toggleFullscreen() {
 		const doc = document.documentElement;
+
 		if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
 			// Enter fullscreen mode
 			if (doc.requestFullscreen) {
@@ -252,8 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				document.msExitFullscreen(); // Older Microsoft browsers
 			}
 		}
-	});
-		
+	}
 
 	// checkout click event
 	// checkout.addEventListener('click', function() {
@@ -354,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	const dartSpans = document.querySelectorAll('.darts span');
 	const dartsClear = document.querySelector('.darts-clear');
 	const dartsTotal = document.querySelector('.darts-total');
-	const dbSec = document.querySelector('.dartboard-section');
+	// const dbSec = document.querySelector('.dartboard-section');
 
 	// dartsBust click event
 	dartsBust.addEventListener('click', function() {
@@ -421,26 +431,41 @@ document.addEventListener('DOMContentLoaded', function() {
 	});
 
 	// dbSec click event
-	dbSec.addEventListener('click', function(event) {
-		if (event.target === this) {
-			let counted = false;
-			dartSpans.forEach(span => {
-				if (!counted && span.innerHTML.trim() === '') {
-					span.innerHTML = `<u>0</u>`;
-					span.classList.add('zero');
-					counted = true;
-					updateDarts();
-				}
-			});
+	// dbSec.addEventListener('click', function(event) {
+	// 	if (event.target === this) {
+	// 		let counted = false;
+	// 		dartSpans.forEach(span => {
+	// 			if (!counted && span.innerHTML.trim() === '') {
+	// 				span.innerHTML = `<u>0</u>`;
+	// 				span.classList.add('zero');
+	// 				counted = true;
+	// 				updateDarts();
+	// 			}
+	// 		});
+	// 		// debugSpan.textContent = `${dartDisplay}: ${sector}x${multiplier}=${dartTotal} (${color})`;
+	// 	}
+	// });
 
-			// debugSpan.textContent = `${dartDisplay}: ${sector}x${multiplier}=${dartTotal} (${color})`;
+	document.getElementById('dartboard').addEventListener('mousemove', function(event) {
+		const rect = this.getBoundingClientRect();
+		const centerX = rect.left + rect.width / 2;
+		const centerY = rect.top + rect.height / 2;
+		const clickX = event.clientX - centerX;
+		const clickY = event.clientY - centerY;
+		const distance = Math.round(Math.sqrt(clickX * clickX + clickY * clickY) / (rect.width / 2) * 100);
+	
+		// If the cursor is within the threshold distance, set the cursor to a crosshair
+		if (distance <= 100) {
+			this.style.cursor = 'crosshair';
+		} else {
+			this.style.cursor = 'default';
 		}
 	});
 
 	// Dartboard click event
 	document.getElementById('dartboard').addEventListener('click', function(event) {
 		const rect = this.getBoundingClientRect();
-		const centerX = rect.left + (rect.width / 2) + 2;
+		const centerX = rect.left + rect.width / 2;
 		const centerY = rect.top + rect.height / 2;
 		const clickX = event.clientX - centerX;
 		const clickY = event.clientY - centerY;
@@ -464,7 +489,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			case (distance <= 46): multiplier = 3; break;
 			case (distance <= 68): multiplier = 1; break;
 			case (distance <= 83): multiplier = 2; break;
-			default: multiplier = 0;
+			case (distance <= 100): multiplier = 0; break;
+			default: return;
 		}
 
 		let color = colors[!!multiplier + (!!multiplier * sectors.indexOf(sector)) % 2 + (multiplier > 1 || sector > 20 ? 2 : 0)];
@@ -497,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 
 		// debugSpan.textContent = `${dartDisplay}: ${sector}x${multiplier}=${dartTotal} (${color})`;
-		debugSpan.innerHTML = `(${parseInt(clickX)}, ${parseInt(clickY)}) ${distance} ${angle}&deg;`;
+		debugSpan.innerHTML = `(${parseInt(clickX)}, ${parseInt(clickY)}) ${distance}% ${angle}&deg;`;
 
 	});
 
