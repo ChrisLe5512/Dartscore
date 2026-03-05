@@ -115,8 +115,12 @@ document.addEventListener('DOMContentLoaded', function() {
 	// DARTBOARD
 
 	const dartSpans = document.querySelectorAll('.darts span');
-	const dartsClear = document.querySelector('.darts-clear');
-	const dartsTotal = document.querySelector('.darts-total');
+	const dartsClear = document.querySelectorAll('.darts-btn')[0];
+	const dartsFrame = document.querySelectorAll('.darts-btn')[1];
+	const dartsTotal = document.querySelectorAll('.darts-btn')[2];
+	const dartsBust = document.querySelector('.bust-btn');
+	const dartsDone = document.querySelector('.done-btn');
+	const overlay = document.querySelector('.overlay');
 
 	function updateDarts() {
 		let total = 0;
@@ -131,12 +135,37 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 		if (total === 0) {
 			dartsClear.textContent = 'Darts';
+			dartsClear.classList.remove('darts-clear');
 			dartsTotal.textContent = '';
+			dartsTotal.classList.remove('darts-total');
+			dartsFrame.classList.add('darts-frame-disabled');
+			dartsDone.classList.add('disabled');
+
 		} else {
 			dartsClear.textContent = 'Clear';
+			dartsClear.classList.add('darts-clear');
 			dartsTotal.textContent = total;
+			dartsTotal.classList.add('darts-total');
+			dartsFrame.classList.remove('darts-frame-disabled');
+			dartsDone.classList.remove('disabled');
 		}
 	}
+
+	dartsBust.addEventListener('click', function() {
+		if (dartsBust.textContent === 'BUST') {
+			dartsBust.textContent = 'BUST ?';
+			overlay.classList.remove('hidden');
+		} else {
+			submitScore(0);
+			dartSpans.forEach(span => {
+				span.innerHTML = '';
+				span.classList = '';
+			});
+			updateDarts();
+			dartsBust.textContent = 'BUST';
+			overlay.classList.add('hidden');
+		}
+	});
 
 	dartsClear.addEventListener('click', function() {
 		dartSpans.forEach(span => {
@@ -159,6 +188,20 @@ document.addEventListener('DOMContentLoaded', function() {
 			dartSpans[2].classList = '';
 			updateDarts();
 		});
+	});
+
+	dartsDone.addEventListener('click', function() {
+		submitScore(parseInt(dartsTotal.textContent));
+		dartSpans.forEach(span => {
+			span.innerHTML = '';
+			span.classList = '';
+		});
+		updateDarts();
+	});
+
+	overlay.addEventListener('click', function() {
+		dartsBust.textContent = 'BUST';
+		overlay.classList.add('hidden');
 	});
 
 	document.getElementById('dartboard').addEventListener('click', function(event) {
@@ -227,21 +270,35 @@ document.addEventListener('DOMContentLoaded', function() {
 		counted = false;
 		dartSpans.forEach(span => {
 			if (!counted && span.innerHTML.trim() === '') {
-				if (multiplier === 1 && sector != 25 && sector != 50) {
+				if (multiplier === 1 && sector <= 20) {
 					span.innerHTML = `<u>${dartDisplay}</u>`;
 					span.classList.add('single');
 				} else {
 					span.innerHTML = `<u>${dartDisplay}</u><br>${dartTotal}`;
-					if (multiplier === 2 || sector === 25) {
-						span.classList.add('double');
-					} else if (multiplier === 3 || sector === 50) {
-						span.classList.add('triple');
+					if ([1, 4, 6, 15, 17, 19, 16, 11, 9, 25].includes(sector)) {
+						span.classList.add('green');
+					} else {
+						span.classList.add('red');
 					}
 				}
 				counted = true;
 				updateDarts();
 			}
 		});
+
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+		const dot = document.createElement('div');
+        dot.classList.add('dot');
+
+        // Position the dot
+        dot.style.left = `${x - 5}px`; // Adjust by half the dot's width
+        dot.style.top = `${y - 5}px`;  // Adjust by half the dot's height
+
+		// Add the dot to the board
+		document.getElementById('dartboard').appendChild(dot);
+		
 
 	});
 
