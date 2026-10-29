@@ -764,10 +764,18 @@ td.back-score {
 
 /* BUTTONS */
 
-/* Keypad show/hide: the arrow points down to hide, up to show. */
+/* Keypad show/hide: a keypad symbol, and an arrow that points down to hide, up to show. */
+.keypad-btn .keypad-icon {
+	font-size: 3.6vh;
+	font-weight: normal;
+	vertical-align: middle;
+}
+
 .keypad-btn span {
 	display: inline-block;
-	font-size: 4.5vh;
+	margin-left: 0.3vh;
+	font-size: 3vh;
+	vertical-align: middle;
 	transition: transform var(--medium) var(--ease-out);
 }
 
