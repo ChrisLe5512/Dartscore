@@ -571,7 +571,9 @@ function renderKeypad() {
 	const score = turn.keypad;
 	const up = score === String(MAX_TURN_SCORE) ? 'b' : 'i'; // <b> = greyed arrow at the limit
 	const down = score === '0' ? 'b' : 'i';
-	scoreDisplay.innerHTML = score === '' ? '' : `<${up}>&#x25B4;</${up}><br>${score}<br><${down}>&#x25BE;</${down}>`;
+	// The arrows sit on a face that tips with the box; the number stays still.
+	scoreDisplay.innerHTML = score === '' ? ''
+		: `<span class="score-face"><${up}>&#x25B4;</${up}><${down}>&#x25BE;</${down}></span><span class="score-num">${score}</span>`;
 
 	const empty = score === '';
 	[backBtn, resetBtn, scoreDisplay].forEach(el => el.classList.toggle('disabled', empty));

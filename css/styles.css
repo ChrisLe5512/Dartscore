@@ -882,11 +882,13 @@ td.calc-score.disabled::before {
 	background: #242424;
 }
 
-td.calc-score.tip-up:not(.disabled)::before {
+td.calc-score.tip-up:not(.disabled)::before,
+td.calc-score.tip-up:not(.disabled) .score-face {
 	animation: tip-up 260ms var(--ease-out);
 }
 
-td.calc-score.tip-down:not(.disabled)::before {
+td.calc-score.tip-down:not(.disabled)::before,
+td.calc-score.tip-down:not(.disabled) .score-face {
 	animation: tip-down 260ms var(--ease-out);
 }
 
@@ -899,6 +901,24 @@ td.calc-score.tip-down:not(.disabled)::before {
 
 @keyframes tip-down {
 	30% { transform: perspective(var(--tip-depth, 30vmin)) translateY(1.9%) rotateX(-7deg); }
+}
+
+/* Same box as the plate, so it tips exactly with it. The arrows sit one line
+   above and below the middle, where the number is. */
+.score-face {
+	position: absolute;
+	inset: calc(-1 * var(--line));
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 5.25vmin;
+	pointer-events: none;
+}
+
+.score-face > * {
+	display: block;
+	height: 5.25vmin;
 }
 
 td.calc-score b {
