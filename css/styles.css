@@ -694,34 +694,54 @@ aside.keypad-hidden .calc-section {
 	pointer-events: none;
 }
 
+/* The box itself is a "plate" behind the text (::before), so it can tip
+   like a rocker switch while the number stays put. */
 td.calc-score {
+	position: relative;
+	isolation: isolate;
 	font-family: var(--font-condensed);
 	font-weight: 500;
 	line-height: 5.25vh;
-	background: #323232;
+	background: none;
+	border-color: transparent;
 	text-shadow: 0 0 1vh black;
 }
 
-/* Tapping the top or bottom half tips the box like a rocker switch. */
-td.calc-score.tip-up:not(.disabled) {
+td.calc-score::before {
+	content: "";
+	position: absolute;
+	inset: calc(-1 * var(--line));
+	z-index: -1;
+	border: var(--border);
+	border-radius: var(--radius);
+	background: #323232;
+}
+
+td.calc-score.disabled {
+	background: none;
+	border-color: transparent;
+	pointer-events: none;
+}
+
+td.calc-score.disabled::before {
+	border: var(--border-muted);
+	background: #242424;
+}
+
+td.calc-score.tip-up:not(.disabled)::before {
 	animation: tip-up 260ms var(--ease-out);
 }
 
-td.calc-score.tip-down:not(.disabled) {
+td.calc-score.tip-down:not(.disabled)::before {
 	animation: tip-down 260ms var(--ease-out);
 }
 
 @keyframes tip-up {
-	30% { transform: perspective(30vh) rotateX(16deg); }
+	30% { transform: perspective(30vh) rotateX(7deg); }
 }
 
 @keyframes tip-down {
-	30% { transform: perspective(30vh) rotateX(-16deg); }
-}
-
-td.calc-score.disabled {
-	background: #242424;
-	pointer-events: none;
+	30% { transform: perspective(30vh) rotateX(-7deg); }
 }
 
 td.calc-score b {
