@@ -1,4 +1,4 @@
-import { BOARD_RINGS, BOARD_SECTORS } from './config.js';
+import { BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_SECTORS } from './config.js';
 
 /**
  * A single dart: { sector, multiplier, value, label, color }
@@ -30,28 +30,68 @@ export function dartColor(sector, multiplier) {
 
 export const isDouble = dart => dart.multiplier === 2;
 
+// ---- Geometry ----------------------------------------------------------------
+
+const MIN_SINGLE = 4; // the single beds never get thinner than this (% of radius)
+
+/** A layout value clamped to its limits, or the default when missing. */
+function layoutValue(layout, key) {
+	const [min, max] = BOARD_LAYOUT_LIMITS[key];
+	const n = Number(layout?.[key]);
+	return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : BOARD_LAYOUT[key];
+}
+
 /**
- * Work out which dart a tap hit.
- * dx, dy: offset from the board centre in px. radius: board radius in px.
- * Returns null when the tap is outside the board.
+ * Ring edges (outer radius of each ring, in % of the board radius) from a
+ * layout like BOARD_LAYOUT. Values are clamped and kept in order, with room
+ * left for the single beds.
  */
-export function hitTest(dx, dy, radius) {
-	const distance = Math.round(Math.hypot(dx, dy) / radius * 100);
-	if (distance > BOARD_RINGS.numberRing) return null;
+export function boardRings(layout = BOARD_LAYOUT) {
+	const double = 100 - layoutValue(layout, 'legend');
+	const outerSingle = double - layoutValue(layout, 'double');
+	const bull = layoutValue(layout, 'bull');
+	const outerBull = Math.max(bull + 2, layoutValue(layout, 'outerBull'));
+	const width = layoutValue(layout, 'treble');
+	const trebleAt = Math.max(outerBull + 1, Math.min(
+		outerSingle - width - MIN_SINGLE,
+		Math.max(outerBull + MIN_SINGLE, layoutValue(layout, 'trebleAt')),
+	));
+	return { bull, outerBull, innerSingle: trebleAt, treble: trebleAt + width, outerSingle, double, numberRing: 100 };
+}
 
-	if (distance <= BOARD_RINGS.bull) return makeDart(25, 2);
-	if (distance <= BOARD_RINGS.outerBull) return makeDart(25, 1);
+export const DEFAULT_RINGS = Object.freeze(boardRings());
 
-	const angle = (Math.round(Math.atan2(dy, dx) * 180 / Math.PI) + 450) % 360; // 0 = top, clockwise
-	const sector = BOARD_SECTORS[Math.floor((angle + 9) / 18) % 20];
+// Inside out: each ring's name and what a dart there scores.
+export const RINGS = Object.freeze([
+	['bull', 2], ['outerBull', 1], ['innerSingle', 1], ['treble', 3],
+	['outerSingle', 1], ['double', 2], ['numberRing', 0],
+]);
 
-	if (distance <= BOARD_RINGS.innerSingle) return makeDart(sector, 1);
-	if (distance <= BOARD_RINGS.treble) return makeDart(sector, 3);
-	if (distance <= BOARD_RINGS.outerSingle) return makeDart(sector, 1);
-	if (distance <= BOARD_RINGS.double) return makeDart(sector, 2);
-	return makeDart(sector, 0);
+/**
+ * Where a point lands: { sector, ring } with ring one of the RINGS names
+ * (sector 25 for the bulls), or null outside the board.
+ * dx, dy: offset from the board centre. radius: board radius, same units.
+ */
+export function locate(dx, dy, radius, rings = DEFAULT_RINGS) {
+	const distance = Math.hypot(dx, dy) / radius * 100;
+	const ring = RINGS.find(([name]) => distance <= rings[name])?.[0];
+	if (!ring) return null;
+	if (ring === 'bull' || ring === 'outerBull') return { sector: 25, ring };
+	const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 450) % 360; // 0 = top, clockwise
+	return { sector: BOARD_SECTORS[Math.floor((angle + 9) / 18) % 20], ring };
+}
+
+/**
+ * Work out which dart a tap hit, or null when the tap is outside the board.
+ * dx, dy: offset from the board centre in px. radius: board radius in px.
+ */
+export function hitTest(dx, dy, radius, rings = DEFAULT_RINGS) {
+	const spot = locate(dx, dy, radius, rings);
+	if (!spot) return null;
+	const multiplier = RINGS.find(([name]) => name === spot.ring)[1];
+	return makeDart(spot.sector, multiplier);
 }
 
 export function isOnBoard(dx, dy, radius) {
-	return Math.round(Math.hypot(dx, dy) / radius * 100) <= BOARD_RINGS.numberRing;
+	return Math.hypot(dx, dy) / radius * 100 <= 100;
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { hitTest, makeDart } from '../js/board.js';
+import { boardRings, DEFAULT_RINGS, hitTest, locate, makeDart } from '../js/board.js';
 import { canCheckout, getCheckouts } from '../js/checkout.js';
 
 const R = 100; // board radius in px for these tests
@@ -30,6 +30,27 @@ test('sectors go clockwise from 20', () => {
 	assert.equal(hit(25, 8).sector, 20);
 	assert.equal(hit(25, 10).sector, 1);
 	assert.equal(hit(25, 352).sector, 20);
+});
+
+test('default layout keeps the original ring edges', () => {
+	assert.deepEqual({ ...DEFAULT_RINGS }, { bull: 6, outerBull: 17, innerSingle: 34, treble: 46, outerSingle: 68, double: 83, numberRing: 100 });
+});
+
+test('custom layouts move the rings and hit detection follows', () => {
+	const rings = boardRings({ bull: 4, outerBull: 10, trebleAt: 55, treble: 6, double: 6, legend: 12 });
+	assert.deepEqual(rings, { bull: 4, outerBull: 10, innerSingle: 55, treble: 61, outerSingle: 82, double: 88, numberRing: 100 });
+	assert.equal(hitTest(...at(58, 0), R, rings).label, 'T20');
+	assert.equal(hitTest(...at(40, 0), R, rings).label, '20'); // treble with the default layout
+	assert.equal(hitTest(...at(85, 0), R, rings).label, 'D20');
+	assert.equal(hitTest(...at(90, 0), R, rings).label, '0');
+	assert.deepEqual(locate(...at(8, 0), R, rings), { sector: 25, ring: 'outerBull' });
+});
+
+test('layouts are clamped and keep the rings in order', () => {
+	const rings = boardRings({ bull: 99, outerBull: 1, trebleAt: 99, treble: 99, double: 99, legend: 99 });
+	const order = [rings.bull, rings.outerBull, rings.innerSingle, rings.treble, rings.outerSingle, rings.double, rings.numberRing];
+	order.slice(1).forEach((edge, i) => assert.ok(edge > order[i], `ring ${i + 1} is outside ring ${i}`));
+	assert.deepEqual(boardRings({ bull: 'x' }), boardRings());
 });
 
 test('colours match the real board', () => {

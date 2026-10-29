@@ -21,16 +21,31 @@ export const IMPOSSIBLE_TURN_SCORES = new Set([163, 166, 169, 172, 173, 175, 176
 // Clockwise from the top of the board.
 export const BOARD_SECTORS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
 
-// Ring edges as a percentage of the board image's radius (measured on dartboard_base.webp).
-export const BOARD_RINGS = Object.freeze({
-	bull: 6,
-	outerBull: 17,
-	innerSingle: 34,
-	treble: 46,
-	outerSingle: 68,
-	double: 83,
-	numberRing: 100, // counts as a miss (0)
+// Board layout in % of the board radius (100 = outer edge of the number ring).
+// Adjustable in Settings > Visuals; hit detection always follows what is drawn.
+export const BOARD_LAYOUT = Object.freeze({
+	bull: 6,        // bullseye radius
+	outerBull: 17,  // outer bull radius
+	trebleAt: 34,   // where the treble ring starts
+	treble: 12,     // treble ring width
+	double: 15,     // double ring width
+	legend: 17,     // number ring width (counts as a miss)
 });
+
+// [min, max] for each layout value.
+export const BOARD_LAYOUT_LIMITS = Object.freeze({
+	bull: [3, 12],
+	outerBull: [8, 28],
+	trebleAt: [20, 70],
+	treble: [4, 20],
+	double: [4, 20],
+	legend: [8, 25],
+});
+
+// The white rings around the doubles and the board edge (width in % of the radius).
+export const BOARD_STYLE = Object.freeze({ outline: 0.8, outlineColor: '#ffffff', wires: false });
+export const BOARD_OUTLINE_LIMITS = Object.freeze([0, 2.5]);
+export const BOARD_OUTLINE_COLORS = Object.freeze(['#ffffff', '#c8c8c8', '#d4af37', '#000000']);
 
 export const STORAGE_KEY = 'dartscore:v2';
 export const PREFS_KEY = 'dartscore:prefs'; // per-device view choices, e.g. keypad hidden
