@@ -35,3 +35,6 @@ export const BOARD_RINGS = Object.freeze({
 export const STORAGE_KEY = 'dartscore:v2';
 export const LEGACY_STORAGE_KEYS = ['dartGameData'];
 export const MAX_UNDO_STEPS = 200;
+
+// How long a status toast stays on screen.
+export const TOAST_MS = 2200;

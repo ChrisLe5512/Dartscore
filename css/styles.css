@@ -13,6 +13,12 @@
 	--checkout: #00c800;
 	--font: "Roboto Flex", sans-serif;
 	--font-condensed: "Roboto Condensed", sans-serif;
+	--bust: #ff3216;
+	--ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+	--ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+	--fast: 120ms;
+	--medium: 220ms;
+	--slow: 400ms;
 }
 
 [hidden] {
@@ -669,4 +675,201 @@ td.back-score {
 	text-underline-offset: 0.25vh;
 	line-height: 0.5;
 	text-align: right;
+}
+
+/* TOAST */
+
+.toast {
+	position: absolute;
+	top: 2.5vh;
+	left: 61%;
+	z-index: 50;
+	max-width: 40vw;
+	padding: 1vh 2.5vh;
+	box-sizing: border-box;
+	font-family: var(--font-condensed);
+	font-size: 3.5vh;
+	line-height: 1.2;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: var(--text);
+	text-shadow: 0 0 1vh black;
+	background: var(--panel);
+	border: var(--border);
+	border-radius: var(--radius);
+	box-shadow: 0 1vh 3vh rgba(0, 0, 0, 0.6);
+	pointer-events: none;
+	transform: translateX(-50%);
+	animation: toast-in var(--medium) var(--ease-back);
+}
+
+.toast.leaving {
+	animation: toast-out var(--medium) var(--ease-out) forwards;
+}
+
+.toast-title {
+	font-weight: 600;
+}
+
+.toast-detail {
+	color: #c8c8c8;
+}
+
+.toast.bust {
+	border-color: var(--bust);
+}
+
+.toast.bust .toast-title {
+	color: var(--bust);
+}
+
+.toast.win {
+	border-color: var(--checkout);
+	box-shadow: 0 1vh 3vh rgba(0, 0, 0, 0.6), 0 0 2vh rgba(0, 200, 0, 0.35);
+}
+
+.toast.win .toast-title {
+	color: var(--checkout);
+}
+
+@keyframes toast-in {
+	from { opacity: 0; transform: translate(-50%, -2vh) scale(0.9); }
+}
+
+@keyframes toast-out {
+	to { opacity: 0; transform: translate(-50%, -1.5vh) scale(0.95); }
+}
+
+/* MOTION */
+
+/* Buttons sink slightly when pressed. */
+.calc-tbl td,
+.ctrl-tbl td,
+.btn-tbl td,
+.darts span,
+.add-player td,
+.players-tbl td[role="button"],
+.players-add td,
+.settings-btn-action {
+	transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium);
+}
+
+.calc-tbl td:not(.disabled, .calc-score):active,
+.ctrl-tbl td:not(.disabled):active,
+.btn-tbl td:not(.disabled, .darts-btn, .darts-total):active,
+.darts span[class]:not([class=""]):active,
+.add-player td:active,
+.players-tbl td[role="button"]:active,
+.players-add td:active,
+.settings-btn-action:active {
+	transform: scale(0.94);
+}
+
+/* A row slides in when it is added; the active row brightens as the turn passes to it. */
+.player-row,
+.history-row {
+	animation: fade-in var(--medium) var(--ease-out);
+}
+
+.player-row.active td {
+	animation: row-activate var(--slow) var(--ease-out);
+}
+
+/* JS adds .bump when a score changes, .pop when a dart lands, .enter on a new history entry. */
+.player-score.bump {
+	animation: score-bump var(--slow) var(--ease-out);
+}
+
+.darts span.pop {
+	animation: dart-pop var(--medium) var(--ease-back);
+}
+
+.history span.enter {
+	display: inline-block;
+	animation: history-enter var(--medium) var(--ease-out);
+}
+
+.checkout,
+td.calc-score:not(.disabled) {
+	animation: fade-in var(--medium) var(--ease-out);
+}
+
+/* Dialogs fade in and the panel rises; JS adds .closing to play it back out. */
+.settings-background {
+	animation: fade-in var(--medium) var(--ease-out);
+}
+
+.settings-background .settings-section {
+	animation: dialog-in var(--medium) var(--ease-back);
+}
+
+.settings-background.closing {
+	pointer-events: none;
+	animation: fade-out var(--fast) ease-in forwards;
+}
+
+.settings-background.closing .settings-section {
+	animation: dialog-out var(--fast) ease-in forwards;
+}
+
+.winner-icon {
+	display: inline-block;
+	animation: trophy var(--slow) var(--ease-back) 120ms backwards, trophy-glow 1.6s ease-in-out 600ms infinite alternate;
+}
+
+.winner-name {
+	display: inline-block;
+	animation: dialog-in var(--slow) var(--ease-back) 220ms backwards;
+}
+
+@keyframes fade-in {
+	from { opacity: 0; }
+}
+
+@keyframes fade-out {
+	to { opacity: 0; }
+}
+
+@keyframes dialog-in {
+	from { opacity: 0; transform: translateY(3vh) scale(0.94); }
+}
+
+@keyframes dialog-out {
+	to { opacity: 0; transform: translateY(2vh) scale(0.96); }
+}
+
+@keyframes row-activate {
+	from { filter: brightness(1.4); }
+}
+
+@keyframes score-bump {
+	30% { transform: scale(1.12); }
+}
+
+@keyframes dart-pop {
+	from { opacity: 0; transform: scale(0.6); }
+}
+
+@keyframes history-enter {
+	from { opacity: 0; transform: translateX(-2vh); }
+}
+
+@keyframes trophy {
+	from { opacity: 0; transform: scale(0.3) rotate(-20deg); }
+}
+
+@keyframes trophy-glow {
+	to { transform: scale(1.08); filter: drop-shadow(0 0 2vh rgba(255, 200, 0, 0.6)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 1ms !important;
+		animation-iteration-count: 1 !important;
+		animation-delay: 0ms !important;
+		transition-duration: 1ms !important;
+	}
 }

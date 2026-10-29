@@ -1,9 +1,10 @@
 // Wires the game logic to the page. All game rules live in game.js;
 // this file only turns taps into actions and state into DOM.
 
-import { DARTS_PER_TURN, MAX_LEGS, MAX_SETS, MAX_TURN_SCORE, START_SCORES } from './config.js';
+import { DARTS_PER_TURN, MAX_LEGS, MAX_SETS, MAX_TURN_SCORE, START_SCORES, TOAST_MS } from './config.js';
 import { hitTest, isOnBoard } from './board.js';
 import { getCheckouts } from './checkout.js';
+import { describeTravel, describeTurn } from './feedback.js';
 import * as Game from './game.js';
 import * as History from './history.js';
 import { loadSession, saveSession } from './storage.js';
@@ -39,18 +40,20 @@ function persist() {
 }
 
 function undo() {
-	travel(History.undo(history, game));
+	travel(History.undo(history, game), 'undo');
 }
 
 function redo() {
-	travel(History.redo(history, game));
+	travel(History.redo(history, game), 'redo');
 }
 
-function travel(result) {
+function travel(result, direction) {
 	if (!result) return;
 	// Renaming isn't an undoable step, so names always stay as last typed.
 	const names = new Map(game.players.map(p => [p.id, p.name]));
-	game = { ...result.state, players: result.state.players.map(p => ({ ...p, name: names.get(p.id) ?? p.name })) };
+	const next = { ...result.state, players: result.state.players.map(p => ({ ...p, name: names.get(p.id) ?? p.name })) };
+	showToast(describeTravel(game, next, direction));
+	game = next;
 	history = result.history;
 	checkoutChoice.clear();
 	clearTurn();
@@ -63,15 +66,44 @@ function clearTurn() {
 	turn.darts = [];
 }
 
+/** Returns the game event, or null if the turn wasn't recorded. */
 function submit(score, darts = null) {
 	const { state, event } = Game.submitTurn(game, score, darts);
 	if (!event) {
 		if (game.winner !== null) showWinner();
-		return;
+		return null;
 	}
+	const before = game;
 	clearTurn();
 	commit(state);
 	if (event === 'match') showWinner();
+	else showToast(describeTurn(before, event, score));
+	return event;
+}
+
+/** Restart a CSS animation class on an element that stays on the page. */
+function replay(el, className) {
+	el.classList.remove(className);
+	void el.offsetWidth; // let the browser see the class go before it comes back
+	el.classList.add(className);
+}
+
+/** Play a dialog's closing animation, then hide it. */
+function closeDialog(dialog) {
+	if (dialog.hidden || dialog.classList.contains('closing')) return;
+	dialog.classList.add('closing');
+	const closing = dialog.getAnimations({ subtree: true })
+		.filter(a => a.effect?.getComputedTiming().iterations !== Infinity); // e.g. the trophy's glow
+	Promise.allSettled(closing.map(a => a.finished)).then(() => {
+		if (!dialog.classList.contains('closing')) return; // reopened meanwhile
+		dialog.classList.remove('closing');
+		dialog.hidden = true;
+	});
+}
+
+function openDialog(dialog) {
+	dialog.classList.remove('closing');
+	dialog.hidden = false;
 }
 
 const dartsTotal = () => turn.darts.reduce((sum, d) => sum + d.value, 0);
@@ -139,19 +171,30 @@ function renderScoreboard() {
 		rowsById.get(id).push(row);
 	}
 
+	// Only move rows that are out of place: re-inserting a row restarts its animations.
+	let cursor = scoresBody.firstElementChild;
+	const place = row => {
+		if (row === cursor) cursor = cursor.nextElementSibling;
+		else scoresBody.insertBefore(row, cursor);
+	};
+
 	game.players.forEach((player, index) => {
 		const rows = rowsById.get(player.id) ?? createPlayerRows(player);
 		rowsById.delete(player.id);
 		const [playerRow, historyRow] = rows;
-		scoresBody.insertBefore(playerRow, addPlayerRow);
-		scoresBody.insertBefore(historyRow, addPlayerRow);
+		place(playerRow);
+		place(historyRow);
 
 		const isActive = index === game.active && game.winner === null;
 		playerRow.classList.toggle('active', isActive);
 		$('.player-wins u', playerRow).innerHTML = `${player.legs}&#8196;&#8196;`;
 		$('.player-sets', playerRow).textContent = player.sets;
 		$('.target-wins', playerRow).innerHTML = `&nbsp;/${game.settings.legs}<br>&nbsp;/${game.settings.sets}`;
-		$('.player-score', playerRow).textContent = player.score;
+		const scoreCell = $('.player-score', playerRow);
+		if (scoreCell.textContent !== String(player.score)) {
+			if (scoreCell.textContent !== '') replay(scoreCell, 'bump');
+			scoreCell.textContent = player.score;
+		}
 		const input = $('input', playerRow);
 		if (document.activeElement !== input) input.value = player.name;
 
@@ -166,6 +209,7 @@ function renderScoreboard() {
 function renderHistory(cell, player) {
 	const key = player.turns.length;
 	if (cell.dataset.turns === String(key)) return;
+	const added = cell.dataset.turns !== undefined && key > Number(cell.dataset.turns);
 	cell.dataset.turns = key;
 	cell.replaceChildren(...player.turns.slice().reverse().map(t => {
 		const span = document.createElement('span');
@@ -175,6 +219,8 @@ function renderHistory(cell, player) {
 		if (t.bust) span.title = `Bust (${t.attempted})`;
 		return span;
 	}));
+	// The newest turn is first; slide it in.
+	if (added) cell.firstElementChild?.classList.add('enter');
 }
 
 function renderCheckout(historyRow, player, isActive) {
@@ -310,12 +356,19 @@ doneBtn.addEventListener('click', () => {
 	if (turn.darts.length) submit(dartsTotal(), turn.darts);
 });
 
-bustBtn.addEventListener('click', () => submit(0));
+bustBtn.addEventListener('click', () => {
+	const name = game.players[game.active]?.name;
+	if (submit(0) === 'turn') showToast({ kind: 'bust', title: 'Bust', detail: name });
+});
+
+let dartsShown = 0;
 
 function renderDarts() {
 	dartSpans.forEach((span, index) => {
 		const dart = turn.darts[index];
+		const landed = dart && index >= dartsShown;
 		span.className = dart ? dart.color : '';
+		if (landed) replay(span, 'pop');
 		if (!dart) {
 			span.replaceChildren();
 			return;
@@ -326,6 +379,8 @@ function renderDarts() {
 		// Doubles, trebles and bulls also show what they are worth.
 		if (dart.multiplier > 1 || dart.sector === 25) span.append(document.createElement('br'), String(dart.value));
 	});
+
+	dartsShown = turn.darts.length;
 
 	const hasDarts = turn.darts.length > 0;
 	dartsClearBtn.textContent = hasDarts ? 'Clear' : 'Darts';
@@ -394,14 +449,14 @@ function openSettings() {
 	setsInput.value = sets;
 	doubleOutInput.checked = doubleOut;
 	renderSettings();
-	settingsDialog.hidden = false;
+	openDialog(settingsDialog);
 }
 
 function closeSettings() {
 	// Before the first throw, new settings apply straight away.
 	const settings = readSettingsForm();
 	if (!matchStarted() && !sameSettings(settings, game.settings)) commit(Game.newMatch(game, settings));
-	settingsDialog.hidden = true;
+	closeDialog(settingsDialog);
 }
 
 function renderSettings() {
@@ -458,7 +513,8 @@ settingsDialog.addEventListener('click', event => {
 	if (action === 'new-game') {
 		clearTurn();
 		commit(Game.newMatch(game, readSettingsForm()));
-		settingsDialog.hidden = true;
+		closeDialog(settingsDialog);
+		showToast({ kind: 'info', title: 'New game', detail: `${game.settings.startScore}` });
 	} else if (action === 'close' || event.target === settingsDialog) {
 		closeSettings();
 	}
@@ -471,7 +527,8 @@ const winnerDialog = $('#winner');
 function showWinner() {
 	if (game.winner === null) return;
 	$('.winner-name', winnerDialog).textContent = game.players[game.winner].name;
-	winnerDialog.hidden = false;
+	hideToast();
+	openDialog(winnerDialog);
 }
 
 winnerDialog.addEventListener('click', event => {
@@ -479,9 +536,39 @@ winnerDialog.addEventListener('click', event => {
 	if (action === 'rematch') {
 		clearTurn();
 		commit(Game.newMatch(game));
+		showToast({ kind: 'info', title: 'Rematch', detail: 'Game on' });
 	}
-	if (action || event.target === winnerDialog) winnerDialog.hidden = true;
+	if (action || event.target === winnerDialog) closeDialog(winnerDialog);
 });
+
+// ---- Toast --------------------------------------------------------------------
+
+const toast = $('.toast');
+let toastTimer = 0;
+
+/** Show a short status message; a new one replaces the last. */
+function showToast(message) {
+	if (!message) return;
+	toast.className = `toast ${message.kind}`;
+	$('.toast-title', toast).textContent = message.title;
+	$('.toast-detail', toast).textContent = message.detail;
+	toast.hidden = false;
+	// Restart the pop-in even if a toast is already showing.
+	toast.style.animation = 'none';
+	void toast.offsetWidth;
+	toast.style.animation = '';
+	clearTimeout(toastTimer);
+	toastTimer = setTimeout(hideToast, TOAST_MS);
+}
+
+function hideToast() {
+	clearTimeout(toastTimer);
+	if (toast.hidden) return;
+	toast.classList.add('leaving');
+	Promise.allSettled(toast.getAnimations().map(a => a.finished)).then(() => {
+		if (toast.classList.contains('leaving')) toast.hidden = true;
+	});
+}
 
 // ---- Keyboard -----------------------------------------------------------------
 
@@ -495,7 +582,7 @@ document.addEventListener('keydown', event => {
 	const dialogOpen = !settingsDialog.hidden || !winnerDialog.hidden;
 	if (event.key === 'Escape' && dialogOpen) {
 		if (!settingsDialog.hidden) closeSettings();
-		winnerDialog.hidden = true;
+		closeDialog(winnerDialog);
 		return;
 	}
 	if (dialogOpen || event.target.closest('input, select, textarea')) return;
