@@ -833,7 +833,7 @@ aside.keypad-hidden .calc-section {
 
 .calc-tbl td.back-score:active {
 	background: var(--button-pressed);
-	font-size: 4.75vmin;
+	font-size: 5vmin;
 }
 
 .calc-tbl td.disabled {
@@ -905,26 +905,34 @@ td.calc-score i {
 }
 
 td.back-score {
-	font-family: "Lucida Sans Unicode";
-	font-size: 5vmin;
-	line-height: 1.25%;
-	text-shadow: 0 0 0.5vmin #00000064;
+	font-size: 5.5vmin;
+	line-height: 1;
 }
 
 /* BUTTONS */
 
-/* Keypad show/hide: a keypad symbol, and an arrow that points down to hide, up to show. */
+/* Keypad show/hide: a keypad symbol, and an arrow that points down to hide, up to show.
+   As tall as the Darts and total labels on the right. Flex centres the symbols by
+   their boxes rather than the text baseline. */
+.ctrl-tbl td.keypad-btn {
+	height: 6.5vmin;
+}
+
+.keypad-icons {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4vmin;
+	line-height: 1;
+}
+
 .keypad-btn .keypad-icon {
 	font-size: 3.6vmin;
 	font-weight: normal;
-	vertical-align: middle;
 }
 
 .keypad-btn span {
-	display: inline-block;
-	margin-left: 0.3vmin;
 	font-size: 3vmin;
-	vertical-align: middle;
 	transition: transform var(--medium) var(--ease-out);
 }
 
@@ -953,7 +961,7 @@ td.back-score {
 }
 
 .ctrl-tbl td {
-	height: 7.5%;
+	height: 8.4vmin;
 	font-size: 6vmin;
 	line-height: 1;
 	overflow: hidden;
@@ -972,7 +980,7 @@ td.back-score {
 }
 
 .ctrl-tbl td.hidden {
-	height: 56%;
+	height: auto; /* takes the space between the top and bottom buttons */
 	visibility: hidden;
 	pointer-events: none;
 }
