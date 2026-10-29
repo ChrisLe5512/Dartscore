@@ -790,6 +790,16 @@ function setKeypadHidden(hidden) {
 keypadToggle.addEventListener('click', () => setKeypadHidden(!sidebar.classList.contains('keypad-hidden')));
 setKeypadHidden(Boolean(prefs.keypadHidden));
 
+// The icon's corners point in while in full screen (also when left with Esc).
+const fullscreenBtn = $('.ctrl-tbl .full-screen');
+function renderFullscreen() {
+	const active = Boolean(document.fullscreenElement ?? document.webkitFullscreenElement);
+	fullscreenBtn.classList.toggle('active', active);
+	fullscreenBtn.setAttribute('aria-label', active ? 'Exit full screen' : 'Full screen');
+}
+document.addEventListener('fullscreenchange', renderFullscreen);
+document.addEventListener('webkitfullscreenchange', renderFullscreen);
+
 function toggleFullscreen() {
 	const doc = document.documentElement;
 	const active = document.fullscreenElement ?? document.webkitFullscreenElement;

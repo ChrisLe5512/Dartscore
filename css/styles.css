@@ -911,6 +911,30 @@ td.back-score {
 
 /* BUTTONS */
 
+/* Full screen: four corners pointing out; in full screen each turns to point in. */
+.fs-icon {
+	display: block;
+	width: 4.6vmin;
+	height: 4.6vmin;
+	margin: auto;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2.2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	filter: drop-shadow(0 0 0.6vmin black);
+}
+
+.fs-icon path {
+	transform-box: fill-box;
+	transform-origin: center;
+	transition: transform var(--medium) var(--ease-out);
+}
+
+.full-screen.active .fs-icon path {
+	transform: rotate(180deg);
+}
+
 /* Keypad show/hide: a keypad symbol, and an arrow that points down to hide, up to show.
    As tall as the Darts and total labels on the right. Flex centres the symbols by
    their boxes rather than the text baseline. */
