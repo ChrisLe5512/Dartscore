@@ -12,6 +12,7 @@ Darts X01 scoreboard web app (301/501/701), built for tablets in landscape and i
 - `js/config.js`: rules and board geometry constants. Put tunable values here.
 - `js/game.js`: pure game state and rules (no DOM). Every function returns a new state.
 - `js/checkout.js`: ranked checkout suggestions
+- `js/feedback.js`: status toast messages for turns and undo/redo (pure)
 - `js/board.js`: dartboard hit-testing and dart colours
 - `js/history.js`: undo/redo snapshot stacks
 - `js/storage.js`: localStorage save/load (key `dartscore:v2`)
