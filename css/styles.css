@@ -24,6 +24,13 @@
 	--slow: 400ms;
 }
 
+input,
+select,
+textarea {
+	user-select: text;
+	-webkit-user-select: text;
+}
+
 [hidden] {
 	display: none !important;
 }
@@ -45,6 +52,11 @@ html, body {
 }
 
 body {
+	/* A scoreboard, not a document: taps and double taps never select text. */
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
+	-webkit-tap-highlight-color: transparent;
 	transform: scale(1);
 	transform-origin: 0 0;
 	overscroll-behavior: none;
@@ -81,39 +93,6 @@ aside.keypad-hidden .calc-section {
 	visibility: hidden;
 }
 
-.calc-toggle {
-	position: absolute;
-	top: 60%;
-	left: 50%;
-	z-index: 2;
-	width: 9vh;
-	height: 3.2vh;
-	padding: 0;
-	font-size: 2.6vh;
-	line-height: 1;
-	color: var(--text);
-	text-shadow: 0 0 0.5vh black;
-	border: var(--border);
-	border-radius: var(--radius);
-	background: var(--button);
-	transform: translate(-50%, -50%);
-	cursor: pointer;
-	transition: top var(--medium) var(--ease-out), transform var(--medium) var(--ease-out);
-}
-
-.calc-toggle span {
-	display: inline-block;
-	transition: transform var(--medium) var(--ease-out);
-}
-
-aside.keypad-hidden .calc-toggle {
-	top: 100%;
-	transform: translate(-50%, calc(-100% - 1vh));
-}
-
-aside.keypad-hidden .calc-toggle span {
-	transform: rotate(180deg);
-}
 
 /* SETTINGS */
 
@@ -626,6 +605,23 @@ td.calc-score {
 	text-shadow: 0 0 1vh black;
 }
 
+/* Tapping the top or bottom half tips the box like a rocker switch. */
+td.calc-score.tip-up:not(.disabled) {
+	animation: tip-up 260ms var(--ease-out);
+}
+
+td.calc-score.tip-down:not(.disabled) {
+	animation: tip-down 260ms var(--ease-out);
+}
+
+@keyframes tip-up {
+	30% { transform: perspective(30vh) rotateX(16deg); }
+}
+
+@keyframes tip-down {
+	30% { transform: perspective(30vh) rotateX(-16deg); }
+}
+
 td.calc-score.disabled {
 	background: #242424;
 	pointer-events: none;
@@ -650,6 +646,17 @@ td.back-score {
 }
 
 /* BUTTONS */
+
+/* Keypad show/hide: the arrow points down to hide, up to show. */
+.keypad-btn span {
+	display: inline-block;
+	font-size: 4.5vh;
+	transition: transform var(--medium) var(--ease-out);
+}
+
+.keypad-btn[aria-expanded="false"] span {
+	transform: rotate(180deg);
+}
 
 .ctrl-section {
 	position: relative;
@@ -691,7 +698,7 @@ td.back-score {
 }
 
 .ctrl-tbl td.hidden {
-	height: 64%;
+	height: 56%;
 	visibility: hidden;
 	pointer-events: none;
 }

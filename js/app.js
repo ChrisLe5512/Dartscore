@@ -361,6 +361,9 @@ function stepKeypad(step) {
 	const next = Number(turn.keypad) + step;
 	if (next >= 0 && next <= MAX_TURN_SCORE) turn.keypad = String(next);
 	renderKeypad();
+	// The score box rocks like a switch towards the half that was pressed.
+	scoreDisplay.classList.remove('tip-up', 'tip-down');
+	replay(scoreDisplay, step > 0 ? 'tip-up' : 'tip-down');
 }
 
 function backspace() {
@@ -567,7 +570,7 @@ function renderControls() {
 // The keypad can fold away; remembered on this device.
 const prefs = loadPrefs();
 const sidebar = $('aside');
-const keypadToggle = $('.calc-toggle');
+const keypadToggle = $('.ctrl-tbl .keypad-btn');
 
 function setKeypadHidden(hidden) {
 	sidebar.classList.toggle('keypad-hidden', hidden);
