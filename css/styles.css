@@ -1,15 +1,18 @@
 /* THEME */
 
 :root {
-	--line: 3.7px;
+	--line: 2.6px; /* every border and outline */
 	--border: var(--line) solid white;
 	--border-muted: var(--line) solid #969696;
 	--radius: 10px;
 	--text: white;
 	--text-muted: #969696;
+	--text-soft: #c8c8c8;
 	--panel: linear-gradient(#484848, #161616);
 	--button: linear-gradient(#808080, #404040);
 	--button-disabled: linear-gradient(#404040, #202020);
+	--button-pressed: linear-gradient(#484848, #202020);
+	--row: #161616;
 	--checkout: #00c800;
 	--font: "Roboto Flex", sans-serif;
 	--font-condensed: "Roboto Condensed", sans-serif;
@@ -64,7 +67,7 @@ aside {
 	flex-direction: column;
 	width: 30%;
 	border-right: var(--border);
-	background: linear-gradient(#484848, #161616);
+	background: var(--panel);
 	z-index: 1;
 }
 
@@ -152,7 +155,7 @@ aside.keypad-hidden .calc-toggle span {
 	display: block;
 	margin-bottom: 0.75vh;
 	font-family: var(--font-condensed);
-	color: #c8c8c8;
+	color: var(--text-soft);
 }
 
 .settings-tbl input,
@@ -236,7 +239,7 @@ aside.keypad-hidden .calc-toggle span {
 }
 
 .settings-note {
-	color: #c8c8c8;
+	color: var(--text-soft);
 	font-family: var(--font-condensed);
 	font-size: 2.5vh;
 	text-align: center;
@@ -257,7 +260,7 @@ aside.keypad-hidden .calc-toggle span {
 }
 
 .settings-btn-action:active {
-	background: linear-gradient(#484848, #202020);
+	background: var(--button-pressed);
 }
 
 .winner-section {
@@ -333,7 +336,7 @@ aside.keypad-hidden .calc-toggle span {
 }
 
 .player-wins u {
-	text-decoration-color: #c8c8c8;
+	text-decoration-color: var(--text-soft);
 }
 
 .active .player-wins {
@@ -346,7 +349,7 @@ aside.keypad-hidden .calc-toggle span {
 
 .target-wins {
 	font-family: var(--font-condensed);
-	color: #c8c8c8;
+	color: var(--text-soft);
 	padding-top: 0.15vh;
 	width: calc(4vh * var(--s));
 	font-size: calc(2.5vh * var(--s));
@@ -386,7 +389,7 @@ aside.keypad-hidden .calc-toggle span {
 
 .history-row {
 	height: calc(5vh * var(--s));
-	background: #161616;
+	background: var(--row);
 }
 
 .scores-tbl .hidden {
@@ -436,7 +439,7 @@ aside.keypad-hidden .calc-toggle span {
 }
 
 .history span {
-	color: #c8c8c8;
+	color: var(--text-soft);
 	font-size: calc(2.25vh * var(--s));
 	font-weight: normal;
 	padding-right: 0.5vw;
@@ -459,7 +462,7 @@ aside.keypad-hidden .calc-toggle span {
 /* Only when there is room: a line of match stats between the name and the history. */
 .stats-row {
 	height: calc(5vh * var(--s));
-	background: #161616;
+	background: var(--row);
 }
 
 .scores-tbl:not(.roomy) .stats-row {
@@ -467,7 +470,7 @@ aside.keypad-hidden .calc-toggle span {
 }
 
 .scores-tbl .stats-row.active {
-	background: #161616;
+	background: var(--row);
 }
 
 .stats-cell {
@@ -487,7 +490,7 @@ aside.keypad-hidden .calc-toggle span {
 	font-family: var(--font-condensed);
 	font-size: calc(2.5vh * var(--s));
 	font-weight: normal;
-	color: #969696;
+	color: var(--text-muted);
 	white-space: nowrap;
 	overflow: hidden;
 }
@@ -530,7 +533,7 @@ aside.keypad-hidden .calc-toggle span {
 	flex-direction: column;
 	gap: 0.6vh;
 	font-size: calc(2.8vh * var(--s));
-	color: #c8c8c8;
+	color: var(--text-soft);
 	text-shadow: 0 0 0.5vh black;
 }
 
@@ -544,7 +547,7 @@ aside.keypad-hidden .calc-toggle span {
 .add-player {
 	text-align: center;
 	width: 100%;
-	background: linear-gradient(#484848, #161616);
+	background: var(--panel);
 }
 
 .add-player td {
@@ -599,18 +602,18 @@ aside.keypad-hidden .calc-toggle span {
 }
 
 .calc-tbl td:not(.calc-score):active {
-	background: linear-gradient(#484848, #202020);
+	background: var(--button-pressed);
 	font-size: 5.5vh;
 }
 
 .calc-tbl td.back-score:active {
-	background: linear-gradient(#484848, #202020);
+	background: var(--button-pressed);
 	font-size: 4.75vh;
 }
 
 .calc-tbl td.disabled {
-	color: #969696;
-	background: linear-gradient(#484848, #161616);
+	color: var(--text-muted);
+	background: var(--panel);
 	border: var(--border-muted);
 	pointer-events: none;
 }
@@ -630,7 +633,7 @@ td.calc-score.disabled {
 
 td.calc-score b {
 	font-weight: normal;
-	color: #969696;
+	color: var(--text-muted);
 }
 
 td.calc-score i {
@@ -675,14 +678,14 @@ td.back-score {
 	overflow: hidden;
 	border: var(--border);
 	border-radius: var(--radius);
-	background: linear-gradient(#808080, #404040);
+	background: var(--button);
 	pointer-events: auto;
 	cursor: pointer;
 }
 
 .ctrl-tbl td.disabled {
-	color: #969696;
-	background: linear-gradient(#404040, #202020);
+	color: var(--text-muted);
+	background: var(--button-disabled);
 	border: var(--border-muted);
 	cursor: default;
 }
@@ -720,13 +723,13 @@ td.back-score {
 	overflow: hidden;
 	border: var(--border);
 	border-radius: var(--radius);
-	background: linear-gradient(#808080, #404040);
+	background: var(--button);
 	pointer-events: auto;
 }
 
 .btn-tbl td.disabled {
-	color: #969696;
-	background: linear-gradient(#404040, #202020);
+	color: var(--text-muted);
+	background: var(--button-disabled);
 	border: var(--border-muted);
 	cursor: default;
 }
@@ -779,7 +782,7 @@ td.back-score {
 	width: 70%;
 	height: 8.65vh;
 	margin: 1vh 0;
-	border: 3.7px solid transparent;
+	border: var(--line) solid transparent;
 	border-radius: var(--radius);
 	text-shadow: 0 0 0.5vh black;
 	pointer-events: auto;
@@ -849,7 +852,7 @@ td.back-score {
 	position: absolute;
 	bottom: 1.5vh;
 	right: 16.5vw;
-	color: #161616;
+	color: var(--row);
 	font-size: 2.5vh;
 	text-underline-offset: 0.25vh;
 	line-height: 0.5;
@@ -892,7 +895,7 @@ td.back-score {
 }
 
 .toast-detail {
-	color: #c8c8c8;
+	color: var(--text-soft);
 }
 
 .toast.bust {
@@ -1071,7 +1074,7 @@ td.calc-score:not(.disabled) {
 	height: 3.6vh;
 	box-sizing: border-box;
 	transform: translate(-50%, -50%);
-	border: 0.35vh solid white;
+	border: var(--line) solid white;
 	border-radius: 50%;
 	background: rgba(0, 0, 0, 0.8);
 	box-shadow: 0 0 1vh black;
@@ -1110,7 +1113,7 @@ td.calc-score:not(.disabled) {
 	width: 2.6vh;
 	height: 2.6vh;
 	box-sizing: border-box;
-	border: 0.3vh solid white;
+	border: var(--line) solid white;
 	border-radius: 50%;
 	background: black;
 	font-family: var(--font-condensed);
@@ -1128,7 +1131,7 @@ td.calc-score:not(.disabled) {
 }
 
 .history span.has-hits b {
-	text-decoration: underline dotted #969696;
+	text-decoration: underline dotted var(--text-muted);
 	text-underline-offset: 0.3vh;
 }
 
