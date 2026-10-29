@@ -838,7 +838,7 @@ aside.keypad-hidden .calc-section {
 
 .calc-tbl td.back-score:active {
 	background: var(--button-pressed);
-	font-size: 5vmin;
+	font-size: 4.2vmin;
 }
 
 .calc-tbl td.disabled {
@@ -910,7 +910,7 @@ td.calc-score i {
 }
 
 td.back-score {
-	font-size: 5.5vmin;
+	font-size: 4.6vmin;
 	line-height: 1;
 }
 
