@@ -129,14 +129,16 @@ export function lightSegments(svg, lights) {
 
 /**
  * Numbered markers where darts landed: [{ x, y }] as fractions of the radius.
- * kind: 'live' or 'review'. Markers from index `popFrom` on animate in.
+ * kind: 'live' or 'review'; pop: indexes to animate in; editing: index of
+ * the dart being moved.
  */
-export function drawMarks(svg, hits, kind = 'live', popFrom = hits.length) {
+export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null } = {}) {
 	const layer = svg.querySelector('.marks');
 	if (!layer) return;
 	layer.replaceChildren(...hits.map(({ x, y }, index) => {
 		const place = el('g', { transform: `translate(${round(x * 100)} ${round(y * 100)})` });
-		const mark = el('g', { class: `mark ${kind}${index >= popFrom ? ' pop' : ''}` }, place);
+		const classes = ['mark', kind, pop.includes(index) && 'pop', editing === index && 'editing'];
+		const mark = el('g', { class: classes.filter(Boolean).join(' ') }, place);
 		el('circle', { r: 3.6 }, mark);
 		el('text', {}, mark).textContent = index + 1;
 		return place;

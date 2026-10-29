@@ -27,6 +27,7 @@ let history = saved?.history ?? History.createHistory();
 const turn = {
 	keypad: '',   // digits typed on the keypad
 	darts: [],    // darts tapped on the board
+	editing: null, // index of the dart being moved, if any
 };
 const checkoutChoice = new Map(); // player id -> which suggested route to show
 let review = null; // { id, index }: a past turn whose darts are shown on the board
@@ -72,6 +73,7 @@ function travel(result, direction) {
 function clearTurn() {
 	turn.keypad = '';
 	turn.darts = [];
+	turn.editing = null;
 }
 
 /** Returns the game event, or null if the turn wasn't recorded. */
@@ -451,23 +453,41 @@ board.addEventListener('click', event => {
 		const pct = Math.round(Math.hypot(dx, dy) / radius * 100);
 		debugSpan.textContent = `(${Math.round(dx)}, ${Math.round(dy)}) ${pct}% ${dart?.label ?? 'off'}`;
 	}
-	if (!dart || turn.darts.length >= DARTS_PER_TURN) return;
+	if (!dart) return;
 	// Keep where it landed (as a fraction of the radius) to mark it on the board.
-	turn.darts.push({ ...dart, x: dx / radius, y: dy / radius });
+	const placed = { ...dart, x: dx / radius, y: dy / radius };
 	review = null;
-	renderDarts();
+	if (turn.editing !== null) {
+		// Moving a dart: it keeps its number.
+		const index = turn.editing;
+		turn.darts[index] = placed;
+		turn.editing = null;
+		renderDarts([index]);
+		return;
+	}
+	if (turn.darts.length >= DARTS_PER_TURN) return;
+	turn.darts.push(placed);
+	renderDarts([turn.darts.length - 1]);
 });
 
+// Tap a dart to pick it up (then tap the board to move it); tap it again to remove it.
 dartSpans.forEach((span, index) => {
 	span.addEventListener('click', () => {
 		if (!turn.darts[index]) return;
-		turn.darts.splice(index, 1);
+		if (turn.editing === index) {
+			turn.darts.splice(index, 1);
+			turn.editing = null;
+		} else {
+			turn.editing = index;
+			showToast({ kind: 'info', title: `Dart ${index + 1}`, detail: 'Tap board to move · tap again to remove' });
+		}
 		renderDarts();
 	});
 });
 
 dartsClearBtn.addEventListener('click', () => {
 	turn.darts = [];
+	turn.editing = null;
 	renderDarts();
 });
 
@@ -480,14 +500,13 @@ bustBtn.addEventListener('click', () => {
 	if (submit(0) === 'turn') showToast({ kind: 'bust', title: 'Bust', detail: name });
 });
 
-let dartsShown = 0;
-
-function renderDarts() {
+/** pop: indexes of darts that just landed or moved, to animate. */
+function renderDarts(pop = []) {
 	dartSpans.forEach((span, index) => {
 		const dart = turn.darts[index];
-		const landed = dart && index >= dartsShown;
 		span.className = dart ? dart.color : '';
-		if (landed) replay(span, 'pop');
+		span.classList.toggle('editing', turn.editing === index);
+		if (dart && pop.includes(index)) replay(span, 'pop');
 		if (!dart) {
 			span.replaceChildren();
 			return;
@@ -503,8 +522,7 @@ function renderDarts() {
 		if (dart.multiplier > 1 || dart.sector === 25) span.append(document.createElement('br'), String(dart.value));
 	});
 
-	renderMarks(dartsShown);
-	dartsShown = turn.darts.length;
+	renderMarks(pop);
 
 	const hasDarts = turn.darts.length > 0;
 	dartsClearBtn.textContent = hasDarts ? 'Clear' : 'Darts';
@@ -539,9 +557,9 @@ function shownHits() {
 	return { hits: reviewed?.hits?.map(([x, y]) => ({ x, y })) ?? [], kind: 'review' };
 }
 
-function renderMarks(alreadyShown = DARTS_PER_TURN) {
+function renderMarks(pop = []) {
 	const { hits, kind } = shownHits();
-	drawMarks(board, hits, kind, kind === 'live' ? alreadyShown : hits.length);
+	drawMarks(board, hits, { kind, pop: kind === 'live' ? pop : [], editing: kind === 'live' ? turn.editing : null });
 	renderLights();
 
 	for (const span of $$('.history span.reviewing', scoresBody)) span.classList.remove('reviewing');
@@ -868,7 +886,11 @@ document.addEventListener('keydown', event => {
 	} else if (event.key === 'Backspace') {
 		backspace();
 	} else if (event.key === 'Escape') {
-		resetKeypad();
+		if (turn.editing === null) resetKeypad();
+		else {
+			turn.editing = null; // put the picked-up dart back
+			renderDarts();
+		}
 	} else if (event.key === 'ArrowUp') {
 		stepKeypad(1);
 	} else if (event.key === 'ArrowDown') {

@@ -1298,6 +1298,37 @@ td.calc-score:not(.disabled) {
 	position: relative;
 }
 
+/* A dart picked up to move: its slot and its marker pulse. */
+.darts span.editing {
+	border-color: var(--board-hit);
+	animation: editing 0.9s ease-in-out infinite alternate;
+}
+
+.darts span.editing .dart-num {
+	border-color: var(--board-hit);
+	background: var(--board-hit);
+	color: black;
+}
+
+.mark.editing {
+	transform-box: fill-box;
+	transform-origin: center;
+	animation: editing-mark 0.9s ease-in-out infinite alternate;
+}
+
+.mark.editing circle {
+	stroke: var(--board-hit);
+	stroke-dasharray: 3 2;
+}
+
+@keyframes editing {
+	to { box-shadow: 0 0 2vh var(--board-hit); }
+}
+
+@keyframes editing-mark {
+	to { transform: scale(1.25); }
+}
+
 /* Corner number on each dart slot, matching its marker on the board. */
 .dart-num {
 	position: absolute;
