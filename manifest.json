@@ -1,20 +1,26 @@
 {
+	"id": "./",
 	"name": "Dartscore",
 	"short_name": "Dartscore",
-	"start_url": "/Dartscore/",
+	"description": "Fast darts scoreboard for 301, 501 and 701 with checkout suggestions.",
+	"start_url": "./",
+	"scope": "./",
 	"display": "standalone",
+	"orientation": "landscape",
 	"background_color": "#000000",
 	"theme_color": "#000000",
 	"icons": [
 		{
 			"src": "images/icons/icon-192.png",
 			"type": "image/png",
-			"sizes": "192x192"
+			"sizes": "192x192",
+			"purpose": "any"
 		},
 		{
 			"src": "images/icons/icon-512.png",
 			"type": "image/png",
-			"sizes": "512x512"
+			"sizes": "512x512",
+			"purpose": "any"
 		}
 	]
 }
