@@ -554,6 +554,56 @@ aside.keypad-hidden .calc-section {
 	text-indent: 0.5vh;
 }
 
+/* The name as shown; fitName in js/app.js narrows, wraps or shrinks it to fit. */
+.player-name {
+	cursor: pointer;
+}
+
+.name-text {
+	display: flex;
+	align-items: center;
+	height: calc(9vh * var(--s));
+	padding: 0 1vh 0 0.5vh;
+	overflow: hidden;
+	font-family: var(--font-condensed);
+	font-weight: normal;
+	font-size: calc(6.5vh * var(--s) * var(--name-size, 1));
+	line-height: 1;
+	text-shadow: 0 0 1vh black;
+	white-space: nowrap;
+}
+
+.name-text span {
+	flex: none;
+}
+
+.name-text.narrow {
+	font-family: var(--font);
+}
+
+.name-text.two-lines {
+	font-size: calc(4.2vh * var(--s) * var(--name-size, 1));
+	line-height: 0.95;
+	white-space: normal;
+}
+
+.name-text.two-lines span {
+	flex: 1;
+	min-width: 0;
+}
+
+.name-text.clipped span {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* The player whose menu is open. */
+.menu-open td {
+	filter: brightness(1.2);
+}
+
 .player-score {
 	width: calc(12vh * var(--s));
 	padding-right: 0.5vw;
@@ -1117,6 +1167,77 @@ td.back-score {
 	text-underline-offset: 0.25vh;
 	line-height: 0.5;
 	text-align: right;
+}
+
+/* PLAYER MENU */
+
+/* Opens beside a player's rows, over the board (placed by JS). */
+.player-menu {
+	position: absolute;
+	z-index: 60;
+	display: flex;
+	flex-direction: column;
+	min-width: 22vh;
+	padding: 0.8vh;
+	gap: 0.4vh;
+	background: var(--panel);
+	border: var(--border);
+	border-radius: var(--radius);
+	box-shadow: 0 1vh 3vh rgba(0, 0, 0, 0.7);
+	font-family: var(--font-condensed);
+}
+
+.player-menu.opening {
+	animation: menu-in var(--medium) var(--ease-out);
+}
+
+.player-menu-name {
+	max-width: 30vh;
+	padding: 0.4vh 1vh 0.8vh;
+	border-bottom: 1px solid var(--text-muted);
+	font-size: 2.6vh;
+	color: var(--text-soft);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.player-menu button {
+	display: flex;
+	align-items: center;
+	gap: 1.2vh;
+	padding: 1vh 1.2vh;
+	font-family: inherit;
+	font-size: 3vh;
+	color: var(--text);
+	text-align: left;
+	background: none;
+	border: none;
+	border-radius: calc(var(--radius) * 0.7);
+	cursor: pointer;
+}
+
+.player-menu button span {
+	width: 3vh;
+	font-size: 2.4vh;
+	text-align: center;
+}
+
+.player-menu button:active {
+	background: rgba(255, 255, 255, 0.12);
+}
+
+.player-menu button:disabled {
+	color: #5a5a5a;
+	cursor: default;
+}
+
+.player-menu .danger {
+	color: var(--bust);
+}
+
+@keyframes menu-in {
+	from { opacity: 0; transform: translateX(-2vh); }
 }
 
 /* TOAST */

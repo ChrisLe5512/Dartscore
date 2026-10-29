@@ -132,6 +132,12 @@ export function newMatch(state, settings = state.settings) {
 	};
 }
 
+/** Hand the throw to another player (e.g. when someone was skipped). */
+export function setActive(state, index) {
+	if (!state.players[index] || state.winner !== null || index === state.active) return state;
+	return { ...state, active: index };
+}
+
 /**
  * Whether a turn of `score` (optionally with the darts thrown) is a bust.
  * Darts are only known when the score was entered on the dartboard.

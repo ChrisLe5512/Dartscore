@@ -134,10 +134,7 @@ function addPlayer() {
 
 addPlayerRow.addEventListener('click', () => {
 	const index = addPlayer();
-	if (index === undefined) return;
-	const input = $$('.player-name input', scoresBody)[index];
-	input.focus();
-	input.select();
+	if (index !== undefined) startRename(game.players[index].id);
 });
 
 function createPlayerRows(player) {
@@ -147,7 +144,7 @@ function createPlayerRows(player) {
 	playerRow.innerHTML = `
 		<td class="player-wins"><u></u><br><span class="player-sets"></span></td>
 		<td class="target-wins"></td>
-		<td colspan="4" class="player-name"><input type="text" autocomplete="off" spellcheck="false" aria-label="Player name"></td>
+		<td colspan="4" class="player-name"><div class="name-text"><span></span></div><input type="text" autocomplete="off" spellcheck="false" aria-label="Player name" hidden></td>
 		<td class="player-score"></td>`;
 
 	// History and checkout share one line; the checkout takes what it needs.
@@ -175,16 +172,23 @@ function createPlayerRows(player) {
 			<div class="big-score"></div>
 		</div></td>`;
 
+	// Renaming happens in place, started from the player menu (Rename).
 	const input = $('input', playerRow);
-	input.addEventListener('input', () => {
-		const index = game.players.findIndex(p => p.id === player.id);
-		game = Game.renamePlayer(game, index, input.value);
-		persist();
-	});
-	input.addEventListener('change', () => render());
+	input.addEventListener('blur', () => finishRename(player.id, input));
 	input.addEventListener('keydown', event => {
 		if (event.key === 'Enter') input.blur();
+		if (event.key === 'Escape') {
+			input.value = game.players.find(p => p.id === player.id)?.name ?? input.value;
+			input.blur();
+		}
 	});
+
+	// Tapping a player opens their menu beside the scores.
+	for (const row of [playerRow, statsRow]) {
+		row.addEventListener('click', event => {
+			if (!event.target.closest('input')) togglePlayerMenu(player.id);
+		});
+	}
 
 	$('.checkout', historyRow).addEventListener('click', () => {
 		checkoutChoice.set(player.id, (checkoutChoice.get(player.id) ?? 0) + 1);
@@ -241,8 +245,8 @@ function renderScoreboard() {
 			if (scoreCell.textContent !== '') replay(scoreCell, 'bump');
 			scoreCell.textContent = player.score;
 		}
-		const input = $('input', playerRow);
-		if (document.activeElement !== input) input.value = player.name;
+		const nameText = $('.name-text span', playerRow);
+		if (nameText.textContent !== player.name) nameText.textContent = player.name;
 
 		renderHistory($('.history', historyRow), player);
 		renderCheckout(historyRow, player, isActive);
@@ -253,6 +257,8 @@ function renderScoreboard() {
 	// New players join from the scoreboard before the first throw, from Settings after.
 	addPlayerRow.classList.toggle('hidden', !Game.canAddPlayer(game) || matchStarted());
 	layoutScores();
+	fitNames();
+	if (menuFor !== null) placePlayerMenu();
 
 	// Keep the thrower in view when the list scrolls.
 	if (activeRows) {
@@ -282,7 +288,10 @@ function layoutScores() {
 	scoresTable.classList.toggle('big', big);
 }
 
-new ResizeObserver(layoutScores).observe(scoresSection);
+new ResizeObserver(() => {
+	layoutScores();
+	fitNames();
+}).observe(scoresSection);
 
 const atEnd = el => el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
 
@@ -347,6 +356,153 @@ function renderStats(statsRow, player) {
 	$('.stat-best', statsRow).textContent = none ? '–' : best;
 	$('.stat-darts', statsRow).textContent = darts;
 }
+
+// ---- Player names -------------------------------------------------------------
+
+// Long names are made to fit instead of being cut off: first the letters get
+// narrower, then a name with several words goes onto two lines, then the text
+// gets smaller. Only as a last resort does it end in "…".
+const NAME_WIDTHS = [75, 62, 50]; // Roboto Flex widths (%) that still read well
+const NAME_NARROWEST = 40;
+const NAME_SIZES = [0.9, 0.8, 0.7, 0.6];
+
+function fitName(box) {
+	const text = box.firstElementChild;
+	const key = `${text.textContent}|${box.clientWidth}|${box.clientHeight}`;
+	if (box.dataset.fit === key) return;
+	box.dataset.fit = key;
+
+	box.classList.remove('narrow', 'two-lines', 'clipped');
+	box.style.removeProperty('font-stretch');
+	box.style.removeProperty('--name-size');
+	const style = getComputedStyle(box);
+	const width = box.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+	// scrollWidth catches a single word too long for its line when wrapping.
+	const fits = () => Math.max(text.offsetWidth, text.scrollWidth) <= width + 1 && text.offsetHeight <= box.clientHeight + 1;
+	const tryWidths = widths => widths.some(stretch => {
+		box.style.fontStretch = `${stretch}%`;
+		return fits();
+	});
+	if (fits()) return;
+
+	box.classList.add('narrow');
+	if (tryWidths(NAME_WIDTHS)) return;
+	// Several words: two lines read better than very narrow letters.
+	if (/\S\s+\S/.test(text.textContent)) {
+		box.classList.add('two-lines');
+		if (tryWidths(NAME_WIDTHS)) return;
+	}
+	if (tryWidths([NAME_NARROWEST])) return;
+	for (const size of NAME_SIZES) {
+		box.style.setProperty('--name-size', size);
+		if (fits()) return;
+	}
+	box.classList.add('clipped');
+}
+
+const fitNames = () => $$('.name-text', scoresBody).forEach(fitName);
+document.fonts?.addEventListener('loadingdone', () => {
+	for (const box of $$('.name-text', scoresBody)) delete box.dataset.fit; // measured with a fallback font
+	fitNames();
+});
+
+function startRename(id) {
+	const row = $(`.player-row[data-id="${id}"]`, scoresBody);
+	const player = game.players.find(p => p.id === id);
+	if (!row || !player) return;
+	const input = $('input', row);
+	input.value = player.name;
+	$('.name-text', row).hidden = true;
+	input.hidden = false;
+	input.focus();
+	input.select();
+}
+
+function finishRename(id, input) {
+	if (input.hidden) return;
+	const index = game.players.findIndex(p => p.id === id);
+	if (index >= 0) {
+		game = Game.renamePlayer(game, index, input.value);
+		persist();
+	}
+	input.hidden = true;
+	input.closest('.player-row').querySelector('.name-text').hidden = false;
+	render();
+}
+
+// ---- Player menu --------------------------------------------------------------
+
+// Opens beside a player's rows, over the board: rename, hand them the throw,
+// move them in the order, or remove them. Everything but renaming can be undone.
+const playerMenu = $('.player-menu');
+let menuFor = null; // id of the player whose menu is open
+
+function togglePlayerMenu(id) {
+	if (menuFor === id) {
+		closePlayerMenu();
+		return;
+	}
+	menuFor = id;
+	playerMenu.hidden = false;
+	replay(playerMenu, 'opening');
+	placePlayerMenu();
+}
+
+function closePlayerMenu() {
+	menuFor = null;
+	playerMenu.hidden = true;
+	for (const row of $$('.menu-open', scoresBody)) row.classList.remove('menu-open');
+}
+
+/** Line the menu up with its player's rows and refresh which items apply. */
+function placePlayerMenu() {
+	const index = game.players.findIndex(p => p.id === menuFor);
+	const rows = $$(`[data-id="${menuFor}"]`, scoresBody);
+	if (index < 0 || !rows.length) {
+		closePlayerMenu();
+		return;
+	}
+	$('.player-menu-name', playerMenu).textContent = game.players[index].name;
+	$('[data-menu="throw"]', playerMenu).disabled = index === game.active || game.winner !== null;
+	$('[data-menu="up"]', playerMenu).disabled = index === 0;
+	$('[data-menu="down"]', playerMenu).disabled = index === game.players.length - 1;
+
+	for (const row of $$('.menu-open', scoresBody)) row.classList.remove('menu-open');
+	rows.forEach(row => row.classList.add('menu-open'));
+	const top = rows[0].getBoundingClientRect().top;
+	const room = innerHeight - playerMenu.offsetHeight - 8;
+	playerMenu.style.left = `${sidebar.getBoundingClientRect().right + 8}px`;
+	playerMenu.style.top = `${Math.max(8, Math.min(top, room))}px`;
+}
+
+playerMenu.addEventListener('click', event => {
+	const action = event.target.closest('[data-menu]')?.dataset.menu;
+	const index = game.players.findIndex(p => p.id === menuFor);
+	if (!action || index < 0) return;
+	const { id, name } = game.players[index];
+	closePlayerMenu();
+	if (action === 'rename') {
+		startRename(id);
+	} else if (action === 'throw') {
+		clearTurn();
+		commit(Game.setActive(game, index));
+		showToast({ kind: 'info', title: name, detail: 'to throw' });
+	} else if (action === 'up' || action === 'down') {
+		commit(Game.movePlayer(game, index, action === 'up' ? -1 : 1));
+		togglePlayerMenu(id); // keep it open to move again
+	} else if (action === 'remove') {
+		commit(Game.removePlayer(game, index));
+		showToast({ kind: 'info', title: 'Removed', detail: `${name} · Undo brings them back` });
+	}
+});
+
+// Tapping anywhere else closes the menu.
+document.addEventListener('pointerdown', event => {
+	if (menuFor === null || playerMenu.contains(event.target)) return;
+	if (event.target.closest(`[data-id="${menuFor}"]`)) return; // the player's own rows toggle it
+	closePlayerMenu();
+});
+scoresSection.addEventListener('scroll', () => menuFor !== null && placePlayerMenu(), { passive: true });
 
 // ---- Keypad -----------------------------------------------------------------
 
@@ -924,6 +1080,11 @@ document.addEventListener('keydown', event => {
 	if (event.key === 'F11') {
 		event.preventDefault();
 		toggleFullscreen();
+		return;
+	}
+
+	if (event.key === 'Escape' && menuFor !== null) {
+		closePlayerMenu();
 		return;
 	}
 

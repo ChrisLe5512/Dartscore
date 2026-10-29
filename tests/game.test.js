@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
 	addPlayer, createGame, isValidTurnScore, movePlayer, movePlayerTo, newMatch, removePlayer,
-	playerStats, renamePlayer, restoreGame, submitTurn,
+	playerStats, renamePlayer, restoreGame, setActive, submitTurn,
 } from '../js/game.js';
 import { makeDart } from '../js/board.js';
 
@@ -208,4 +208,12 @@ test('movePlayerTo moves a player to any place and keeps active pointing at the 
 	assert.equal(up.players[up.active].name, 'Bob');
 	assert.equal(movePlayerTo(s, 1, 1), s);
 	assert.equal(movePlayerTo(s, 0, 9), s);
+});
+
+test('setActive hands the throw to another player, but not after the match is won', () => {
+	const s = twoPlayers();
+	assert.equal(setActive(s, 1).active, 1);
+	assert.equal(setActive(s, 0), s);
+	assert.equal(setActive(s, 5), s);
+	assert.equal(setActive({ ...s, winner: 0 }, 1).active, 0);
 });
