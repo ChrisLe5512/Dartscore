@@ -9,7 +9,7 @@ import { getCheckouts } from './checkout.js';
 import { describeTravel, describeTurn } from './feedback.js';
 import * as Game from './game.js';
 import * as History from './history.js';
-import { loadSession, saveSession } from './storage.js';
+import { loadPrefs, loadSession, savePrefs, saveSession } from './storage.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -496,6 +496,23 @@ function renderControls() {
 	redoBtn.classList.toggle('disabled', history.future.length === 0);
 }
 
+// The keypad can fold away; remembered on this device.
+const prefs = loadPrefs();
+const sidebar = $('aside');
+const keypadToggle = $('.calc-toggle');
+
+function setKeypadHidden(hidden) {
+	sidebar.classList.toggle('keypad-hidden', hidden);
+	keypadToggle.setAttribute('aria-expanded', String(!hidden));
+	keypadToggle.setAttribute('aria-label', hidden ? 'Show keypad' : 'Hide keypad');
+	if (Boolean(prefs.keypadHidden) === hidden) return;
+	prefs.keypadHidden = hidden;
+	savePrefs(prefs);
+}
+
+keypadToggle.addEventListener('click', () => setKeypadHidden(!sidebar.classList.contains('keypad-hidden')));
+setKeypadHidden(Boolean(prefs.keypadHidden));
+
 function toggleFullscreen() {
 	const doc = document.documentElement;
 	const active = document.fullscreenElement ?? document.webkitFullscreenElement;
@@ -685,6 +702,7 @@ document.addEventListener('keydown', event => {
 	} else if (mod || event.altKey) {
 		return;
 	} else if (/^[0-9]$/.test(event.key)) {
+		setKeypadHidden(false); // show what is being typed
 		typeDigit(event.key);
 	} else if (event.key === 'Backspace') {
 		backspace();

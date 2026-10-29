@@ -59,10 +59,57 @@ section {
 }
 
 aside {
+	position: relative;
+	display: flex;
+	flex-direction: column;
 	width: 30%;
 	border-right: var(--border);
 	background: linear-gradient(#484848, #161616);
 	z-index: 1;
+}
+
+/* The keypad folds away to give the players the whole column. */
+aside.keypad-hidden .scores-section {
+	height: 100%;
+}
+
+aside.keypad-hidden .calc-section {
+	height: 0;
+	visibility: hidden;
+}
+
+.calc-toggle {
+	position: absolute;
+	top: 60%;
+	left: 50%;
+	z-index: 2;
+	width: 9vh;
+	height: 3.2vh;
+	padding: 0;
+	font-size: 2.6vh;
+	line-height: 1;
+	color: var(--text);
+	text-shadow: 0 0 0.5vh black;
+	border: var(--border);
+	border-radius: var(--radius);
+	background: var(--button);
+	transform: translate(-50%, -50%);
+	cursor: pointer;
+	transition: top var(--medium) var(--ease-out), transform var(--medium) var(--ease-out);
+}
+
+.calc-toggle span {
+	display: inline-block;
+	transition: transform var(--medium) var(--ease-out);
+}
+
+aside.keypad-hidden .calc-toggle {
+	top: 100%;
+	transform: translate(-50%, calc(-100% - 1vh));
+}
+
+aside.keypad-hidden .calc-toggle span {
+	transform: rotate(180deg);
 }
 
 /* SETTINGS */
@@ -240,6 +287,7 @@ aside {
 
 .scores-section {
 	height: 60%;
+	flex: none;
 	box-sizing: border-box;
 	border-bottom: var(--border);
 	font-weight: 500;
@@ -523,6 +571,9 @@ aside {
 
 .calc-section {
 	height: 40%;
+	flex: none;
+	overflow: hidden;
+	transition: height var(--medium) var(--ease-out), visibility var(--medium);
 	font-family: var(--font);
 	font-weight: 500;
 }

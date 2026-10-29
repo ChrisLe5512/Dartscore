@@ -1,4 +1,4 @@
-import { LEGACY_STORAGE_KEYS, STORAGE_KEY } from './config.js';
+import { LEGACY_STORAGE_KEYS, PREFS_KEY, STORAGE_KEY } from './config.js';
 import { restoreGame } from './game.js';
 import { createHistory } from './history.js';
 
@@ -37,4 +37,20 @@ export function saveSession(game, history) {
 			store.setItem(STORAGE_KEY, JSON.stringify({ game, history: createHistory() }));
 		} catch { /* nothing more we can do */ }
 	}
+}
+
+/** View choices for this device. Always returns an object. */
+export function loadPrefs() {
+	try {
+		const prefs = JSON.parse(storage()?.getItem(PREFS_KEY));
+		return prefs && typeof prefs === 'object' ? prefs : {};
+	} catch {
+		return {};
+	}
+}
+
+export function savePrefs(prefs) {
+	try {
+		storage()?.setItem(PREFS_KEY, JSON.stringify(prefs));
+	} catch { /* not saved, fine */ }
 }

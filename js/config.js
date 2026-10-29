@@ -33,6 +33,7 @@ export const BOARD_RINGS = Object.freeze({
 });
 
 export const STORAGE_KEY = 'dartscore:v2';
+export const PREFS_KEY = 'dartscore:prefs'; // per-device view choices, e.g. keypad hidden
 export const LEGACY_STORAGE_KEYS = ['dartGameData'];
 export const MAX_UNDO_STEPS = 200;
 
