@@ -1055,3 +1055,84 @@ td.calc-score:not(.disabled) {
 		transition-duration: 1ms !important;
 	}
 }
+
+/* BOARD MARKERS */
+
+/* Sits exactly over the board image (JS sets its box). */
+.board-marks {
+	position: absolute;
+	pointer-events: none;
+}
+
+/* Centred on where the dart landed. */
+.mark {
+	position: absolute;
+	width: 3.6vh;
+	height: 3.6vh;
+	box-sizing: border-box;
+	transform: translate(-50%, -50%);
+	border: 0.35vh solid white;
+	border-radius: 50%;
+	background: rgba(0, 0, 0, 0.8);
+	box-shadow: 0 0 1vh black;
+	color: white;
+	font-family: var(--font-condensed);
+	font-size: 2.1vh;
+	font-weight: 600;
+	line-height: 2.9vh;
+	text-align: center;
+}
+
+.mark.pop {
+	animation: mark-pop var(--medium) var(--ease-back);
+}
+
+/* A past turn's darts: lighter, so they read as a look back. */
+.mark.review {
+	border-style: dashed;
+	background: rgba(0, 0, 0, 0.55);
+	animation: fade-in var(--medium) var(--ease-out);
+}
+
+@keyframes mark-pop {
+	from { opacity: 0; transform: translate(-50%, -50%) scale(2); }
+}
+
+.darts span {
+	position: relative;
+}
+
+/* Corner number on each dart slot, matching its marker on the board. */
+.dart-num {
+	position: absolute;
+	top: -1.1vh;
+	left: -1.1vh;
+	width: 2.6vh;
+	height: 2.6vh;
+	box-sizing: border-box;
+	border: 0.3vh solid white;
+	border-radius: 50%;
+	background: black;
+	font-family: var(--font-condensed);
+	font-size: 1.6vh;
+	font-style: normal;
+	font-weight: 600;
+	line-height: 2vh;
+	text-align: center;
+	text-shadow: none;
+}
+
+/* History turns entered on the board can be tapped to show their darts. */
+.history span.has-hits {
+	cursor: pointer;
+}
+
+.history span.has-hits b {
+	text-decoration: underline dotted #969696;
+	text-underline-offset: 0.3vh;
+}
+
+.history span.reviewing b {
+	color: var(--checkout);
+	text-decoration-color: var(--checkout);
+}

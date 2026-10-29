@@ -26,6 +26,7 @@ const turn = {
 	darts: [],    // darts tapped on the board
 };
 const checkoutChoice = new Map(); // player id -> which suggested route to show
+let review = null; // { id, index }: a past turn whose darts are shown on the board
 
 /** Apply a change to the game, keeping the old state for undo. */
 function commit(next) {
@@ -33,6 +34,7 @@ function commit(next) {
 	history = History.record(history, game);
 	game = next;
 	checkoutChoice.clear();
+	review = null;
 	persist();
 	render();
 }
@@ -58,6 +60,7 @@ function travel(result, direction) {
 	game = next;
 	history = result.history;
 	checkoutChoice.clear();
+	review = null;
 	clearTurn();
 	persist();
 	render();
@@ -189,6 +192,12 @@ function createPlayerRows(player) {
 		updateFades(history);
 	}, { passive: true });
 	historyResize.observe(history);
+	// Tap a turn entered on the board to see where its darts landed.
+	history.addEventListener('click', event => {
+		const span = event.target.closest('span');
+		const current = game.players.find(p => p.id === player.id);
+		if (span && current) toggleReview(current, [...history.children].indexOf(span));
+	});
 
 	return [playerRow, statsRow, historyRow];
 }
@@ -299,6 +308,7 @@ function renderHistory(cell, player) {
 		bold.textContent = t.score;
 		span.append(bold);
 		if (t.bust) span.title = `Bust (${t.attempted})`;
+		if (t.hits) span.classList.add('has-hits');
 		return span;
 	}));
 	if (added) {
@@ -327,8 +337,9 @@ function renderCheckout(historyRow, player, isActive) {
 
 function renderStats(statsRow, player) {
 	const { average, darts, best } = Game.playerStats(player);
-	$('.stat-average', statsRow).textContent = average.toFixed(1);
-	$('.stat-best', statsRow).textContent = best;
+	const none = darts === 0; // nothing thrown yet
+	$('.stat-average', statsRow).textContent = none ? '–' : average.toFixed(1);
+	$('.stat-best', statsRow).textContent = none ? '–' : best;
 	$('.stat-darts', statsRow).textContent = darts;
 }
 
@@ -424,7 +435,9 @@ board.addEventListener('click', event => {
 		debugSpan.textContent = `(${Math.round(dx)}, ${Math.round(dy)}) ${pct}% ${dart?.label ?? 'off'}`;
 	}
 	if (!dart || turn.darts.length >= DARTS_PER_TURN) return;
-	turn.darts.push(dart);
+	// Keep where it landed (as a fraction of the radius) to mark it on the board.
+	turn.darts.push({ ...dart, x: dx / radius, y: dy / radius });
+	review = null;
 	renderDarts();
 });
 
@@ -464,11 +477,16 @@ function renderDarts() {
 		}
 		const label = document.createElement('u');
 		label.textContent = dart.label;
-		span.replaceChildren(label);
+		// Corner number, matching the dart's marker on the board.
+		const number = document.createElement('i');
+		number.className = 'dart-num';
+		number.textContent = index + 1;
+		span.replaceChildren(number, label);
 		// Doubles, trebles and bulls also show what they are worth.
 		if (dart.multiplier > 1 || dart.sector === 25) span.append(document.createElement('br'), String(dart.value));
 	});
 
+	renderMarks(dartsShown);
 	dartsShown = turn.darts.length;
 
 	const hasDarts = turn.darts.length > 0;
@@ -481,6 +499,56 @@ function renderDarts() {
 	// The active player's checkout follows the darts on the board.
 	renderScoreboard();
 }
+
+// ---- Board markers ------------------------------------------------------------
+
+// Numbered markers where the darts of this turn landed. Tapping a turn in a
+// player's history shows that turn's darts instead (when it was entered on the board).
+const marksLayer = $('.board-marks');
+
+function renderMarks(alreadyShown = DARTS_PER_TURN) {
+	// The layer sits exactly over the board image.
+	marksLayer.style.left = `${board.offsetLeft}px`;
+	marksLayer.style.top = `${board.offsetTop}px`;
+	marksLayer.style.width = `${board.offsetWidth}px`;
+	marksLayer.style.height = `${board.offsetHeight}px`;
+
+	const reviewed = review && reviewedTurn();
+	const hits = turn.darts.length ? turn.darts.map(d => [d.x, d.y]) : reviewed?.hits ?? [];
+	marksLayer.replaceChildren(...hits.map(([x, y], index) => {
+		const mark = document.createElement('div');
+		mark.className = 'mark';
+		if (!turn.darts.length) mark.classList.add('review');
+		if (turn.darts.length && index >= alreadyShown) mark.classList.add('pop');
+		mark.style.left = `${50 + x * 50}%`;
+		mark.style.top = `${50 + y * 50}%`;
+		mark.textContent = index + 1;
+		return mark;
+	}));
+
+	for (const span of $$('.history span.reviewing', scoresBody)) span.classList.remove('reviewing');
+	if (reviewed) $(`.history-row[data-id="${review.id}"] .history`, scoresBody)?.children[review.index]?.classList.add('reviewing');
+}
+
+function reviewedTurn() {
+	return game.players.find(p => p.id === review.id)?.turns[review.index];
+}
+
+/** Show (or, tapped again, hide) where a turn's darts landed. */
+function toggleReview(player, index) {
+	const same = review?.id === player.id && review.index === index;
+	const turnThrown = player.turns[index];
+	if (same || !turnThrown?.hits || turn.darts.length) {
+		review = null;
+	} else {
+		review = { id: player.id, index };
+		const detail = `${turnThrown.darts.join(' ')} = ${turnThrown.bust ? `bust (${turnThrown.attempted})` : turnThrown.score}`;
+		showToast({ kind: 'info', title: player.name, detail });
+	}
+	renderMarks();
+}
+
+new ResizeObserver(() => renderMarks()).observe(board);
 
 // ---- Controls ---------------------------------------------------------------
 
