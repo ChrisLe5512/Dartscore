@@ -16,11 +16,11 @@ test('rings', () => {
 	assert.equal(hit(3, 0).value, 50);
 	assert.equal(hit(12, 0).label, 'OB');
 	assert.equal(hit(25, 0).label, '20');
-	assert.equal(hit(40, 0).label, 'T20');
-	assert.equal(hit(55, 0).label, '20');
-	assert.equal(hit(75, 0).label, 'D20');
-	assert.equal(hit(90, 0).label, '0');
-	assert.equal(hit(90, 0).value, 0);
+	assert.equal(hit(50, 0).label, 'T20');
+	assert.equal(hit(65, 0).label, '20');
+	assert.equal(hit(85, 0).label, 'D20');
+	assert.equal(hit(95, 0).label, '0');
+	assert.equal(hit(95, 0).value, 0);
 	assert.equal(hit(101, 0), null);
 });
 
@@ -32,15 +32,15 @@ test('sectors go clockwise from 20', () => {
 	assert.equal(hit(25, 352).sector, 20);
 });
 
-test('default layout keeps the original ring edges', () => {
-	assert.deepEqual({ ...DEFAULT_RINGS }, { bull: 6, outerBull: 17, innerSingle: 34, treble: 46, outerSingle: 68, double: 83, numberRing: 100 });
+test('default layout ring edges', () => {
+	assert.deepEqual({ ...DEFAULT_RINGS }, { bull: 6, outerBull: 15, innerSingle: 45, treble: 55, outerSingle: 80, double: 90, numberRing: 100 });
 });
 
 test('custom layouts move the rings and hit detection follows', () => {
 	const rings = boardRings({ bull: 4, outerBull: 10, trebleAt: 55, treble: 6, double: 6, legend: 12 });
 	assert.deepEqual(rings, { bull: 4, outerBull: 10, innerSingle: 55, treble: 61, outerSingle: 82, double: 88, numberRing: 100 });
 	assert.equal(hitTest(...at(58, 0), R, rings).label, 'T20');
-	assert.equal(hitTest(...at(40, 0), R, rings).label, '20'); // treble with the default layout
+	assert.equal(hitTest(...at(40, 0), R, rings).label, '20'); // inner single with this layout
 	assert.equal(hitTest(...at(85, 0), R, rings).label, 'D20');
 	assert.equal(hitTest(...at(90, 0), R, rings).label, '0');
 	assert.deepEqual(locate(...at(8, 0), R, rings), { sector: 25, ring: 'outerBull' });
