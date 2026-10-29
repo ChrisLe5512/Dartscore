@@ -467,7 +467,6 @@ aside.keypad-hidden .calc-section {
 	height: 60%;
 	flex: none;
 	box-sizing: border-box;
-	border-bottom: var(--border);
 	font-weight: 500;
 	overflow-y: auto;
 	overscroll-behavior: contain;
@@ -477,6 +476,12 @@ aside.keypad-hidden .calc-section {
 
 .scores-section::-webkit-scrollbar {
 	display: none;
+}
+
+/* The last row's own border divides the scores from the keypad. Only when the
+   list scrolls (a row is cut off) does the list draw the line itself. */
+.scores-section.overflowing {
+	border-bottom: var(--border);
 }
 
 .scores-tbl {

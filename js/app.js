@@ -289,6 +289,8 @@ function layoutScores() {
 	scoresTable.style.setProperty('--s', Math.floor(clamped * 1000) / 1000); // round down: never a pixel too tall
 	scoresTable.classList.toggle('roomy', roomy);
 	scoresTable.classList.toggle('big', big);
+	// Only rows too many to fit (at the smallest size) make the list scroll.
+	scoresSection.classList.toggle('overflowing', scale < minScale);
 }
 
 new ResizeObserver(() => {
