@@ -277,7 +277,7 @@ function renderScoreboard() {
 function layoutScores() {
 	const { rows, bigRows, addRow, minScale, maxScale, bigMaxScale } = SCORES_LAYOUT;
 	const count = game.players.length;
-	const available = scoresSection.offsetHeight / (innerHeight / 100); // in vh
+	const available = scoresSection.offsetHeight / (Math.min(innerWidth, innerHeight) / 100); // in vmin
 	const add = addPlayerRow.classList.contains('hidden') ? 0 : addRow;
 	const fit = block => (count ? available / (count * block + add) : 1);
 	const big = count > 0 && fit(bigRows) >= 1;
@@ -435,6 +435,8 @@ function finishRename(id, input) {
 // Opens beside a player's rows, over the board: rename, hand them the throw,
 // move them in the order, or remove them. Everything but renaming can be undone.
 const playerMenu = $('.player-menu');
+const portrait = matchMedia('(orientation: portrait)');
+portrait.addEventListener('change', () => closePlayerMenu());
 let menuFor = null; // id of the player whose menu is open
 
 function togglePlayerMenu(id) {
@@ -469,10 +471,16 @@ function placePlayerMenu() {
 
 	for (const row of $$('.menu-open', scoresBody)) row.classList.remove('menu-open');
 	rows.forEach(row => row.classList.add('menu-open'));
-	const top = rows[0].getBoundingClientRect().top;
+	const row = rows[0].getBoundingClientRect();
 	const room = innerHeight - playerMenu.offsetHeight - 8;
-	playerMenu.style.left = `${sidebar.getBoundingClientRect().right + 8}px`;
-	playerMenu.style.top = `${Math.max(8, Math.min(top, room))}px`;
+	if (portrait.matches) {
+		// Scores run along the bottom: open just above them, clear of the buttons on the left.
+		playerMenu.style.left = `${$('.ctrl-tbl').getBoundingClientRect().right + 8}px`;
+		playerMenu.style.top = `${Math.max(8, sidebar.getBoundingClientRect().top - playerMenu.offsetHeight - 8)}px`;
+	} else {
+		playerMenu.style.left = `${sidebar.getBoundingClientRect().right + 8}px`;
+		playerMenu.style.top = `${Math.max(8, Math.min(row.top, room))}px`;
+	}
 }
 
 playerMenu.addEventListener('click', event => {

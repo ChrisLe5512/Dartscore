@@ -55,7 +55,7 @@ export const MAX_UNDO_STEPS = 200;
 // How long a status toast stays on screen.
 export const TOAST_MS = 2200;
 
-// Player rows: heights in vh at scale 1 (as in css/styles.css), and how far they may grow or shrink.
+// Player rows: heights in vmin at scale 1 (as in css/styles.css), and how far they may grow or shrink.
 // rows: name + history; stats: the stats line; bigRows: name + big score + history.
 export const SCORES_LAYOUT = Object.freeze({
 	rows: 15, stats: 5, bigRows: 30, addRow: 10,

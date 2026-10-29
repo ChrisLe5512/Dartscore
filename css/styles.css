@@ -120,7 +120,7 @@ aside.keypad-hidden .calc-section {
 	background: var(--panel);
 	border: var(--border);
 	border-radius: var(--radius);
-	padding: 2vh;
+	padding: 2vmin;
 	width: 50%;
 	max-height: 90%;
 	overflow-y: auto;
@@ -129,19 +129,19 @@ aside.keypad-hidden .calc-section {
 
 .settings-tbl {
 	width: 100%;
-	border-spacing: 1vh;
+	border-spacing: 1vmin;
 	color: var(--text);
-	font-size: 3vh;
+	font-size: 3vmin;
 }
 
 .settings-tbl td {
-	padding: 1vh;
+	padding: 1vmin;
 	vertical-align: bottom;
 }
 
 .settings-tbl label {
 	display: block;
-	margin-bottom: 0.75vh;
+	margin-bottom: 0.75vmin;
 	font-family: var(--font-condensed);
 	color: var(--text-soft);
 }
@@ -150,9 +150,9 @@ aside.keypad-hidden .calc-section {
 .settings-tbl select {
 	width: 100%;
 	box-sizing: border-box;
-	padding: 0.5vh;
+	padding: 0.5vmin;
 	font-family: inherit;
-	font-size: 2.5vh;
+	font-size: 2.5vmin;
 	background: #242424;
 	border: 1px solid var(--text-muted);
 	color: var(--text);
@@ -162,15 +162,15 @@ aside.keypad-hidden .calc-section {
 .settings-tbl .settings-check {
 	display: flex;
 	align-items: center;
-	gap: 1vh;
+	gap: 1vmin;
 	margin: 0;
 	color: var(--text);
 	cursor: pointer;
 }
 
 .settings-tbl .settings-check input {
-	width: 3vh;
-	height: 3vh;
+	width: 3vmin;
+	height: 3vmin;
 	margin: 0;
 	accent-color: var(--checkout);
 }
@@ -183,11 +183,11 @@ aside.keypad-hidden .calc-section {
 }
 
 .settings-heading {
-	margin: 1vh 1vh 0;
-	padding-bottom: 0.6vh;
+	margin: 1vmin 1vmin 0;
+	padding-bottom: 0.6vmin;
 	border-bottom: 1px solid var(--text-muted);
 	font-family: var(--font-condensed);
-	font-size: 3.2vh;
+	font-size: 3.2vmin;
 	font-weight: 600;
 	color: var(--text);
 }
@@ -206,8 +206,8 @@ aside.keypad-hidden .calc-section {
 
 .players-scroll {
 	flex: 0 1 auto;
-	min-height: 12vh;
-	margin: 1vh 1vh 0;
+	min-height: 12vmin;
+	margin: 1vmin 1vmin 0;
 	overflow-y: auto;
 	overscroll-behavior: contain;
 	scrollbar-width: none;
@@ -221,11 +221,11 @@ aside.keypad-hidden .calc-section {
 }
 
 .players-scroll.fade-top {
-	--fade-top: 5vh;
+	--fade-top: 5vmin;
 }
 
 .players-scroll.fade-bottom {
-	--fade-bottom: 5vh;
+	--fade-bottom: 5vmin;
 }
 
 .players-list {
@@ -235,7 +235,7 @@ aside.keypad-hidden .calc-section {
 }
 
 .player-item {
-	padding: 0.5vh 0;
+	padding: 0.5vmin 0;
 }
 
 .player-item.dragging {
@@ -246,14 +246,14 @@ aside.keypad-hidden .calc-section {
 
 .player-item.dragging .player-field {
 	border-color: var(--text);
-	box-shadow: 0 1vh 2vh rgba(0, 0, 0, 0.6);
+	box-shadow: 0 1vmin 2vmin rgba(0, 0, 0, 0.6);
 }
 
 /* Name with its controls inside the field: grip, name, up, down, remove. */
 .player-field {
 	display: flex;
 	align-items: center;
-	height: 5vh;
+	height: 5vmin;
 	background: #242424;
 	border: 1px solid var(--text-muted);
 	border-radius: var(--radius);
@@ -264,9 +264,9 @@ aside.keypad-hidden .calc-section {
 	flex: 1;
 	min-width: 0;
 	height: 100%;
-	padding: 0 0.5vh;
+	padding: 0 0.5vmin;
 	font-family: var(--font);
-	font-size: 2.6vh;
+	font-size: 2.6vmin;
 	color: var(--text);
 	background: none;
 	border: none;
@@ -274,8 +274,8 @@ aside.keypad-hidden .calc-section {
 }
 
 .grip {
-	padding: 0 1vh;
-	font-size: 3vh;
+	padding: 0 1vmin;
+	font-size: 3vmin;
 	color: var(--text-muted);
 	cursor: grab;
 	touch-action: none;
@@ -286,10 +286,10 @@ aside.keypad-hidden .calc-section {
 }
 
 .field-btn {
-	width: 5vh;
+	width: 5vmin;
 	height: 100%;
 	padding: 0;
-	font-size: 2.2vh;
+	font-size: 2.2vmin;
 	color: var(--text);
 	background: none;
 	border: none;
@@ -313,10 +313,10 @@ aside.keypad-hidden .calc-section {
 
 .players-add {
 	width: 100%;
-	height: 5vh;
-	margin: 0.5vh 0;
+	height: 5vmin;
+	margin: 0.5vmin 0;
 	font-family: inherit;
-	font-size: 3.6vh;
+	font-size: 3.6vmin;
 	line-height: 1;
 	color: var(--text);
 	border: var(--border);
@@ -328,15 +328,15 @@ aside.keypad-hidden .calc-section {
 .settings-note {
 	color: var(--text-soft);
 	font-family: var(--font-condensed);
-	font-size: 2.5vh;
+	font-size: 2.5vmin;
 	text-align: center;
 }
 
 .settings-btn-action {
 	width: 100%;
-	padding: 1vh;
+	padding: 1vmin;
 	font-family: var(--font-condensed);
-	font-size: 4vh;
+	font-size: 4vmin;
 	font-weight: 500;
 	color: var(--text);
 	text-shadow: 0 0 8px black;
@@ -352,7 +352,7 @@ aside.keypad-hidden .calc-section {
 
 /* Smaller link-style button that opens a sub-page of Settings. */
 .settings-btn-action.settings-link {
-	font-size: 3vh;
+	font-size: 3vmin;
 	font-weight: normal;
 	background: var(--button-disabled);
 }
@@ -365,30 +365,30 @@ aside.keypad-hidden .calc-section {
 .visuals {
 	display: grid;
 	grid-template-columns: 42% 1fr;
-	gap: 3vh;
+	gap: 3vmin;
 	align-items: center;
-	padding: 1vh;
+	padding: 1vmin;
 	color: var(--text);
 	font-family: var(--font-condensed);
-	font-size: 2.6vh;
+	font-size: 2.6vmin;
 }
 
 .board-preview {
 	width: 100%;
 	aspect-ratio: 1;
-	filter: drop-shadow(0 0 2vh black);
+	filter: drop-shadow(0 0 2vmin black);
 }
 
 .visuals-controls {
 	display: flex;
 	flex-direction: column;
-	gap: 1.2vh;
+	gap: 1.2vmin;
 }
 
 .range {
 	display: grid;
 	grid-template-columns: 1fr auto;
-	row-gap: 0.3vh;
+	row-gap: 0.3vmin;
 	color: var(--text-soft);
 }
 
@@ -406,12 +406,12 @@ aside.keypad-hidden .calc-section {
 
 .swatches {
 	display: flex;
-	gap: 1.5vh;
+	gap: 1.5vmin;
 }
 
 .swatch {
-	width: 4.5vh;
-	height: 4.5vh;
+	width: 4.5vmin;
+	height: 4.5vmin;
 	padding: 0;
 	border: var(--border-muted);
 	border-radius: 50%;
@@ -427,13 +427,13 @@ aside.keypad-hidden .calc-section {
 .visuals .settings-check {
 	display: flex;
 	align-items: center;
-	gap: 1vh;
+	gap: 1vmin;
 	cursor: pointer;
 }
 
 .visuals .settings-check input {
-	width: 2.6vh;
-	height: 2.6vh;
+	width: 2.6vmin;
+	height: 2.6vmin;
 	margin: 0;
 	accent-color: var(--checkout);
 }
@@ -445,9 +445,9 @@ aside.keypad-hidden .calc-section {
 }
 
 .winner-text {
-	margin: 2vh;
+	margin: 2vmin;
 	font-family: var(--font-condensed);
-	font-size: 7vh;
+	font-size: 7vmin;
 	font-weight: 500;
 	line-height: 1.1;
 	color: var(--text);
@@ -455,7 +455,7 @@ aside.keypad-hidden .calc-section {
 }
 
 .winner-icon {
-	font-size: 10vh;
+	font-size: 10vmin;
 }
 
 /* SCORES */
@@ -495,19 +495,19 @@ aside.keypad-hidden .calc-section {
 }
 
 .player-row {
-	height: calc(10vh * var(--s));
+	height: calc(10vmin * var(--s));
 	background: linear-gradient(#484848, #242424);
 }
 
 .player-wins {
-	width: 0.6vh;
-	font-size: calc(3.5vh * var(--s));
+	width: 0.6vmin;
+	font-size: calc(3.5vmin * var(--s));
 	font-weight: 600;
 	text-align: center;
-	text-shadow: 0 0 0.5vh black;
+	text-shadow: 0 0 0.5vmin black;
 	line-height: 1.1;
 	padding-left: 1vw;
-	text-underline-offset: calc(0.5vh * var(--s));
+	text-underline-offset: calc(0.5vmin * var(--s));
 }
 
 .player-wins u {
@@ -525,12 +525,12 @@ aside.keypad-hidden .calc-section {
 .target-wins {
 	font-family: var(--font-condensed);
 	color: var(--text-soft);
-	padding-top: 0.15vh;
-	width: calc(4vh * var(--s));
-	font-size: calc(2.5vh * var(--s));
+	padding-top: 0.15vmin;
+	width: calc(4vmin * var(--s));
+	font-size: calc(2.5vmin * var(--s));
 	font-weight: normal;
 	text-align: center;
-	text-shadow: 0 0 0.5vh black;
+	text-shadow: 0 0 0.5vmin black;
 	line-height: 1.25;
 }
 
@@ -545,13 +545,13 @@ aside.keypad-hidden .calc-section {
 	color: inherit;
 	font-family: var(--font-condensed);
 	font-weight: normal;
-	font-size: calc(6.5vh * var(--s));
+	font-size: calc(6.5vmin * var(--s));
 	text-align: left;
-	text-shadow: 0 0 1vh black;
+	text-shadow: 0 0 1vmin black;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	text-indent: 0.5vh;
+	text-indent: 0.5vmin;
 }
 
 /* The name as shown; fitName in js/app.js narrows, wraps or shrinks it to fit. */
@@ -562,14 +562,14 @@ aside.keypad-hidden .calc-section {
 .name-text {
 	display: flex;
 	align-items: center;
-	height: calc(9vh * var(--s));
-	padding: 0 1vh 0 0.5vh;
+	height: calc(9vmin * var(--s));
+	padding: 0 1vmin 0 0.5vmin;
 	overflow: hidden;
 	font-family: var(--font-condensed);
 	font-weight: normal;
-	font-size: calc(6.5vh * var(--s) * var(--name-size, 1));
+	font-size: calc(6.5vmin * var(--s) * var(--name-size, 1));
 	line-height: 1;
-	text-shadow: 0 0 1vh black;
+	text-shadow: 0 0 1vmin black;
 	white-space: nowrap;
 }
 
@@ -582,7 +582,7 @@ aside.keypad-hidden .calc-section {
 }
 
 .name-text.two-lines {
-	font-size: calc(4.2vh * var(--s) * var(--name-size, 1));
+	font-size: calc(4.2vmin * var(--s) * var(--name-size, 1));
 	line-height: 0.95;
 	white-space: normal;
 }
@@ -605,15 +605,15 @@ aside.keypad-hidden .calc-section {
 }
 
 .player-score {
-	width: calc(12vh * var(--s));
+	width: calc(12vmin * var(--s));
 	padding-right: 0.5vw;
-	font-size: calc(7.5vh * var(--s));
+	font-size: calc(7.5vmin * var(--s));
 	text-align: right;
-	text-shadow: 0 0 1vh black;
+	text-shadow: 0 0 1vmin black;
 }
 
 .history-row {
-	height: calc(5vh * var(--s));
+	height: calc(5vmin * var(--s));
 	background: var(--row);
 }
 
@@ -656,16 +656,16 @@ aside.keypad-hidden .calc-section {
 }
 
 .history.fade-left {
-	--fade-left: 6vh;
+	--fade-left: 6vmin;
 }
 
 .history.fade-right {
-	--fade-right: 3vh;
+	--fade-right: 3vmin;
 }
 
 .history span {
 	color: var(--text-soft);
-	font-size: calc(2.25vh * var(--s));
+	font-size: calc(2.25vmin * var(--s));
 	font-weight: normal;
 	padding-right: 0.5vw;
 	line-height: 1.35;
@@ -677,8 +677,8 @@ aside.keypad-hidden .calc-section {
 
 .checkout {
 	flex: none;
-	padding: 0 1vw 0 1vh;
-	font-size: calc(3vh * var(--s));
+	padding: 0 1vw 0 1vmin;
+	font-size: calc(3vmin * var(--s));
 	white-space: nowrap;
 	color: var(--checkout);
 	cursor: pointer;
@@ -686,7 +686,7 @@ aside.keypad-hidden .calc-section {
 
 /* Only when there is room: a line of match stats between the name and the history. */
 .stats-row {
-	height: calc(5vh * var(--s));
+	height: calc(5vmin * var(--s));
 	background: var(--row);
 }
 
@@ -711,9 +711,9 @@ aside.keypad-hidden .calc-section {
 
 .stats {
 	display: flex;
-	gap: 2.5vh;
+	gap: 2.5vmin;
 	font-family: var(--font-condensed);
-	font-size: calc(2.5vh * var(--s));
+	font-size: calc(2.5vmin * var(--s));
 	font-weight: normal;
 	color: var(--text-muted);
 	white-space: nowrap;
@@ -745,7 +745,7 @@ aside.keypad-hidden .calc-section {
 }
 
 .big .stats-row {
-	height: calc(15vh * var(--s));
+	height: calc(15vmin * var(--s));
 	background: linear-gradient(#363636, #242424);
 }
 
@@ -756,17 +756,17 @@ aside.keypad-hidden .calc-section {
 
 .big .stats {
 	flex-direction: column;
-	gap: 0.6vh;
-	font-size: calc(2.8vh * var(--s));
+	gap: 0.6vmin;
+	font-size: calc(2.8vmin * var(--s));
 	color: var(--text-soft);
-	text-shadow: 0 0 0.5vh black;
+	text-shadow: 0 0 0.5vmin black;
 }
 
 .big .big-score {
 	display: block;
-	font-size: calc(13vh * var(--s));
+	font-size: calc(13vmin * var(--s));
 	line-height: 1;
-	text-shadow: 0 0 1vh black;
+	text-shadow: 0 0 1vmin black;
 }
 
 .add-player {
@@ -776,10 +776,10 @@ aside.keypad-hidden .calc-section {
 }
 
 .add-player td {
-	font-size: calc(6vh * var(--s));
+	font-size: calc(6vmin * var(--s));
 	border-bottom: var(--border);
 	box-sizing: border-box;
-	height: calc(10vh * var(--s));
+	height: calc(10vmin * var(--s));
 	cursor: pointer;
 }
 
@@ -812,28 +812,28 @@ aside.keypad-hidden .calc-section {
 	width: 100%;
 	height: 100%;
 	text-align: center;
-	font-size: 6vh;
-	text-shadow: 0 0 0.5vh black;
-	line-height: 1vh;
+	font-size: 6vmin;
+	text-shadow: 0 0 0.5vmin black;
+	line-height: 1vmin;
 	color: white;
 }
 
 .calc-tbl td {
 	border: var(--border);
 	border-radius: var(--radius);
-	height: 7.5vh;
+	height: 7.5vmin;
 	background: linear-gradient(#808080, #484848);
 	cursor: pointer;
 }
 
 .calc-tbl td:not(.calc-score):active {
 	background: var(--button-pressed);
-	font-size: 5.5vh;
+	font-size: 5.5vmin;
 }
 
 .calc-tbl td.back-score:active {
 	background: var(--button-pressed);
-	font-size: 4.75vh;
+	font-size: 4.75vmin;
 }
 
 .calc-tbl td.disabled {
@@ -850,10 +850,10 @@ td.calc-score {
 	isolation: isolate;
 	font-family: var(--font-condensed);
 	font-weight: 500;
-	line-height: 5.25vh;
+	line-height: 5.25vmin;
 	background: none;
 	border-color: transparent;
-	text-shadow: 0 0 1vh black;
+	text-shadow: 0 0 1vmin black;
 }
 
 td.calc-score::before {
@@ -886,11 +886,11 @@ td.calc-score.tip-down:not(.disabled)::before {
 }
 
 @keyframes tip-up {
-	30% { transform: perspective(30vh) rotateX(7deg); }
+	30% { transform: perspective(30vmin) rotateX(7deg); }
 }
 
 @keyframes tip-down {
-	30% { transform: perspective(30vh) rotateX(-7deg); }
+	30% { transform: perspective(30vmin) rotateX(-7deg); }
 }
 
 td.calc-score b {
@@ -906,24 +906,24 @@ td.calc-score i {
 
 td.back-score {
 	font-family: "Lucida Sans Unicode";
-	font-size: 5vh;
+	font-size: 5vmin;
 	line-height: 1.25%;
-	text-shadow: 0 0 0.5vh #00000064;
+	text-shadow: 0 0 0.5vmin #00000064;
 }
 
 /* BUTTONS */
 
 /* Keypad show/hide: a keypad symbol, and an arrow that points down to hide, up to show. */
 .keypad-btn .keypad-icon {
-	font-size: 3.6vh;
+	font-size: 3.6vmin;
 	font-weight: normal;
 	vertical-align: middle;
 }
 
 .keypad-btn span {
 	display: inline-block;
-	margin-left: 0.3vh;
-	font-size: 3vh;
+	margin-left: 0.3vmin;
+	font-size: 3vmin;
 	vertical-align: middle;
 	transition: transform var(--medium) var(--ease-out);
 }
@@ -948,13 +948,13 @@ td.back-score {
 	width: 12.5vw;
 	height: 100%;
 	text-align: center;
-	text-shadow: 0 0 1vh black;
+	text-shadow: 0 0 1vmin black;
 	color: white;
 }
 
 .ctrl-tbl td {
 	height: 7.5%;
-	font-size: 6vh;
+	font-size: 6vmin;
 	line-height: 1;
 	overflow: hidden;
 	border: var(--border);
@@ -995,7 +995,7 @@ td.back-score {
 	width: 296%;
 	height: 100%;
 	text-align: center;
-	text-shadow: 0 0 1vh black;
+	text-shadow: 0 0 1vmin black;
 	color: white;
 }
 
@@ -1026,19 +1026,19 @@ td.back-score {
 }
 
 .large-btn {
-	font-size: 6vh;
+	font-size: 6vmin;
 	cursor: pointer;
 }
 
 .darts-clear {
-	font-size: 4vh;
+	font-size: 4vmin;
 	font-weight: normal;
 	cursor: pointer;
 }
 
 .darts-total {
-	line-height: 1.5vh;
-	font-size: 6vh;
+	line-height: 1.5vmin;
+	font-size: 6vmin;
 	font-weight: 400;
 	cursor: default;
 }
@@ -1049,8 +1049,8 @@ td.back-score {
 	flex-direction: column;
 	align-items: center;
 	width: 100%;
-	margin-left: -0.25vh;
-	font-size: 3vh;
+	margin-left: -0.25vmin;
+	font-size: 3vmin;
 	text-align: center;
 	line-height: 1.05;
 	color: white;
@@ -1061,30 +1061,30 @@ td.back-score {
 
 .darts span {
 	width: 70%;
-	height: 8.65vh;
-	margin: 1vh 0;
+	height: 8.65vmin;
+	margin: 1vmin 0;
 	border: var(--line) solid transparent;
 	border-radius: var(--radius);
-	text-shadow: 0 0 0.5vh black;
+	text-shadow: 0 0 0.5vmin black;
 	pointer-events: auto;
 }
 
 .darts u {
-	font-size: 5vh;
-	text-decoration-thickness: 0.25vh;
-	text-underline-offset: 0.5vh;
+	font-size: 5vmin;
+	text-decoration-thickness: 0.25vmin;
+	text-underline-offset: 0.5vmin;
 }
 
 .darts .black {
 	border-color: white;
-	line-height: 8vh;
+	line-height: 8vmin;
 	background: linear-gradient(#646464, #161616);
 	cursor: pointer;
 }
 
 .darts .white {
 	border-color: white;
-	line-height: 8vh;
+	line-height: 8vmin;
 	background: linear-gradient(#c8c8c8, #808080);
 	cursor: pointer;
 }
@@ -1103,7 +1103,7 @@ td.back-score {
 
 .darts .zero {
 	border-color: white;
-	line-height: 8vh;
+	line-height: 8vmin;
 	background: black;
 	cursor: pointer;
 }
@@ -1122,11 +1122,11 @@ td.back-score {
 /* Drawn in js/dartboard.js. The SVG has a 1% margin for the outline, hence × 1.01. */
 #dartboard {
 	display: block;
-	width: calc(min(99%, 99vh) * 1.01);
+	width: calc(min(99%, 99vmin) * 1.01);
 	height: auto;
 	aspect-ratio: 1;
-	margin-right: -0.25vh;
-	filter: drop-shadow(0 0 4vh black);
+	margin-right: -0.25vmin;
+	filter: drop-shadow(0 0 4vmin black);
 	pointer-events: auto;
 	-webkit-tap-highlight-color: transparent;
 }
@@ -1160,11 +1160,11 @@ td.back-score {
 
 .debug-span {
 	position: absolute;
-	bottom: 1.5vh;
+	bottom: 1.5vmin;
 	right: 16.5vw;
 	color: var(--row);
-	font-size: 2.5vh;
-	text-underline-offset: 0.25vh;
+	font-size: 2.5vmin;
+	text-underline-offset: 0.25vmin;
 	line-height: 0.5;
 	text-align: right;
 }
@@ -1177,13 +1177,13 @@ td.back-score {
 	z-index: 60;
 	display: flex;
 	flex-direction: column;
-	min-width: 22vh;
-	padding: 0.8vh;
-	gap: 0.4vh;
+	min-width: 22vmin;
+	padding: 0.8vmin;
+	gap: 0.4vmin;
 	background: var(--panel);
 	border: var(--border);
 	border-radius: var(--radius);
-	box-shadow: 0 1vh 3vh rgba(0, 0, 0, 0.7);
+	box-shadow: 0 1vmin 3vmin rgba(0, 0, 0, 0.7);
 	font-family: var(--font-condensed);
 }
 
@@ -1192,10 +1192,10 @@ td.back-score {
 }
 
 .player-menu-name {
-	max-width: 30vh;
-	padding: 0.4vh 1vh 0.8vh;
+	max-width: 30vmin;
+	padding: 0.4vmin 1vmin 0.8vmin;
 	border-bottom: 1px solid var(--text-muted);
-	font-size: 2.6vh;
+	font-size: 2.6vmin;
 	color: var(--text-soft);
 	white-space: nowrap;
 	overflow: hidden;
@@ -1205,10 +1205,10 @@ td.back-score {
 .player-menu button {
 	display: flex;
 	align-items: center;
-	gap: 1.2vh;
-	padding: 1vh 1.2vh;
+	gap: 1.2vmin;
+	padding: 1vmin 1.2vmin;
 	font-family: inherit;
-	font-size: 3vh;
+	font-size: 3vmin;
 	color: var(--text);
 	text-align: left;
 	background: none;
@@ -1218,8 +1218,8 @@ td.back-score {
 }
 
 .player-menu button span {
-	width: 3vh;
-	font-size: 2.4vh;
+	width: 3vmin;
+	font-size: 2.4vmin;
 	text-align: center;
 }
 
@@ -1237,31 +1237,31 @@ td.back-score {
 }
 
 @keyframes menu-in {
-	from { opacity: 0; transform: translateX(-2vh); }
+	from { opacity: 0; transform: translateX(-2vmin); }
 }
 
 /* TOAST */
 
 .toast {
 	position: absolute;
-	top: 2.5vh;
+	top: 2.5vmin;
 	left: 61%;
 	z-index: 50;
 	max-width: 40vw;
-	padding: 1vh 2.5vh;
+	padding: 1vmin 2.5vmin;
 	box-sizing: border-box;
 	font-family: var(--font-condensed);
-	font-size: 3.5vh;
+	font-size: 3.5vmin;
 	line-height: 1.2;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	color: var(--text);
-	text-shadow: 0 0 1vh black;
+	text-shadow: 0 0 1vmin black;
 	background: var(--panel);
 	border: var(--border);
 	border-radius: var(--radius);
-	box-shadow: 0 1vh 3vh rgba(0, 0, 0, 0.6);
+	box-shadow: 0 1vmin 3vmin rgba(0, 0, 0, 0.6);
 	pointer-events: none;
 	transform: translateX(-50%);
 	animation: toast-in var(--medium) var(--ease-back);
@@ -1289,7 +1289,7 @@ td.back-score {
 
 .toast.win {
 	border-color: var(--checkout);
-	box-shadow: 0 1vh 3vh rgba(0, 0, 0, 0.6), 0 0 2vh rgba(0, 200, 0, 0.35);
+	box-shadow: 0 1vmin 3vmin rgba(0, 0, 0, 0.6), 0 0 2vmin rgba(0, 200, 0, 0.35);
 }
 
 .toast.win .toast-title {
@@ -1297,11 +1297,11 @@ td.back-score {
 }
 
 @keyframes toast-in {
-	from { opacity: 0; transform: translate(-50%, -2vh) scale(0.9); }
+	from { opacity: 0; transform: translate(-50%, -2vmin) scale(0.9); }
 }
 
 @keyframes toast-out {
-	to { opacity: 0; transform: translate(-50%, -1.5vh) scale(0.95); }
+	to { opacity: 0; transform: translate(-50%, -1.5vmin) scale(0.95); }
 }
 
 /* MOTION */
@@ -1396,11 +1396,11 @@ td.calc-score:not(.disabled) {
 }
 
 @keyframes dialog-in {
-	from { opacity: 0; transform: translateY(3vh) scale(0.94); }
+	from { opacity: 0; transform: translateY(3vmin) scale(0.94); }
 }
 
 @keyframes dialog-out {
-	to { opacity: 0; transform: translateY(2vh) scale(0.96); }
+	to { opacity: 0; transform: translateY(2vmin) scale(0.96); }
 }
 
 @keyframes row-activate {
@@ -1416,7 +1416,7 @@ td.calc-score:not(.disabled) {
 }
 
 @keyframes history-enter {
-	from { opacity: 0; transform: translateX(-2vh); }
+	from { opacity: 0; transform: translateX(-2vmin); }
 }
 
 @keyframes trophy {
@@ -1424,7 +1424,104 @@ td.calc-score:not(.disabled) {
 }
 
 @keyframes trophy-glow {
-	to { transform: scale(1.08); filter: drop-shadow(0 0 2vh rgba(255, 200, 0, 0.6)); }
+	to { transform: scale(1.08); filter: drop-shadow(0 0 2vmin rgba(255, 200, 0, 0.6)); }
+}
+
+/* PORTRAIT */
+
+/* Built for landscape (16:10, 4:3). In portrait the board goes on top and
+   the scores and keypad become a band along the bottom. Sizes are in vmin,
+   so they follow the screen's width here. */
+@media (orientation: portrait) {
+	main {
+		display: grid;
+		grid-template-columns: 100%;
+		grid-template-rows: minmax(0, 1fr) 42%;
+	}
+
+	/* The board, its left buttons and its right column share the top area. */
+	.ctrl-section,
+	.dartboard-section,
+	.btn-section {
+		grid-row: 1;
+		grid-column: 1;
+	}
+
+	.ctrl-section {
+		justify-self: start;
+		height: 100%;
+	}
+
+	.ctrl-tbl {
+		width: 20vmin;
+	}
+
+	.dartboard-section {
+		width: 100%;
+		max-width: none;
+		height: 100%;
+		container-type: size;
+	}
+
+	/* Fits between the buttons on the left and the darts column on the right. */
+	#dartboard {
+		width: calc(min(100cqw - 30vmin, 98cqh) * 1.01);
+		margin: 0;
+	}
+
+	.btn-section {
+		justify-self: end;
+		height: 100%;
+		width: 13vmin;
+		right: 12.8vmin;
+	}
+
+	aside {
+		grid-row: 2;
+		flex-direction: row;
+		width: auto;
+		height: auto;
+		border-right: none;
+		border-top: var(--border);
+	}
+
+	.scores-section {
+		width: 58%;
+		height: 100%;
+		border-bottom: none;
+		border-right: var(--border);
+		transition: width var(--medium) var(--ease-out);
+	}
+
+	.calc-section {
+		width: 42%;
+		height: 100%;
+		transition: width var(--medium) var(--ease-out), visibility var(--medium);
+	}
+
+	aside.keypad-hidden .scores-section {
+		width: 100%;
+		height: 100%;
+		border-right: none;
+	}
+
+	aside.keypad-hidden .calc-section {
+		width: 0;
+		height: 100%;
+	}
+
+	.toast {
+		left: 50%;
+		max-width: 80vw;
+	}
+
+	.settings-section {
+		width: 90%;
+	}
+
+	.visuals-section {
+		width: 95%;
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1540,7 +1637,7 @@ td.calc-score:not(.disabled) {
 }
 
 @keyframes editing {
-	to { box-shadow: 0 0 2vh var(--board-hit); }
+	to { box-shadow: 0 0 2vmin var(--board-hit); }
 }
 
 @keyframes editing-mark {
@@ -1550,19 +1647,19 @@ td.calc-score:not(.disabled) {
 /* Corner number on each dart slot, matching its marker on the board. */
 .dart-num {
 	position: absolute;
-	top: -1.1vh;
-	left: -1.1vh;
-	width: 2.6vh;
-	height: 2.6vh;
+	top: -1.1vmin;
+	left: -1.1vmin;
+	width: 2.6vmin;
+	height: 2.6vmin;
 	box-sizing: border-box;
 	border: var(--line) solid white;
 	border-radius: 50%;
 	background: black;
 	font-family: var(--font-condensed);
-	font-size: 1.6vh;
+	font-size: 1.6vmin;
 	font-style: normal;
 	font-weight: 600;
-	line-height: 2vh;
+	line-height: 2vmin;
 	text-align: center;
 	text-shadow: none;
 }
@@ -1574,7 +1671,7 @@ td.calc-score:not(.disabled) {
 
 .history span.has-hits b {
 	text-decoration: underline dotted var(--text-muted);
-	text-underline-offset: 0.3vh;
+	text-underline-offset: 0.3vmin;
 }
 
 .history span.reviewing b {
