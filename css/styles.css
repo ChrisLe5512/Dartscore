@@ -17,6 +17,15 @@
 	--font: "Roboto Flex", sans-serif;
 	--font-condensed: "Roboto Condensed", sans-serif;
 	--bust: #ff3216;
+	/* Dartboard */
+	--board-black: #000000;
+	--board-white: #ffffff;
+	--board-red: #af3215;
+	--board-green: #63af4a;
+	--board-legend: #000000;
+	--board-number: #ffffff;
+	--board-seam: rgba(0, 0, 0, 0.6);
+	--board-hit: #ffd24d;
 	--ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 	--ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
 	--fast: 120ms;
@@ -845,14 +854,43 @@ td.back-score {
 	max-width: 62%;
 }
   
+/* Drawn in js/dartboard.js. The SVG has a 1% margin for the outline, hence × 1.01. */
 #dartboard {
-	width: auto;
+	display: block;
+	width: calc(min(99%, 99vh) * 1.01);
 	height: auto;
+	aspect-ratio: 1;
 	margin-right: -0.25vh;
-	max-width: 99%;
-	max-height: 99vh;
 	filter: drop-shadow(0 0 4vh black);
 	pointer-events: auto;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.seg {
+	fill-rule: evenodd; /* the outer bull is a ring around the bull */
+	stroke: var(--board-seam);
+	stroke-width: 0.3;
+	stroke-linejoin: round;
+}
+
+.seg.black { fill: var(--board-black); }
+.seg.white { fill: var(--board-white); }
+.seg.red { fill: var(--board-red); }
+.seg.green { fill: var(--board-green); }
+.seg.legend { fill: var(--board-legend); stroke: none; }
+
+/* Optional wires around every bed (Settings > Visuals). */
+.beds.wired .seg {
+	stroke: var(--wire);
+	stroke-width: var(--wire-width);
+}
+
+.numbers text {
+	fill: var(--board-number);
+	font-family: var(--font);
+	font-weight: 400;
+	text-anchor: middle;
+	dominant-baseline: central;
 }
 
 .debug-span {
@@ -1066,46 +1104,78 @@ td.calc-score:not(.disabled) {
 	}
 }
 
-/* BOARD MARKERS */
+/* BOARD MARKERS AND LIGHTS (inside the board SVG, in board units: radius 100) */
 
-/* Sits exactly over the board image (JS sets its box). */
-.board-marks {
-	position: absolute;
+.dartboard .shading,
+.dartboard .outlines,
+.dartboard .numbers,
+.dartboard .lit,
+.dartboard .marks {
 	pointer-events: none;
 }
 
+/* Where this turn's darts landed: the segment glows. */
+.light {
+	stroke-linejoin: round;
+}
+
+.light.hit {
+	fill: color-mix(in srgb, var(--board-hit) 35%, transparent);
+	stroke: var(--board-hit);
+	stroke-width: 0.9;
+	filter: drop-shadow(0 0 1.5px var(--board-hit));
+	animation: fade-in var(--medium) var(--ease-out);
+}
+
+/* A past turn being looked back at. */
+.light.review {
+	fill: color-mix(in srgb, var(--board-hit) 18%, transparent);
+	stroke: var(--board-hit);
+	stroke-width: 0.6;
+	stroke-dasharray: 2 1.5;
+}
+
+/* Under the mouse pointer. */
+.light.hover {
+	fill: rgba(255, 255, 255, 0.14);
+	stroke: rgba(255, 255, 255, 0.45);
+	stroke-width: 0.4;
+}
+
 /* Centred on where the dart landed. */
-.mark {
-	position: absolute;
-	width: 3.6vh;
-	height: 3.6vh;
-	box-sizing: border-box;
-	transform: translate(-50%, -50%);
-	border: var(--line) solid white;
-	border-radius: 50%;
-	background: rgba(0, 0, 0, 0.8);
-	box-shadow: 0 0 1vh black;
-	color: white;
+.mark circle {
+	fill: rgba(0, 0, 0, 0.8);
+	stroke: white;
+	stroke-width: var(--line);
+	vector-effect: non-scaling-stroke;
+}
+
+.mark text {
+	fill: white;
 	font-family: var(--font-condensed);
-	font-size: 2.1vh;
+	font-size: 4.6px;
 	font-weight: 600;
-	line-height: 2.9vh;
-	text-align: center;
+	text-anchor: middle;
+	dominant-baseline: central;
+}
+
+.mark.review circle {
+	fill: rgba(0, 0, 0, 0.55);
+	stroke-dasharray: 3 2;
 }
 
 .mark.pop {
+	transform-box: fill-box;
+	transform-origin: center;
 	animation: mark-pop var(--medium) var(--ease-back);
 }
 
-/* A past turn's darts: lighter, so they read as a look back. */
 .mark.review {
-	border-style: dashed;
-	background: rgba(0, 0, 0, 0.55);
 	animation: fade-in var(--medium) var(--ease-out);
 }
 
 @keyframes mark-pop {
-	from { opacity: 0; transform: translate(-50%, -50%) scale(2); }
+	from { opacity: 0; transform: scale(2); }
 }
 
 .darts span {

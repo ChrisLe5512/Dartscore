@@ -4,8 +4,9 @@
 import {
 	DARTS_PER_TURN, MAX_LEGS, MAX_SETS, MAX_TURN_SCORE, SCORES_LAYOUT, START_SCORES, TOAST_MS,
 } from './config.js';
-import { hitTest, isOnBoard } from './board.js';
+import { boardRings, hitTest, isOnBoard, locate } from './board.js';
 import { getCheckouts } from './checkout.js';
+import { boardRadius, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
 import { describeTravel, describeTurn } from './feedback.js';
 import * as Game from './game.js';
 import * as History from './history.js';
@@ -17,6 +18,7 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 // ---- State ------------------------------------------------------------------
 
 const saved = loadSession();
+const prefs = loadPrefs(); // this device's view choices (keypad, board look)
 let game = saved?.game ?? Game.createGame();
 let history = saved?.history ?? History.createHistory();
 
@@ -421,18 +423,29 @@ function boardOffset(event) {
 	return {
 		dx: event.clientX - (rect.left + rect.width / 2),
 		dy: event.clientY - (rect.top + rect.height / 2),
-		radius: rect.width / 2,
+		radius: boardRadius(rect.width),
 	};
 }
 
+// With a mouse, the segment under the pointer lights up faintly.
+let hovered = null;
 board.addEventListener('mousemove', event => {
 	const { dx, dy, radius } = boardOffset(event);
 	board.style.cursor = isOnBoard(dx, dy, radius) ? 'crosshair' : 'default';
+	const spot = locate(dx, dy, radius, rings);
+	const key = spot && segmentKey(spot.sector, spot.ring);
+	if (key === hovered) return;
+	hovered = key;
+	renderLights();
+});
+board.addEventListener('mouseleave', () => {
+	hovered = null;
+	renderLights();
 });
 
 board.addEventListener('click', event => {
 	const { dx, dy, radius } = boardOffset(event);
-	const dart = hitTest(dx, dy, radius);
+	const dart = hitTest(dx, dy, radius, rings);
 	if (debug) {
 		const pct = Math.round(Math.hypot(dx, dy) / radius * 100);
 		debugSpan.textContent = `(${Math.round(dx)}, ${Math.round(dy)}) ${pct}% ${dart?.label ?? 'off'}`;
@@ -505,32 +518,44 @@ function renderDarts() {
 
 // ---- Board markers ------------------------------------------------------------
 
-// Numbered markers where the darts of this turn landed. Tapping a turn in a
-// player's history shows that turn's darts instead (when it was entered on the board).
-const marksLayer = $('.board-marks');
+// Numbered markers where the darts of this turn landed, and their segments lit
+// up. Tapping a turn in a player's history shows that turn's darts instead
+// (when it was entered on the board).
+let rings = boardRings(prefs.boardLayout);
+drawBoard(board, rings, prefs.boardStyle);
+
+/** Redraw the board, e.g. after its layout or outline changed in Settings. */
+function redrawBoard() {
+	rings = boardRings(prefs.boardLayout);
+	drawBoard(board, rings, prefs.boardStyle);
+	renderMarks();
+}
+
+/** The darts on show: this turn's, or the reviewed turn's. */
+function shownHits() {
+	if (turn.darts.length) return { hits: turn.darts, kind: 'live' };
+	const reviewed = review && reviewedTurn();
+	return { hits: reviewed?.hits?.map(([x, y]) => ({ x, y })) ?? [], kind: 'review' };
+}
 
 function renderMarks(alreadyShown = DARTS_PER_TURN) {
-	// The layer sits exactly over the board image.
-	marksLayer.style.left = `${board.offsetLeft}px`;
-	marksLayer.style.top = `${board.offsetTop}px`;
-	marksLayer.style.width = `${board.offsetWidth}px`;
-	marksLayer.style.height = `${board.offsetHeight}px`;
-
-	const reviewed = review && reviewedTurn();
-	const hits = turn.darts.length ? turn.darts.map(d => [d.x, d.y]) : reviewed?.hits ?? [];
-	marksLayer.replaceChildren(...hits.map(([x, y], index) => {
-		const mark = document.createElement('div');
-		mark.className = 'mark';
-		if (!turn.darts.length) mark.classList.add('review');
-		if (turn.darts.length && index >= alreadyShown) mark.classList.add('pop');
-		mark.style.left = `${50 + x * 50}%`;
-		mark.style.top = `${50 + y * 50}%`;
-		mark.textContent = index + 1;
-		return mark;
-	}));
+	const { hits, kind } = shownHits();
+	drawMarks(board, hits, kind, kind === 'live' ? alreadyShown : hits.length);
+	renderLights();
 
 	for (const span of $$('.history span.reviewing', scoresBody)) span.classList.remove('reviewing');
-	if (reviewed) $(`.history-row[data-id="${review.id}"] .history`, scoresBody)?.children[review.index]?.classList.add('reviewing');
+	if (kind === 'review' && hits.length) {
+		$(`.history-row[data-id="${review.id}"] .history`, scoresBody)?.children[review.index]?.classList.add('reviewing');
+	}
+}
+
+function renderLights() {
+	const { hits, kind } = shownHits();
+	const lights = hits.map(({ x, y }) => locate(x, y, 1, rings))
+		.filter(Boolean)
+		.map(spot => ({ key: segmentKey(spot.sector, spot.ring), kind: kind === 'live' ? 'hit' : 'review' }));
+	if (hovered && !lights.some(light => light.key === hovered)) lights.push({ key: hovered, kind: 'hover' });
+	lightSegments(board, lights);
 }
 
 function reviewedTurn() {
@@ -551,7 +576,6 @@ function toggleReview(player, index) {
 	renderMarks();
 }
 
-new ResizeObserver(() => renderMarks()).observe(board);
 
 // ---- Controls ---------------------------------------------------------------
 
@@ -568,7 +592,6 @@ function renderControls() {
 }
 
 // The keypad can fold away; remembered on this device.
-const prefs = loadPrefs();
 const sidebar = $('aside');
 const keypadToggle = $('.ctrl-tbl .keypad-btn');
 
