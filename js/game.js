@@ -12,7 +12,7 @@ import { canCheckout } from './checkout.js';
  * State shape:
  * {
  *   settings: { startScore, legs, sets, doubleOut },
- *   players: [{ id, name, score, legs, sets, turns: [{ score, bust?, darts? }] }],
+ *   players: [{ id, name, score, legs, sets, turns: [{ score, bust?, darts?, hits? }] }],
  *   active: index of the player throwing,
  *   starter: index of the player who started the current leg,
  *   winner: index of the match winner, or null,
@@ -154,6 +154,8 @@ export function submitTurn(state, score, darts = null) {
 	const player = { ...players[state.active] };
 	players[state.active] = player;
 	const turn = darts?.length ? { score, darts: darts.map(d => d.label) } : { score };
+	// Where each dart landed, when every dart was tapped on the board.
+	if (darts?.length && darts.every(isHit)) turn.hits = darts.map(d => [round3(d.x), round3(d.y)]);
 
 	if (isBust(state, score, darts)) {
 		player.turns = [...player.turns, { ...turn, score: 0, bust: true, attempted: score }];
@@ -194,6 +196,28 @@ function nextIndex(i, length) {
 	return length ? (i + 1) % length : 0;
 }
 
+// A board position: x, y as a fraction of the board radius from the centre.
+const isHit = d => Number.isFinite(d?.x) && Number.isFinite(d?.y) && Math.hypot(d.x, d.y) <= 1.5;
+const round3 = n => Math.round(n * 1000) / 1000;
+
+// ---- Stats ------------------------------------------------------------------
+
+/**
+ * Match stats for one player. Keypad turns count as three darts; board turns
+ * count the darts tapped. Busts score nothing but their darts still count.
+ */
+export function playerStats(player) {
+	let points = 0;
+	let darts = 0;
+	let best = 0;
+	for (const t of player.turns) {
+		points += t.score;
+		darts += t.darts?.length || 3;
+		best = Math.max(best, t.score);
+	}
+	return { average: darts ? points / darts * 3 : 0, darts, best };
+}
+
 // ---- Persistence ------------------------------------------------------------
 
 /** Repair anything loaded from storage; returns null if it is unusable. */
@@ -211,7 +235,7 @@ export function restoreGame(raw) {
 			legs: clampInt(p?.legs, 0, settings.legs, 0),
 			sets: clampInt(p?.sets, 0, settings.sets, 0),
 			turns: Array.isArray(p?.turns)
-				? p.turns.filter(t => t && Number.isInteger(t.score)).map(t => ({ ...t }))
+				? p.turns.filter(t => t && Number.isInteger(t.score)).map(restoreTurn)
 				: [],
 		};
 	});
@@ -225,4 +249,13 @@ export function restoreGame(raw) {
 		winner: raw.winner === null || raw.winner === undefined ? null : index(raw.winner, null),
 		nextId: Math.max(nextId, Number.isInteger(raw.nextId) ? raw.nextId : 1),
 	};
+}
+
+function restoreTurn(raw) {
+	const turn = { ...raw };
+	const valid = Array.isArray(turn.hits) && turn.hits.length === turn.darts?.length
+		&& turn.hits.every(h => Array.isArray(h) && isHit({ x: h[0], y: h[1] }));
+	if (valid) turn.hits = turn.hits.map(([x, y]) => [x, y]);
+	else delete turn.hits;
+	return turn;
 }

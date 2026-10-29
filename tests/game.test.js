@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
 	addPlayer, createGame, isValidTurnScore, movePlayer, newMatch, removePlayer,
-	renamePlayer, restoreGame, submitTurn,
+	playerStats, renamePlayer, restoreGame, submitTurn,
 } from '../js/game.js';
 import { makeDart } from '../js/board.js';
 
@@ -15,13 +15,14 @@ function play(state, ...scores) {
 	return { state, event };
 }
 
-test('players are added with defaults and capped at four', () => {
+test('players are added with defaults and capped at twelve', () => {
 	let s = createGame();
-	for (let i = 0; i < 6; i++) s = addPlayer(s);
-	assert.equal(s.players.length, 4);
-	assert.deepEqual(s.players.map(p => p.name), ['Player 1', 'Player 2', 'Player 3', 'Player 4']);
+	for (let i = 0; i < 14; i++) s = addPlayer(s);
+	assert.equal(s.players.length, 12);
+	assert.deepEqual(s.players.slice(0, 4).map(p => p.name), ['Player 1', 'Player 2', 'Player 3', 'Player 4']);
+	assert.equal(s.players[11].name, 'Player 12');
 	assert.ok(s.players.every(p => p.score === 301));
-	assert.equal(new Set(s.players.map(p => p.id)).size, 4);
+	assert.equal(new Set(s.players.map(p => p.id)).size, 12);
 });
 
 test('names are trimmed, limited and never blank', () => {
@@ -157,4 +158,40 @@ test('restoreGame repairs bad saves and rejects garbage', () => {
 	assert.equal(s.winner, null);
 	const round = restoreGame(JSON.parse(JSON.stringify(play(twoPlayers(), 60, 45).state)));
 	assert.deepEqual(round, play(twoPlayers(), 60, 45).state);
+});
+
+test('board turns keep where each dart landed', () => {
+	const s = twoPlayers();
+	const at = (dart, x, y) => ({ ...dart, x, y });
+	const darts = [at(makeDart(20, 3), 0.01234, -0.4), at(makeDart(1, 1), 0.2, -0.6), at(makeDart(5, 1), -0.2, -0.6)];
+	const { state } = submitTurn(s, 61, darts);
+	assert.deepEqual(state.players[0].turns[0].hits, [[0.012, -0.4], [0.2, -0.6], [-0.2, -0.6]]);
+	assert.deepEqual(state.players[0].turns[0].darts, ['T20', '1', '5']);
+
+	// Keypad turns and darts without positions have no hits.
+	assert.equal(submitTurn(s, 60).state.players[0].turns[0].hits, undefined);
+	assert.equal(submitTurn(s, 60, [makeDart(20, 3)]).state.players[0].turns[0].hits, undefined);
+});
+
+test('restoreGame keeps valid hits and drops broken ones', () => {
+	const raw = {
+		players: [{ id: 1, name: 'Ann', score: 240, turns: [
+			{ score: 61, darts: ['T20', '1'], hits: [[0, -0.4], [0.2, -0.6]] },
+			{ score: 0, darts: ['0'], hits: [['x', 1]] },
+			{ score: 0, darts: ['0', '0'], hits: [[0, 0]] },
+		] }],
+	};
+	const turns = restoreGame(raw).players[0].turns;
+	assert.deepEqual(turns[0].hits, [[0, -0.4], [0.2, -0.6]]);
+	assert.equal(turns[1].hits, undefined);
+	assert.equal(turns[2].hits, undefined);
+});
+
+test('playerStats gives the three-dart average, darts thrown and best turn', () => {
+	assert.deepEqual(playerStats({ turns: [] }), { average: 0, darts: 0, best: 0 });
+	const player = { turns: [{ score: 100 }, { score: 0, bust: true }, { score: 41, darts: ['T7', 'D10'] }] };
+	const stats = playerStats(player);
+	assert.equal(stats.darts, 8);
+	assert.equal(stats.best, 100);
+	assert.equal(stats.average.toFixed(2), (141 / 8 * 3).toFixed(2));
 });
