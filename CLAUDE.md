@@ -18,13 +18,20 @@ Darts X01 scoreboard web app (301/501/701), built for tablets in landscape and i
 - `js/app.js`: DOM wiring only. Turns taps into game actions and state into DOM.
 - `sw.js`: offline cache (HTTPS only). Bump `CACHE` when cached files change.
 
+## Environment
+
+- Owner's machine: Windows, VS Code, PowerShell terminal, GitHub Desktop. Node LTS.
+- Repo: github.com/ChrisLe5512/Dartscore. Local path: Documents\GitHub\Dartscore.
+
 ## Rules for changes
 
 - **The owner likes the current look and layout. Don't change styling or layout unless asked.** Verify visual changes with before/after screenshots.
 - Keep game rules in `game.js` with tests, not in `app.js`.
 - Never insert user text (player names) with innerHTML. Use textContent.
 - Indent with tabs.
-- Work on the `dev` branch. `main` is what GitHub Pages may be serving.
+- Work on the `dev` branch. `main` is what GitHub Pages may be serving. Merge to `main` only through a pull request the owner approves.
+- Run `npm test` after changing anything in `js/`.
+- The owner follows changes in VS Code (Git Graph). Make small, focused commits with clear messages.
 
 ## Roadmap (owner's goals)
 
