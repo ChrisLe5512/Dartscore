@@ -890,12 +890,15 @@ td.calc-score.tip-down:not(.disabled)::before {
 	animation: tip-down 260ms var(--ease-out);
 }
 
+/* Seen in perspective, a tipping box looks like it slides (both edges drift the
+   same way). The 1.9% shift cancels that, so it rocks in place. It holds while the
+   perspective depth is about 1.5x the box height (--tip-depth, set for portrait). */
 @keyframes tip-up {
-	30% { transform: perspective(30vmin) rotateX(7deg); }
+	30% { transform: perspective(var(--tip-depth, 30vmin)) translateY(-1.9%) rotateX(7deg); }
 }
 
 @keyframes tip-down {
-	30% { transform: perspective(30vmin) rotateX(-7deg); }
+	30% { transform: perspective(var(--tip-depth, 30vmin)) translateY(1.9%) rotateX(-7deg); }
 }
 
 td.calc-score b {
@@ -1474,6 +1477,7 @@ td.calc-score:not(.disabled) {
 	   gets shorter rather than the keypad getting taller than it is wide. */
 	main {
 		--band: min(42vh, 60vw);
+		--tip-depth: calc(var(--band) * 0.76); /* the score box is about half the keypad */
 		display: grid;
 		grid-template-columns: 100%;
 		grid-template-rows: minmax(0, 1fr) var(--band);
