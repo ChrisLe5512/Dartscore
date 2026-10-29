@@ -1576,6 +1576,16 @@ td.calc-score:not(.disabled) {
 		height: 100%;
 	}
 
+	/* The keypad folds away to the right here: the arrow points right to hide it,
+	   left to bring it back. */
+	.keypad-btn span {
+		transform: rotate(-90deg);
+	}
+
+	.keypad-btn[aria-expanded="false"] span {
+		transform: rotate(90deg);
+	}
+
 	.toast {
 		left: 50%;
 		max-width: 80vw;
