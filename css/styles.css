@@ -1470,10 +1470,13 @@ td.calc-score:not(.disabled) {
    the scores and keypad become a band along the bottom. Sizes are in vmin,
    so they follow the screen's width here. */
 @media (orientation: portrait) {
+	/* The keypad is square: as wide as the band is tall. On a narrow screen the band
+	   gets shorter rather than the keypad getting taller than it is wide. */
 	main {
+		--band: min(42vh, 60vw);
 		display: grid;
 		grid-template-columns: 100%;
-		grid-template-rows: minmax(0, 1fr) 42%;
+		grid-template-rows: minmax(0, 1fr) var(--band);
 	}
 
 	/* The board, its left buttons and its right column share the top area. */
@@ -1523,7 +1526,9 @@ td.calc-score:not(.disabled) {
 	}
 
 	.scores-section {
-		width: 58%;
+		width: auto;
+		flex: 1;
+		min-width: 0;
 		height: 100%;
 		border-bottom: none;
 		border-right: var(--border);
@@ -1531,7 +1536,7 @@ td.calc-score:not(.disabled) {
 	}
 
 	.calc-section {
-		width: 42%;
+		width: var(--band);
 		height: 100%;
 		transition: width var(--medium) var(--ease-out), visibility var(--medium);
 	}
