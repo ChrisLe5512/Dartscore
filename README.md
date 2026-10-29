@@ -15,9 +15,11 @@ VS Code's Live Server or `python -m http.server` work too.
 
 ## How to play
 
-- **Players:** tap **+** under the scores (up to 4). Tap a name to rename it. Reorder or remove players in **⚙ Settings**.
+- **Players:** tap **+** under the scores before the first throw (up to 12); after that, add them in **⚙ Settings**. Tap a name to rename it. Reorder or remove players in Settings. The score column resizes to the number of players: one or two get a large score and stats (average, best turn, darts), three get a stats line, and five or more shrink and scroll.
 - **Keypad:** type the turn's total and tap **✓**. Tap the top or bottom half of the score box to adjust it by 1. Totals that three darts can't make (179, 178, …) can't be submitted.
-- **Dartboard:** tap where each dart landed, then **DONE**. The outer number ring counts as a miss (0). Tap a dart in the column to remove it, or **Clear** to start the turn over.
+- **Dartboard:** tap where each dart landed, then **DONE**. Each dart is marked on the board with a number that matches its slot in the darts column. The outer number ring counts as a miss (0). Tap a dart in the column to remove it, or **Clear** to start the turn over.
+- **History:** each player's turns run left to right under their name. Turns entered on the dartboard are underlined: tap one to see where its darts landed.
+- **▾** above the keypad folds it away to give the players more room; tap again to bring it back.
 - **BUST** ends the turn with no score. Going below zero is also a bust.
 - **Checkout** suggestions appear in green once a finish is possible and update as you tap darts on the board. Tap the suggestion to see other routes.
 - **↶ / ↷** undo and redo whole turns, players added or removed, and new games.
@@ -38,6 +40,7 @@ js/checkout.js     checkout suggestions
 js/board.js        dartboard hit detection and dart colours
 js/history.js      undo / redo
 js/storage.js      saving to the device
+js/feedback.js     status messages (undo, bust, leg won, …)
 js/app.js          connects everything to the page
 sw.js              offline cache (active on HTTPS only)
 tests/             node:test unit tests
