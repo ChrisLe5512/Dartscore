@@ -2,5 +2,7 @@ node_modules/
 .DS_Store
 Thumbs.db
 desktop.ini
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 *.log

@@ -1,0 +1,7 @@
+{
+	"git.autofetch": true,
+	"git.confirmSync": false,
+	"npm.enableScriptExplorer": true,
+	"editor.insertSpaces": false,
+	"files.eol": "\n"
+}
