@@ -19,7 +19,8 @@ VS Code's Live Server or `python -m http.server` work too.
 - **Keypad:** type the turn's total and tap **✓**. Tap the top or bottom half of the score box to adjust it by 1. Totals that three darts can't make (179, 178, …) can't be submitted.
 - **Dartboard:** tap where each dart landed, then **DONE**. Each dart is marked on the board with a number that matches its slot in the darts column. The outer number ring counts as a miss (0). Tap a dart in the column to remove it, or **Clear** to start the turn over.
 - **History:** each player's turns run left to right under their name. Turns entered on the dartboard are underlined: tap one to see where its darts landed.
-- **▾** above the keypad folds it away to give the players more room; tap again to bring it back.
+- **▾** (above ⚙ beside the board) folds the keypad away to give the players more room; tap again to bring it back.
+- **Board & visuals** (in ⚙ Settings): resize the bull, treble, double and number rings, change the outline thickness and colour, or add wires around every bed. The board is drawn live, so tapping follows your layout, and the bed each dart hits lights up.
 - **BUST** ends the turn with no score. Going below zero is also a bust.
 - **Checkout** suggestions appear in green once a finish is possible and update as you tap darts on the board. Tap the suggestion to see other routes.
 - **↶ / ↷** undo and redo whole turns, players added or removed, and new games.
@@ -37,7 +38,8 @@ css/styles.css     all styling (colours and borders as variables at the top)
 js/config.js       rules and board geometry constants
 js/game.js         game state and rules (pure functions, no DOM)
 js/checkout.js     checkout suggestions
-js/board.js        dartboard hit detection and dart colours
+js/board.js        board geometry, hit detection and dart colours
+js/dartboard.js    draws the board (SVG)
 js/history.js      undo / redo
 js/storage.js      saving to the device
 js/feedback.js     status messages (undo, bust, leg won, …)

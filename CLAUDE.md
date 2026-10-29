@@ -13,11 +13,13 @@ Darts X01 scoreboard web app (301/501/701), built for tablets in landscape and i
 - `js/game.js`: pure game state and rules (no DOM). Every function returns a new state.
 - `js/checkout.js`: ranked checkout suggestions
 - `js/feedback.js`: status toast messages for turns and undo/redo (pure)
-- `js/board.js`: dartboard hit-testing and dart colours
+- `js/board.js`: board geometry (adjustable ring layout), hit-testing and dart colours (pure)
+- `js/dartboard.js`: draws the board as SVG from the geometry; lit beds and dart markers
 - `js/history.js`: undo/redo snapshot stacks
-- `js/storage.js`: localStorage save/load (key `dartscore:v2`)
+- `js/storage.js`: localStorage save/load (game: `dartscore:v2`; per-device view prefs such as keypad and board look: `dartscore:prefs`)
 - `js/app.js`: DOM wiring only. Turns taps into game actions and state into DOM.
 - `sw.js`: offline cache (HTTPS only). Bump `CACHE` when cached files change.
+- `css/styles.css`: colours, borders (`--line`) and board colours (`--board-*`) are variables at the top. Themes should only need to change those.
 
 ## Environment
 
@@ -39,4 +41,18 @@ Darts X01 scoreboard web app (301/501/701), built for tablets in landscape and i
 1. Polish the app (current phase: development, not shipping yet)
 2. Host it (Cloudflare Pages or Vercel; no domain chosen yet)
 3. Accounts, match history and stats in a database
-4. Monetization: free scorer plus a paid tier (stats, more game modes)
+4. Monetization: free scorer plus paid extras
+
+### Monetization rules (from the owner)
+
+- Never paywall anything needed to score a game. Only optional extras are paid or unlockable: themes and board looks, extra stats, more game modes, some account features.
+- Ads only where they don't cover anything: between screens (e.g. after a match), inside existing popups, or one small fixed banner in space that is otherwise unused. Never overlays, interstitials over the board, or ads that move the layout.
+- Keep the impact on visuals and speed minimal; the app must stay fully usable offline.
+
+### To do
+
+- Themes: a theme is a set of the CSS variables above (plus a board style). Add a theme picker in Settings > Board & visuals; some themes free, some unlockable.
+- Accounts and database: sign-in, match history and stats synced across devices. The game state is already plain JSON (`game.js`), so matches can be saved as-is. Pick a hosted backend that suits Cloudflare Pages or Vercel.
+- Entitlements: one place that answers "is this extra unlocked?" (free, unlocked by playing, or paid), checked by the UI only. Never by game rules.
+- Ads: a single banner slot and a post-match slot, off by default in development, removed for paying users.
+- More game modes (cricket, around the clock) as separate rule modules with tests, like `game.js`.
