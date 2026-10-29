@@ -1,6 +1,6 @@
 # Dartscore
 
-Darts X01 scoreboard web app (301/501/701), built for tablets in landscape and installable as a PWA. Plain HTML/CSS/JS ES modules, no build step, no dependencies.
+Darts X01 scoreboard web app (301/501/701), built for tablets in landscape (16:10 first, 4:3 too) with a portrait layout, and installable as a PWA. Plain HTML/CSS/JS ES modules, no build step, no dependencies.
 
 ## Commands
 
@@ -19,7 +19,7 @@ Darts X01 scoreboard web app (301/501/701), built for tablets in landscape and i
 - `js/storage.js`: localStorage save/load (game: `dartscore:v2`; per-device view prefs such as keypad and board look: `dartscore:prefs`)
 - `js/app.js`: DOM wiring only. Turns taps into game actions and state into DOM.
 - `sw.js`: offline cache (HTTPS only). Bump `CACHE` when cached files change.
-- `css/styles.css`: colours, borders (`--line`) and board colours (`--board-*`) are variables at the top. Themes should only need to change those.
+- `css/styles.css`: colours, borders (`--line`) and board colours (`--board-*`) are variables at the top. Themes should only need to change those. Sizes use `vmin` (never `vh`), so landscape is sized by height and portrait by width; portrait overrides are in the PORTRAIT block at the end.
 
 ## Environment
 
