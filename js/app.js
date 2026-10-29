@@ -1,7 +1,9 @@
 // Wires the game logic to the page. All game rules live in game.js;
 // this file only turns taps into actions and state into DOM.
 
-import { DARTS_PER_TURN, MAX_LEGS, MAX_SETS, MAX_TURN_SCORE, START_SCORES, TOAST_MS } from './config.js';
+import {
+	DARTS_PER_TURN, MAX_LEGS, MAX_SETS, MAX_TURN_SCORE, SCORES_LAYOUT, START_SCORES, TOAST_MS,
+} from './config.js';
 import { hitTest, isOnBoard } from './board.js';
 import { getCheckouts } from './checkout.js';
 import { describeTravel, describeTurn } from './feedback.js';
@@ -107,11 +109,14 @@ function openDialog(dialog) {
 }
 
 const dartsTotal = () => turn.darts.reduce((sum, d) => sum + d.value, 0);
+const matchStarted = () => game.players.some(p => p.turns.length > 0);
 
 // ---- Scoreboard -------------------------------------------------------------
 
-const scoresBody = $('.scores-tbl tbody');
-const addPlayerRow = $('.scores-tbl .add-player');
+const scoresSection = $('.scores-section');
+const scoresTable = $('.scores-tbl');
+const scoresBody = $('tbody', scoresTable);
+const addPlayerRow = $('.add-player', scoresTable);
 
 function addPlayer() {
 	if (!Game.canAddPlayer(game)) return;
@@ -137,12 +142,30 @@ function createPlayerRows(player) {
 		<td colspan="4" class="player-name"><input type="text" autocomplete="off" spellcheck="false" aria-label="Player name"></td>
 		<td class="player-score"></td>`;
 
+	// History and checkout share one line; the checkout takes what it needs.
 	const historyRow = document.createElement('tr');
 	historyRow.className = 'history-row';
 	historyRow.dataset.id = player.id;
 	historyRow.innerHTML = `
-		<td colspan="7" class="history scrollable"></td>
-		<td colspan="2" class="checkout hidden"></td>`;
+		<td colspan="7" class="history-cell"><div class="history-line">
+			<div class="history scrollable"></div>
+			<div class="checkout hidden" role="button" aria-label="Next checkout route"></div>
+		</div></td>`;
+
+	// Only shown when there is room (see layoutScores). In the big layout the
+	// score moves down here, next to the stats, so the name gets the full width.
+	const statsRow = document.createElement('tr');
+	statsRow.className = 'stats-row';
+	statsRow.dataset.id = player.id;
+	statsRow.innerHTML = `
+		<td colspan="7" class="stats-cell"><div class="stats-line">
+			<div class="stats">
+				<span>Avg <b class="stat-average"></b></span>
+				<span>Best <b class="stat-best"></b></span>
+				<span>Darts <b class="stat-darts"></b></span>
+			</div>
+			<div class="big-score"></div>
+		</div></td>`;
 
 	const input = $('input', playerRow);
 	input.addEventListener('input', () => {
@@ -160,12 +183,19 @@ function createPlayerRows(player) {
 		renderScoreboard();
 	});
 
-	return [playerRow, historyRow];
+	const history = $('.history', historyRow);
+	history.addEventListener('scroll', () => {
+		history.dataset.pinned = atEnd(history);
+		updateFades(history);
+	}, { passive: true });
+	historyResize.observe(history);
+
+	return [playerRow, statsRow, historyRow];
 }
 
 function renderScoreboard() {
 	const rowsById = new Map();
-	for (const row of $$('.player-row, .history-row', scoresBody)) {
+	for (const row of $$('.player-row, .history-row, .stats-row', scoresBody)) {
 		const id = Number(row.dataset.id);
 		if (!rowsById.has(id)) rowsById.set(id, []);
 		rowsById.get(id).push(row);
@@ -178,20 +208,22 @@ function renderScoreboard() {
 		else scoresBody.insertBefore(row, cursor);
 	};
 
+	let activeRows = null;
 	game.players.forEach((player, index) => {
 		const rows = rowsById.get(player.id) ?? createPlayerRows(player);
 		rowsById.delete(player.id);
-		const [playerRow, historyRow] = rows;
-		place(playerRow);
-		place(historyRow);
+		rows.forEach(place);
+		const [playerRow, statsRow, historyRow] = rows;
 
 		const isActive = index === game.active && game.winner === null;
+		if (isActive && !playerRow.classList.contains('active')) activeRows = rows;
 		playerRow.classList.toggle('active', isActive);
+		statsRow.classList.toggle('active', isActive);
 		$('.player-wins u', playerRow).innerHTML = `${player.legs}&#8196;&#8196;`;
 		$('.player-sets', playerRow).textContent = player.sets;
 		$('.target-wins', playerRow).innerHTML = `&nbsp;/${game.settings.legs}<br>&nbsp;/${game.settings.sets}`;
-		const scoreCell = $('.player-score', playerRow);
-		if (scoreCell.textContent !== String(player.score)) {
+		for (const scoreCell of [$('.player-score', playerRow), $('.big-score', statsRow)]) {
+			if (scoreCell.textContent === String(player.score)) continue;
 			if (scoreCell.textContent !== '') replay(scoreCell, 'bump');
 			scoreCell.textContent = player.score;
 		}
@@ -200,18 +232,68 @@ function renderScoreboard() {
 
 		renderHistory($('.history', historyRow), player);
 		renderCheckout(historyRow, player, isActive);
+		renderStats(statsRow, player);
 	});
 
 	for (const rows of rowsById.values()) rows.forEach(row => row.remove());
-	addPlayerRow.classList.toggle('hidden', !Game.canAddPlayer(game));
+	// New players join from the scoreboard before the first throw, from Settings after.
+	addPlayerRow.classList.toggle('hidden', !Game.canAddPlayer(game) || matchStarted());
+	layoutScores();
+
+	// Keep the thrower in view when the list scrolls.
+	if (activeRows) {
+		const [first, , last] = activeRows;
+		last.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+		first.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+	}
 }
+
+/**
+ * Size the player rows to the space there is. The base sizes in the CSS fit
+ * four players above the keypad. With room to spare a stats line appears
+ * ("roomy"), then the score moves to its own big line ("big"). With more
+ * players the rows shrink and the list scrolls.
+ */
+function layoutScores() {
+	const { rows, bigRows, addRow, minScale, maxScale, bigMaxScale } = SCORES_LAYOUT;
+	const count = game.players.length;
+	const available = scoresSection.offsetHeight / (innerHeight / 100); // in vh
+	const add = addPlayerRow.classList.contains('hidden') ? 0 : addRow;
+	const fit = block => (count ? available / (count * block + add) : 1);
+	const big = count > 0 && fit(bigRows) >= 1;
+	const roomy = big || (count > 0 && fit(rows + SCORES_LAYOUT.stats) >= 1);
+	const scale = big ? Math.min(bigMaxScale, fit(bigRows)) : fit(rows + (roomy ? SCORES_LAYOUT.stats : 0));
+	scoresTable.style.setProperty('--s', Math.min(big ? bigMaxScale : maxScale, Math.max(minScale, scale)).toFixed(3));
+	scoresTable.classList.toggle('roomy', roomy);
+	scoresTable.classList.toggle('big', big);
+}
+
+new ResizeObserver(layoutScores).observe(scoresSection);
+
+const atEnd = el => el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
+
+/** Fade whichever edge of the history has more turns hidden past it. */
+function updateFades(el) {
+	el.classList.toggle('fade-left', el.scrollLeft > 1);
+	el.classList.toggle('fade-right', !atEnd(el));
+}
+
+/** Show the latest turn unless the player scrolled back to look at older ones. */
+function stickToEnd(el, behavior = 'instant') {
+	if (el.dataset.pinned !== 'false') el.scrollTo({ left: el.scrollWidth, behavior });
+	updateFades(el);
+}
+
+// The history narrows when a checkout appears or the rows resize.
+const historyResize = new ResizeObserver(entries => entries.forEach(entry => stickToEnd(entry.target)));
 
 function renderHistory(cell, player) {
 	const key = player.turns.length;
 	if (cell.dataset.turns === String(key)) return;
 	const added = cell.dataset.turns !== undefined && key > Number(cell.dataset.turns);
 	cell.dataset.turns = key;
-	cell.replaceChildren(...player.turns.slice().reverse().map(t => {
+	// Oldest on the left, so the line reads in the order the turns were thrown.
+	cell.replaceChildren(...player.turns.map(t => {
 		const span = document.createElement('span');
 		const bold = document.createElement('b');
 		bold.textContent = t.score;
@@ -219,8 +301,11 @@ function renderHistory(cell, player) {
 		if (t.bust) span.title = `Bust (${t.attempted})`;
 		return span;
 	}));
-	// The newest turn is first; slide it in.
-	if (added) cell.firstElementChild?.classList.add('enter');
+	if (added) {
+		cell.lastElementChild?.classList.add('enter');
+		cell.dataset.pinned = true;
+	}
+	stickToEnd(cell, added ? 'smooth' : 'instant');
 }
 
 function renderCheckout(historyRow, player, isActive) {
@@ -228,19 +313,23 @@ function renderCheckout(historyRow, player, isActive) {
 	const dartsLeft = isActive ? DARTS_PER_TURN - turn.darts.length : DARTS_PER_TURN;
 	const remaining = isActive ? player.score - dartsTotal() : player.score;
 	const routes = game.winner === null ? getCheckouts(remaining, dartsLeft) : [];
-	const historyCell = $('.history', historyRow);
 	const checkoutCell = $('.checkout', historyRow);
 	if (routes.length) {
 		const route = routes[(checkoutChoice.get(player.id) ?? 0) % routes.length];
-		historyCell.setAttribute('colspan', '5');
 		checkoutCell.classList.remove('hidden');
-		checkoutCell.innerHTML = `&#127919; ${route.join(' ')}`;
+		checkoutCell.textContent = `\u{1F3AF} ${route.join(' ')}`;
 	} else {
-		historyCell.setAttribute('colspan', '7');
 		checkoutCell.classList.add('hidden');
 		checkoutCell.textContent = '';
 		checkoutChoice.delete(player.id);
 	}
+}
+
+function renderStats(statsRow, player) {
+	const { average, darts, best } = Game.playerStats(player);
+	$('.stat-average', statsRow).textContent = average.toFixed(1);
+	$('.stat-best', statsRow).textContent = best;
+	$('.stat-darts', statsRow).textContent = darts;
 }
 
 // ---- Keypad -----------------------------------------------------------------
@@ -429,7 +518,6 @@ startScoreSelect.append(...START_SCORES.map(score => new Option(score, score)));
 legsInput.max = MAX_LEGS;
 setsInput.max = MAX_SETS;
 
-const matchStarted = () => game.players.some(p => p.turns.length > 0);
 
 function readSettingsForm() {
 	return Game.normalizeSettings({

@@ -235,17 +235,29 @@ aside {
 
 /* SCORES */
 
+/* Sizes below are for four players; JS sets --s to grow or shrink them
+   to the number of players (see layoutScores and SCORES_LAYOUT). */
+
 .scores-section {
 	height: 60%;
 	box-sizing: border-box;
 	border-bottom: var(--border);
 	font-weight: 500;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: none;
+	transition: height var(--medium) var(--ease-out);
+}
+
+.scores-section::-webkit-scrollbar {
+	display: none;
 }
 
 .scores-tbl {
+	--s: 1;
 	table-layout: fixed;
 	width: 100%;
-	height: 25%;
+	height: 100%;
 	border-spacing: 0;
 	color: #f0f0f0;
 	line-height: 1;
@@ -257,19 +269,19 @@ aside {
 }
 
 .player-row {
-	height: 10vh;
+	height: calc(10vh * var(--s));
 	background: linear-gradient(#484848, #242424);
 }
 
 .player-wins {
 	width: 0.6vh;
-	font-size: 3.5vh;
+	font-size: calc(3.5vh * var(--s));
 	font-weight: 600;
 	text-align: center;
 	text-shadow: 0 0 0.5vh black;
 	line-height: 1.1;
 	padding-left: 1vw;
-	text-underline-offset: 0.5vh;
+	text-underline-offset: calc(0.5vh * var(--s));
 }
 
 .player-wins u {
@@ -288,8 +300,8 @@ aside {
 	font-family: var(--font-condensed);
 	color: #c8c8c8;
 	padding-top: 0.15vh;
-	width: 4vh;
-	font-size: 2.5vh;
+	width: calc(4vh * var(--s));
+	font-size: calc(2.5vh * var(--s));
 	font-weight: normal;
 	text-align: center;
 	text-shadow: 0 0 0.5vh black;
@@ -305,10 +317,9 @@ aside {
 	border: none;
 	background: transparent;
 	color: inherit;
-	font-size: inherit;
 	font-family: var(--font-condensed);
 	font-weight: normal;
-	font-size: 6.5vh;
+	font-size: calc(6.5vh * var(--s));
 	text-align: left;
 	text-shadow: 0 0 1vh black;
 	white-space: nowrap;
@@ -318,15 +329,15 @@ aside {
 }
 
 .player-score {
-	width: 12vh;
+	width: calc(12vh * var(--s));
 	padding-right: 0.5vw;
-	font-size: 7.5vh;
+	font-size: calc(7.5vh * var(--s));
 	text-align: right;
 	text-shadow: 0 0 1vh black;
 }
 
 .history-row {
-	height: 5vh;
+	height: calc(5vh * var(--s));
 	background: #161616;
 }
 
@@ -334,17 +345,51 @@ aside {
 	display: none;
 }
 
-.history {
-	overflow-x: auto;
-	white-space: nowrap;
-	padding-left: 1vw;
+.history-cell {
+	padding: 0;
 	border-bottom: var(--border);
 	border-top: var(--border-muted);
 }
 
+/* History on the left, checkout on the right at its full width, one line. */
+.history-line {
+	display: flex;
+	align-items: center;
+	height: 100%;
+}
+
+@property --fade-left {
+	syntax: "<length>";
+	inherits: false;
+	initial-value: 0px;
+}
+
+@property --fade-right {
+	syntax: "<length>";
+	inherits: false;
+	initial-value: 0px;
+}
+
+.history {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding-left: 1vw;
+	/* Older turns fade out at the left edge when they scroll past it. */
+	mask-image: linear-gradient(to right, transparent, black var(--fade-left), black calc(100% - var(--fade-right)), transparent);
+	transition: --fade-left var(--medium), --fade-right var(--medium);
+}
+
+.history.fade-left {
+	--fade-left: 6vh;
+}
+
+.history.fade-right {
+	--fade-right: 3vh;
+}
+
 .history span {
 	color: #c8c8c8;
-	font-size: 2.25vh;
+	font-size: calc(2.25vh * var(--s));
 	font-weight: normal;
 	padding-right: 0.5vw;
 	line-height: 1.35;
@@ -352,17 +397,100 @@ aside {
 
 .history span b {
 	color: white;
-	width: 8vw;
 }
 
 .checkout {
-	width: 40%;
-	font-size: 3vh;
-	text-align: right;
-	padding-right: 1vw;
-	color: #00c800;
-	border-bottom: var(--border);
-	border-top: var(--border-muted);
+	flex: none;
+	padding: 0 1vw 0 1vh;
+	font-size: calc(3vh * var(--s));
+	white-space: nowrap;
+	color: var(--checkout);
+	cursor: pointer;
+}
+
+/* Only when there is room: a line of match stats between the name and the history. */
+.stats-row {
+	height: calc(5vh * var(--s));
+	background: #161616;
+}
+
+.scores-tbl:not(.roomy) .stats-row {
+	display: none;
+}
+
+.scores-tbl .stats-row.active {
+	background: #161616;
+}
+
+.stats-cell {
+	padding: 0 0.5vw 0 1vw;
+}
+
+.stats-line {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: 100%;
+}
+
+.stats {
+	display: flex;
+	gap: 2.5vh;
+	font-family: var(--font-condensed);
+	font-size: calc(2.5vh * var(--s));
+	font-weight: normal;
+	color: #969696;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.stats b {
+	color: white;
+	font-weight: 500;
+}
+
+.big-score {
+	display: none;
+}
+
+/* Big layout: the name takes the whole top line, the score sits large below it. */
+.big .player-score {
+	width: 0;
+	padding: 0;
+	font-size: 0;
+}
+
+.big .player-row {
+	background: linear-gradient(#484848, #363636);
+}
+
+.big .player-row.active {
+	background: linear-gradient(#c8c8c8, #969696);
+}
+
+.big .stats-row {
+	height: calc(15vh * var(--s));
+	background: linear-gradient(#363636, #242424);
+}
+
+.scores-tbl.big .stats-row.active {
+	color: white;
+	background: linear-gradient(#969696, #646464);
+}
+
+.big .stats {
+	flex-direction: column;
+	gap: 0.6vh;
+	font-size: calc(2.8vh * var(--s));
+	color: #c8c8c8;
+	text-shadow: 0 0 0.5vh black;
+}
+
+.big .big-score {
+	display: block;
+	font-size: calc(13vh * var(--s));
+	line-height: 1;
+	text-shadow: 0 0 1vh black;
 }
 
 .add-player {
@@ -372,10 +500,10 @@ aside {
 }
 
 .add-player td {
-	font-size: 6vh;
+	font-size: calc(6vh * var(--s));
 	border-bottom: var(--border);
 	box-sizing: border-box;
-	height: 15vh;
+	height: calc(10vh * var(--s));
 	cursor: pointer;
 }
 
@@ -768,16 +896,19 @@ td.back-score {
 
 /* A row slides in when it is added; the active row brightens as the turn passes to it. */
 .player-row,
-.history-row {
+.history-row,
+.stats-row {
 	animation: fade-in var(--medium) var(--ease-out);
 }
 
-.player-row.active td {
+.player-row.active td,
+.big .stats-row.active td {
 	animation: row-activate var(--slow) var(--ease-out);
 }
 
 /* JS adds .bump when a score changes, .pop when a dart lands, .enter on a new history entry. */
-.player-score.bump {
+.player-score.bump,
+.big-score.bump {
 	animation: score-bump var(--slow) var(--ease-out);
 }
 
