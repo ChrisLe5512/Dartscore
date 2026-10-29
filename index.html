@@ -153,12 +153,40 @@
 								</table>
 							</td>
 						</tr>
+						<tr>
+							<td colspan="2"><button type="button" class="settings-btn-action settings-link" data-action="visuals">Board &amp; visuals &#8250;</button></td>
+						</tr>
 						<tr class="settings-note-row" hidden>
 							<td colspan="2" class="settings-note">These changes start a new game.</td>
 						</tr>
 						<tr>
 							<td><button type="button" class="settings-btn-action" data-action="new-game">New game</button></td>
 							<td><button type="button" class="settings-btn-action" data-action="close">Done</button></td>
+						</tr>
+					</tbody>
+				</table>
+			</section>
+
+			<section class="settings-section visuals-section" aria-label="Board and visuals" hidden>
+				<div class="visuals">
+					<svg class="dartboard board-preview" aria-hidden="true"></svg>
+					<div class="visuals-controls">
+						<label class="range">Bullseye <output></output><input type="range" data-layout="bull" step="0.5"></label>
+						<label class="range">Outer bull <output></output><input type="range" data-layout="outerBull" step="0.5"></label>
+						<label class="range">Treble ring position <output></output><input type="range" data-layout="trebleAt" step="0.5"></label>
+						<label class="range">Treble ring width <output></output><input type="range" data-layout="treble" step="0.5"></label>
+						<label class="range">Double ring width <output></output><input type="range" data-layout="double" step="0.5"></label>
+						<label class="range">Number ring width <output></output><input type="range" data-layout="legend" step="0.5"></label>
+						<label class="range">Outline <output></output><input type="range" data-style="outline" step="0.1"></label>
+						<div class="swatches" role="group" aria-label="Outline colour"></div>
+						<label class="settings-check"><input type="checkbox" data-style="wires"> Wires around every bed</label>
+					</div>
+				</div>
+				<table class="settings-tbl">
+					<tbody>
+						<tr>
+							<td><button type="button" class="settings-btn-action" data-action="visuals-reset">Reset board</button></td>
+							<td><button type="button" class="settings-btn-action" data-action="visuals-back">Back</button></td>
 						</tr>
 					</tbody>
 				</table>

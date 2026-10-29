@@ -2,6 +2,7 @@
 // this file only turns taps into actions and state into DOM.
 
 import {
+	BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_OUTLINE_LIMITS, BOARD_STYLE,
 	DARTS_PER_TURN, MAX_LEGS, MAX_SETS, MAX_TURN_SCORE, SCORES_LAYOUT, START_SCORES, TOAST_MS,
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate } from './board.js';
@@ -648,6 +649,7 @@ function openSettings() {
 	setsInput.value = sets;
 	doubleOutInput.checked = doubleOut;
 	renderSettings();
+	showVisuals(false);
 	openDialog(settingsDialog);
 }
 
@@ -716,7 +718,72 @@ settingsDialog.addEventListener('click', event => {
 		showToast({ kind: 'info', title: 'New game', detail: `${game.settings.startScore}` });
 	} else if (action === 'close' || event.target === settingsDialog) {
 		closeSettings();
+	} else if (action === 'visuals' || action === 'visuals-back') {
+		showVisuals(action === 'visuals');
+	} else if (action === 'visuals-reset') {
+		delete prefs.boardLayout;
+		delete prefs.boardStyle;
+		savePrefs(prefs);
+		redrawBoard();
+		renderVisuals();
 	}
+});
+
+// ---- Settings: board and visuals ----------------------------------------------
+
+// Per device. Changes show straight away on the board and in the preview.
+const settingsMain = $('.settings-section:not(.visuals-section)', settingsDialog);
+const visualsSection = $('.visuals-section', settingsDialog);
+const boardPreview = $('.board-preview', visualsSection);
+const layoutInputs = $$('[data-layout]', visualsSection);
+const outlineInput = $('[data-style="outline"]', visualsSection);
+const wiresInput = $('[data-style="wires"]', visualsSection);
+const swatches = $('.swatches', visualsSection);
+
+for (const input of layoutInputs) [input.min, input.max] = BOARD_LAYOUT_LIMITS[input.dataset.layout];
+[outlineInput.min, outlineInput.max] = BOARD_OUTLINE_LIMITS;
+swatches.append(...BOARD_OUTLINE_COLORS.map(color => {
+	const swatch = document.createElement('button');
+	swatch.type = 'button';
+	swatch.className = 'swatch';
+	swatch.style.background = color;
+	swatch.dataset.color = color;
+	swatch.setAttribute('aria-label', `Outline ${color}`);
+	return swatch;
+}));
+
+const boardLayout = () => ({ ...BOARD_LAYOUT, ...prefs.boardLayout });
+const boardStyle = () => ({ ...BOARD_STYLE, ...prefs.boardStyle });
+
+function showVisuals(show) {
+	settingsMain.hidden = show;
+	visualsSection.hidden = !show;
+	if (show) renderVisuals();
+}
+
+function renderVisuals() {
+	const layout = boardLayout();
+	const style = boardStyle();
+	for (const input of layoutInputs) input.value = layout[input.dataset.layout];
+	outlineInput.value = style.outline;
+	wiresInput.checked = style.wires;
+	for (const input of [...layoutInputs, outlineInput]) input.previousElementSibling.textContent = Number(input.value).toFixed(1);
+	for (const swatch of swatches.children) swatch.setAttribute('aria-pressed', String(swatch.dataset.color === style.outlineColor));
+	drawBoard(boardPreview, boardRings(layout), style);
+}
+
+function changeVisuals(outlineColor = boardStyle().outlineColor) {
+	prefs.boardLayout = Object.fromEntries(layoutInputs.map(input => [input.dataset.layout, Number(input.value)]));
+	prefs.boardStyle = { outline: Number(outlineInput.value), outlineColor, wires: wiresInput.checked };
+	savePrefs(prefs);
+	redrawBoard();
+	renderVisuals();
+}
+
+for (const input of [...layoutInputs, outlineInput, wiresInput]) input.addEventListener('input', () => changeVisuals());
+swatches.addEventListener('click', event => {
+	const color = event.target.closest('.swatch')?.dataset.color;
+	if (color) changeVisuals(color);
 });
 
 // ---- Winner -----------------------------------------------------------------
