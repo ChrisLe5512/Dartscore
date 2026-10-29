@@ -277,13 +277,16 @@ function renderScoreboard() {
 function layoutScores() {
 	const { rows, bigRows, addRow, minScale, maxScale, bigMaxScale } = SCORES_LAYOUT;
 	const count = game.players.length;
-	const available = scoresSection.offsetHeight / (Math.min(innerWidth, innerHeight) / 100); // in vmin
+	// Inside the border, so the rows never overflow it.
+	const available = scoresSection.clientHeight / (Math.min(innerWidth, innerHeight) / 100); // in vmin
 	const add = addPlayerRow.classList.contains('hidden') ? 0 : addRow;
 	const fit = block => (count ? available / (count * block + add) : 1);
-	const big = count > 0 && fit(bigRows) >= 1;
-	const roomy = big || (count > 0 && fit(rows + SCORES_LAYOUT.stats) >= 1);
+	// A layout is used when it fits at (nearly) full size; the scale below makes it fit exactly.
+	const big = count > 0 && fit(bigRows) >= SCORES_LAYOUT.tolerance;
+	const roomy = big || (count > 0 && fit(rows + SCORES_LAYOUT.stats) >= SCORES_LAYOUT.tolerance);
 	const scale = big ? Math.min(bigMaxScale, fit(bigRows)) : fit(rows + (roomy ? SCORES_LAYOUT.stats : 0));
-	scoresTable.style.setProperty('--s', Math.min(big ? bigMaxScale : maxScale, Math.max(minScale, scale)).toFixed(3));
+	const clamped = Math.min(big ? bigMaxScale : maxScale, Math.max(minScale, scale));
+	scoresTable.style.setProperty('--s', Math.floor(clamped * 1000) / 1000); // round down: never a pixel too tall
 	scoresTable.classList.toggle('roomy', roomy);
 	scoresTable.classList.toggle('big', big);
 }

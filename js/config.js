@@ -60,4 +60,5 @@ export const TOAST_MS = 2200;
 export const SCORES_LAYOUT = Object.freeze({
 	rows: 15, stats: 5, bigRows: 30, addRow: 10,
 	minScale: 0.7, maxScale: 1, bigMaxScale: 1.25,
+	tolerance: 0.97, // a layout still counts as fitting at 97% size
 });
