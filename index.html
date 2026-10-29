@@ -122,7 +122,8 @@
 		<div class="toast" role="status" aria-live="polite" hidden><b class="toast-title"></b> <span class="toast-detail"></span></div>
 
 		<div class="settings-background" id="settings" role="dialog" aria-modal="true" aria-label="Settings" hidden>
-			<section class="settings-section">
+			<section class="settings-section settings-main">
+				<h2 class="settings-heading">Game settings</h2>
 				<table class="settings-tbl">
 					<tbody>
 						<tr>
@@ -144,15 +145,17 @@
 								<input type="number" id="num-sets" inputmode="numeric" min="1">
 							</td>
 						</tr>
-						<tr>
-							<td colspan="2">
-								<table class="players-tbl">
-									<tbody>
-										<tr class="players-add" role="button" aria-label="Add player"><td colspan="4">+</td></tr>
-									</tbody>
-								</table>
-							</td>
-						</tr>
+					</tbody>
+				</table>
+
+				<h2 class="settings-heading">Players</h2>
+				<div class="players-scroll">
+					<ol class="players-list"></ol>
+					<button type="button" class="players-add" aria-label="Add player">+</button>
+				</div>
+
+				<table class="settings-tbl">
+					<tbody>
 						<tr>
 							<td colspan="2"><button type="button" class="settings-btn-action settings-link" data-action="visuals">Board &amp; visuals &#8250;</button></td>
 						</tr>

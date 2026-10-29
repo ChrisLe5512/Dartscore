@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-	addPlayer, createGame, isValidTurnScore, movePlayer, newMatch, removePlayer,
+	addPlayer, createGame, isValidTurnScore, movePlayer, movePlayerTo, newMatch, removePlayer,
 	playerStats, renamePlayer, restoreGame, submitTurn,
 } from '../js/game.js';
 import { makeDart } from '../js/board.js';
@@ -194,4 +194,18 @@ test('playerStats gives the three-dart average, darts thrown and best turn', () 
 	assert.equal(stats.darts, 8);
 	assert.equal(stats.best, 100);
 	assert.equal(stats.average.toFixed(2), (141 / 8 * 3).toFixed(2));
+});
+
+test('movePlayerTo moves a player to any place and keeps active pointing at the thrower', () => {
+	let s = addPlayer(addPlayer(twoPlayers(), 'Cy'), 'Di');
+	s = submitTurn(s, 60).state; // Bob throws next
+	const names = state => state.players.map(p => p.name).join(' ');
+	const down = movePlayerTo(s, 0, 3);
+	assert.equal(names(down), 'Bob Cy Di Ann');
+	assert.equal(down.players[down.active].name, 'Bob');
+	const up = movePlayerTo(s, 3, 1);
+	assert.equal(names(up), 'Ann Di Bob Cy');
+	assert.equal(up.players[up.active].name, 'Bob');
+	assert.equal(movePlayerTo(s, 1, 1), s);
+	assert.equal(movePlayerTo(s, 0, 9), s);
 });

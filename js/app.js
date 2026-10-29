@@ -640,8 +640,9 @@ const startScoreSelect = $('#start-score');
 const legsInput = $('#num-legs');
 const setsInput = $('#num-sets');
 const doubleOutInput = $('#double-out');
-const playersBody = $('.players-tbl tbody');
-const playersAddRow = $('.players-add');
+const playersScroll = $('.players-scroll');
+const playersList = $('.players-list');
+const playersAddBtn = $('.players-add');
 const noteRow = $('.settings-note-row');
 
 startScoreSelect.append(...START_SCORES.map(score => new Option(score, score)));
@@ -681,15 +682,18 @@ function closeSettings() {
 function renderSettings() {
 	noteRow.hidden = !matchStarted() || sameSettings(readSettingsForm(), game.settings);
 
-	const rows = game.players.map((player, index) => {
-		const row = document.createElement('tr');
-		row.className = 'players-row';
-		row.innerHTML = `
-			<td><input type="text" autocomplete="off" spellcheck="false" aria-label="Player name"></td>
-			<td class="move-up" role="button" aria-label="Move up">&#x25B2;</td>
-			<td class="move-down" role="button" aria-label="Move down">&#x25BC;</td>
-			<td class="delete-player" role="button" aria-label="Remove player">&#10006;</td>`;
-		const input = $('input', row);
+	const items = game.players.map((player, index) => {
+		const item = document.createElement('li');
+		item.className = 'player-item';
+		item.innerHTML = `
+			<div class="player-field">
+				<span class="grip" role="button" aria-label="Drag to reorder">&#x2807;</span>
+				<input type="text" autocomplete="off" spellcheck="false" aria-label="Player name">
+				<button type="button" class="field-btn move-up" aria-label="Move up">&#x25B2;</button>
+				<button type="button" class="field-btn move-down" aria-label="Move down">&#x25BC;</button>
+				<button type="button" class="field-btn delete-player" aria-label="Remove player">&#10006;</button>
+			</div>`;
+		const input = $('input', item);
 		input.value = player.name;
 		input.addEventListener('input', () => {
 			game = Game.renamePlayer(game, index, input.value);
@@ -699,17 +703,73 @@ function renderSettings() {
 		input.addEventListener('keydown', event => {
 			if (event.key === 'Enter') input.blur();
 		});
-		const up = $('.move-up', row);
-		const down = $('.move-down', row);
-		up.classList.toggle('disabled', index === 0);
-		down.classList.toggle('disabled', index === game.players.length - 1);
+		const up = $('.move-up', item);
+		const down = $('.move-down', item);
+		up.disabled = index === 0;
+		down.disabled = index === game.players.length - 1;
 		up.addEventListener('click', () => commit(Game.movePlayer(game, index, -1)));
 		down.addEventListener('click', () => commit(Game.movePlayer(game, index, 1)));
-		$('.delete-player', row).addEventListener('click', () => commit(Game.removePlayer(game, index)));
-		return row;
+		$('.delete-player', item).addEventListener('click', () => commit(Game.removePlayer(game, index)));
+		$('.grip', item).addEventListener('pointerdown', event => startDrag(event, item, index));
+		return item;
 	});
-	playersBody.replaceChildren(...rows, playersAddRow);
-	playersAddRow.classList.toggle('hidden', !Game.canAddPlayer(game));
+	playersList.replaceChildren(...items);
+	playersAddBtn.hidden = !Game.canAddPlayer(game);
+	updateListFades();
+}
+
+// Drag a player by the grip to reorder; saved as one undoable step on release.
+function startDrag(event, item, from) {
+	event.preventDefault();
+	const grip = event.currentTarget;
+	try {
+		grip.setPointerCapture(event.pointerId); // keep getting moves when the pointer leaves the grip
+	} catch { /* pointer already gone */ }
+	item.classList.add('dragging');
+	let startY = event.clientY;
+
+	const move = moveEvent => {
+		let offset = moveEvent.clientY - startY;
+		// Swap places with a neighbour once dragged past half of it.
+		const prev = item.previousElementSibling;
+		const next = item.nextElementSibling;
+		if (prev && offset < -prev.offsetHeight / 2) {
+			playersList.insertBefore(item, prev);
+			startY -= prev.offsetHeight;
+		} else if (next && offset > next.offsetHeight / 2) {
+			playersList.insertBefore(next, item);
+			startY += next.offsetHeight;
+		}
+		offset = moveEvent.clientY - startY;
+		item.style.transform = `translateY(${offset}px)`;
+
+		// Scroll the list when dragging near its edges.
+		const box = playersScroll.getBoundingClientRect();
+		if (moveEvent.clientY < box.top + 20) playersScroll.scrollTop -= 8;
+		else if (moveEvent.clientY > box.bottom - 20) playersScroll.scrollTop += 8;
+	};
+
+	const end = () => {
+		grip.removeEventListener('pointermove', move);
+		grip.removeEventListener('pointerup', end);
+		grip.removeEventListener('pointercancel', end);
+		item.classList.remove('dragging');
+		item.style.transform = '';
+		const to = [...playersList.children].indexOf(item);
+		if (to !== from) commit(Game.movePlayerTo(game, from, to));
+		else renderSettings();
+	};
+
+	grip.addEventListener('pointermove', move);
+	grip.addEventListener('pointerup', end);
+	grip.addEventListener('pointercancel', end);
+}
+
+/** Fade the list's top or bottom edge where more players are scrolled out of view. */
+function updateListFades() {
+	const { scrollTop, scrollHeight, clientHeight } = playersScroll;
+	playersScroll.classList.toggle('fade-top', scrollTop > 1);
+	playersScroll.classList.toggle('fade-bottom', scrollTop + clientHeight < scrollHeight - 1);
 }
 
 [startScoreSelect, legsInput, setsInput, doubleOutInput].forEach(el => {
@@ -719,10 +779,14 @@ function renderSettings() {
 legsInput.addEventListener('blur', () => { legsInput.value = readSettingsForm().legs; });
 setsInput.addEventListener('blur', () => { setsInput.value = readSettingsForm().sets; });
 
-playersAddRow.addEventListener('click', () => {
+playersScroll.addEventListener('scroll', updateListFades, { passive: true });
+new ResizeObserver(updateListFades).observe(playersScroll);
+
+playersAddBtn.addEventListener('click', () => {
 	const index = addPlayer();
 	if (index === undefined) return;
-	const input = $$('input', playersBody)[index];
+	const input = $$('input', playersList)[index];
+	input.scrollIntoView({ block: 'nearest' });
 	input.focus();
 	input.select();
 });
@@ -750,7 +814,7 @@ settingsDialog.addEventListener('click', event => {
 // ---- Settings: board and visuals ----------------------------------------------
 
 // Per device. Changes show straight away on the board and in the preview.
-const settingsMain = $('.settings-section:not(.visuals-section)', settingsDialog);
+const settingsMain = $('.settings-main', settingsDialog);
 const visualsSection = $('.visuals-section', settingsDialog);
 const boardPreview = $('.board-preview', visualsSection);
 const layoutInputs = $$('[data-layout]', visualsSection);

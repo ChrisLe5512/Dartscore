@@ -108,6 +108,15 @@ export function movePlayer(state, index, offset) {
 	return { ...state, players, active: swap(state.active), starter: swap(state.starter), winner };
 }
 
+/** Move a player from one place in the order to another (e.g. by dragging). */
+export function movePlayerTo(state, from, to) {
+	if (!state.players[from] || !state.players[to]) return state;
+	const step = to > from ? 1 : -1;
+	let next = state;
+	for (let i = from; i !== to; i += step) next = movePlayer(next, i, step);
+	return next;
+}
+
 // ---- Match flow -------------------------------------------------------------
 
 /** Same players, everything else back to zero. */

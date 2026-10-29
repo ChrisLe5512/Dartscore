@@ -175,55 +175,154 @@ aside.keypad-hidden .calc-section {
 	accent-color: var(--checkout);
 }
 
-.players-tbl {
-	width: 100%;
-	border-spacing: 0.5vh 0.75vh;
+/* Settings never scrolls as a whole; only the player list does. */
+.settings-main {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
 }
 
-.players-tbl input {
-	height: 4.5vh;
-	padding-left: 1vh;
+.settings-heading {
+	margin: 1vh 1vh 0;
+	padding-bottom: 0.6vh;
+	border-bottom: 1px solid var(--text-muted);
+	font-family: var(--font-condensed);
+	font-size: 3.2vh;
+	font-weight: 600;
+	color: var(--text);
 }
 
-.players-tbl td {
+@property --fade-top {
+	syntax: "<length>";
+	inherits: false;
+	initial-value: 0px;
+}
+
+@property --fade-bottom {
+	syntax: "<length>";
+	inherits: false;
+	initial-value: 0px;
+}
+
+.players-scroll {
+	flex: 0 1 auto;
+	min-height: 12vh;
+	margin: 1vh 1vh 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: none;
+	/* Players scrolled out of view fade out at that edge. */
+	mask-image: linear-gradient(transparent, black var(--fade-top), black calc(100% - var(--fade-bottom)), transparent);
+	transition: --fade-top var(--medium), --fade-bottom var(--medium);
+}
+
+.players-scroll::-webkit-scrollbar {
+	display: none;
+}
+
+.players-scroll.fade-top {
+	--fade-top: 5vh;
+}
+
+.players-scroll.fade-bottom {
+	--fade-bottom: 5vh;
+}
+
+.players-list {
+	margin: 0;
 	padding: 0;
+	list-style: none;
 }
 
-.players-tbl .move-up,
-.players-tbl .move-down,
-.players-tbl .delete-player {
-	width: 5.5vh;
-	height: 4.5vh;
-	font-size: 2.5vh;
-	text-align: center;
-	vertical-align: middle;
-	border: var(--border);
+.player-item {
+	padding: 0.5vh 0;
+}
+
+.player-item.dragging {
+	position: relative;
+	z-index: 1;
+	opacity: 0.9;
+}
+
+.player-item.dragging .player-field {
+	border-color: var(--text);
+	box-shadow: 0 1vh 2vh rgba(0, 0, 0, 0.6);
+}
+
+/* Name with its controls inside the field: grip, name, up, down, remove. */
+.player-field {
+	display: flex;
+	align-items: center;
+	height: 5vh;
+	background: #242424;
+	border: 1px solid var(--text-muted);
 	border-radius: var(--radius);
-	background: var(--button);
-	text-shadow: 0 0 4px black;
-	cursor: pointer;
+	color: var(--text);
 }
 
-.players-tbl td.disabled {
+.settings-section .player-field input {
+	flex: 1;
+	min-width: 0;
+	height: 100%;
+	padding: 0 0.5vh;
+	font-family: var(--font);
+	font-size: 2.6vh;
+	color: var(--text);
+	background: none;
+	border: none;
+	outline: none;
+}
+
+.grip {
+	padding: 0 1vh;
+	font-size: 3vh;
 	color: var(--text-muted);
-	background: var(--button-disabled);
-	border: var(--border-muted);
-	pointer-events: none;
+	cursor: grab;
+	touch-action: none;
 }
 
-.players-add td {
-	height: 4.5vh;
-	font-size: 4vh;
+.dragging .grip {
+	cursor: grabbing;
+}
+
+.field-btn {
+	width: 5vh;
+	height: 100%;
+	padding: 0;
+	font-size: 2.2vh;
+	color: var(--text);
+	background: none;
+	border: none;
+	border-left: 1px solid #3a3a3a;
+	cursor: pointer;
+	transition: transform var(--fast) var(--ease-out);
+}
+
+.field-btn:active {
+	transform: scale(0.85);
+}
+
+.field-btn:disabled {
+	color: #4a4a4a;
+	cursor: default;
+}
+
+.delete-player {
+	color: var(--bust);
+}
+
+.players-add {
+	width: 100%;
+	height: 5vh;
+	margin: 0.5vh 0;
+	font-family: inherit;
+	font-size: 3.6vh;
 	line-height: 1;
-	text-align: center;
+	color: var(--text);
 	border: var(--border);
 	border-radius: var(--radius);
 	background: var(--panel);
 	cursor: pointer;
-}
-
-.players-tbl .hidden {
-	display: none;
 }
 
 .settings-note {
@@ -1092,8 +1191,7 @@ td.back-score {
 .btn-tbl td,
 .darts span,
 .add-player td,
-.players-tbl td[role="button"],
-.players-add td,
+.players-add,
 .settings-btn-action {
 	transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium);
 }
@@ -1103,8 +1201,7 @@ td.back-score {
 .btn-tbl td:not(.disabled, .darts-btn, .darts-total):active,
 .darts span[class]:not([class=""]):active,
 .add-player td:active,
-.players-tbl td[role="button"]:active,
-.players-add td:active,
+.players-add:active,
 .settings-btn-action:active {
 	transform: scale(0.94);
 }
