@@ -1294,21 +1294,24 @@ function closeSettings() {
 	closeDialog(settingsDialog);
 }
 
-/** The game being played, in a line: "501 · first to 3 legs · double out". */
+/** The game being played: its name, then how it's played ("First to 3 legs", "Double out"). */
 function gameSummary() {
 	const { legs, sets, practice, doubleOut } = game.settings;
-	const parts = [mode().title(game.settings)];
-	if (practice) parts.push('endless');
-	else parts.push(`first to ${legs} leg${legs === 1 ? '' : 's'}${sets > 1 ? `, ${sets} sets` : ''}`);
-	if (doubleOut) parts.push('double out');
-	for (const option of mode().OPTIONS) if (option.type !== 'choice' && game.settings[option.key]) parts.push(option.label.toLowerCase());
-	return parts.join(' · ');
+	const details = [];
+	if (practice) details.push('Endless');
+	else details.push(`First to ${legs} leg${legs === 1 ? '' : 's'}${sets > 1 ? `, ${sets} sets` : ''}`);
+	if (doubleOut) details.push('Double out');
+	for (const option of mode().OPTIONS) if (option.type !== 'choice' && game.settings[option.key]) details.push(option.label);
+	return { name: mode().title(game.settings), details };
 }
 
 // Settings: what can change during a game (the players, the board's look).
 // What to play is the New game screen's.
 function renderSettings() {
-	settingsSummary.textContent = gameSummary();
+	const { name, details } = gameSummary();
+	const title = document.createElement('b');
+	title.textContent = name;
+	settingsSummary.replaceChildren(title, ...details.map(detail => ` · ${detail}`));
 
 	const items = game.players.map((player, index) => {
 		const item = document.createElement('li');

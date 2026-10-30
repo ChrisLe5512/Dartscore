@@ -431,7 +431,12 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	margin: 0;
 	font-family: var(--font-condensed);
 	font-size: 2.8vmin;
-	color: var(--text-soft);
+	color: var(--text);
+}
+
+.settings-summary b {
+	font-size: 3.2vmin;
+	font-weight: 600;
 }
 
 .current-game .settings-btn-action {
