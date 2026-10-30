@@ -112,6 +112,7 @@ function replay(el, className) {
 /** Play a dialog's closing animation, then hide it. */
 function closeDialog(dialog) {
 	if (dialog.hidden || dialog.classList.contains('closing')) return;
+	dialog.classList.remove('handoff');
 	dialog.classList.add('closing');
 	if (dialog.contains(document.activeElement)) focusBefore.get(dialog)?.focus({ preventScroll: true });
 	const closing = dialog.getAnimations({ subtree: true })
@@ -132,6 +133,20 @@ function openDialog(dialog, focus = dialog) {
 	dialog.classList.remove('closing');
 	dialog.hidden = false;
 	focus.focus({ preventScroll: true });
+}
+
+/**
+ * Go straight from one dialog to another (Settings to New game, say): the
+ * dimmed backdrop stays as it is and only the panel changes, instead of one
+ * backdrop fading out under another fading in.
+ */
+function switchDialog(from, to, focus = to) {
+	const before = focusBefore.get(from);
+	from.classList.remove('closing', 'handoff');
+	from.hidden = true;
+	to.classList.add('handoff');
+	openDialog(to, focus);
+	focusBefore.set(to, before);
 }
 
 const openDialogs = () => $$('[role="dialog"], [role="alertdialog"]').filter(d => !d.hidden && !d.classList.contains('closing'));
@@ -1348,8 +1363,7 @@ playersAddBtn.addEventListener('click', () => {
 settingsDialog.addEventListener('click', event => {
 	const action = event.target.closest('[data-action]')?.dataset.action;
 	if (action === 'new-game') {
-		closeDialog(settingsDialog);
-		openNewGame();
+		openNewGame(settingsDialog);
 	} else if (action === 'close' || event.target === settingsDialog) {
 		closeSettings();
 	} else if (action === 'visuals') {
@@ -1426,7 +1440,8 @@ function readGameForm() {
 	};
 }
 
-function openNewGame() {
+/** Opens the New game screen; from: the dialog it replaces, if any. */
+function openNewGame(from = null) {
 	const { legs, sets, doubleOut, practice } = game.settings;
 	Object.assign(ngForm, { step: 'game', picked: choiceOf(game).value, legs, sets });
 	doubleOutInput.checked = doubleOut ?? DEFAULT_SETTINGS.doubleOut; // for a game switched to that has it
@@ -1437,7 +1452,8 @@ function openNewGame() {
 	ngForm.solo = ngForm.names.length <= 1;
 	soloName.value = ngForm.names[0] ?? '';
 	renderNewGame();
-	openDialog(newGameDialog, ngNextBtn);
+	if (from) switchDialog(from, newGameDialog, ngNextBtn);
+	else openDialog(newGameDialog, ngNextBtn);
 }
 
 function renderNewGame() {
@@ -1741,8 +1757,8 @@ winnerDialog.addEventListener('click', event => {
 		commit(mode().newMatch(game));
 		showToast({ kind: 'info', title: 'Rematch', detail: 'Game on' });
 	}
-	if (action || event.target === winnerDialog) closeDialog(winnerDialog);
-	if (action === 'new-game') openNewGame();
+	if (action === 'new-game') openNewGame(winnerDialog);
+	else if (action || event.target === winnerDialog) closeDialog(winnerDialog);
 });
 
 // ---- Match stats ----------------------------------------------------------------

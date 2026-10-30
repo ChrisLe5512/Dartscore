@@ -2203,6 +2203,11 @@ td.calc-score:not(.disabled) {
 	animation: dialog-in var(--medium) var(--ease-back);
 }
 
+/* Opened straight from another dialog: the backdrop is already there. */
+.settings-background.handoff {
+	animation: none;
+}
+
 .settings-background.closing {
 	pointer-events: none;
 	animation: fade-out var(--fast) ease-in forwards;
