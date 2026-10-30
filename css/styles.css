@@ -17,6 +17,7 @@
 	--active-row: linear-gradient(#6fb4ff, #2f6fb0); /* the player throwing */
 	--active-row-big: linear-gradient(#6fb4ff, #3f80c4); /* the same, 1-2 players */
 	--active-stats-big: linear-gradient(#3f80c4, #2f6fb0);
+	--active-line: #173450; /* their history and stats lines */
 	--edit: #e6b84a; /* a player whose menu is open, and the menu */
 	--menu-row: linear-gradient(#e6b84a, #8a6414);
 	--menu-line: #3a2e0e; /* their history and stats lines */
@@ -766,8 +767,9 @@ aside.keypad-hidden .calc-section {
 	display: none;
 }
 
-.scores-tbl .stats-row.active {
-	background: var(--row);
+.scores-tbl .stats-row.active,
+.scores-tbl .history-row.active {
+	background: var(--active-line);
 }
 
 .stats-cell {

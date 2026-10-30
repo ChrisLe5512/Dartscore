@@ -238,6 +238,7 @@ function renderScoreboard() {
 		if (isActive && !playerRow.classList.contains('active')) activeRows = rows;
 		playerRow.classList.toggle('active', isActive);
 		statsRow.classList.toggle('active', isActive);
+		historyRow.classList.toggle('active', isActive);
 		$('.player-wins u', playerRow).innerHTML = `${player.legs}&#8196;&#8196;`;
 		$('.player-sets', playerRow).textContent = player.sets;
 		$('.target-wins', playerRow).innerHTML = `&nbsp;/${game.settings.legs}<br>&nbsp;/${game.settings.sets}`;
