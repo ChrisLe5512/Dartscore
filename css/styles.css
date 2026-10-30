@@ -1637,6 +1637,13 @@ td.calc-score:not(.disabled) {
 		transition: width var(--medium) var(--ease-out), --fade-top var(--medium), --fade-bottom var(--medium);
 	}
 
+	/* The list ends at the bottom of the screen: no line there. */
+	.scores-section.overflowing,
+	.scores-section .add-player:not(.hidden) td,
+	.scores-section .history-row:has(+ .add-player.hidden) .history-cell {
+		border-bottom: none;
+	}
+
 	.calc-section {
 		width: calc(var(--band) * 0.82);
 		height: 100%;
