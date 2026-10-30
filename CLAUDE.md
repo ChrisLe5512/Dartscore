@@ -16,10 +16,12 @@ Darts X01 scoreboard web app (301/501/701), built for tablets in landscape (16:1
 - `js/board.js`: board geometry (adjustable ring layout), hit-testing and dart colours (pure)
 - `js/dartboard.js`: draws the board as SVG from the geometry; lit beds and dart markers
 - `js/history.js`: undo/redo snapshot stacks
-- `js/storage.js`: localStorage save/load (game: `dartscore:v2`; per-device view prefs such as keypad and board look: `dartscore:prefs`)
+- `js/stats.js`: match stats (pure)
+- `js/storage.js`: localStorage save/load (game: `dartscore:v2`; per-device view prefs such as keypad and board look: `dartscore:prefs`). Undo steps are packed so turns are saved once (packSession).
 - `js/app.js`: DOM wiring only. Turns taps into game actions and state into DOM.
-- `sw.js`: offline cache (HTTPS only). Bump `CACHE` when cached files change.
-- `css/styles.css`: colours, borders (`--line`) and board colours (`--board-*`) are variables at the top. Themes should only need to change those. Sizes use `vmin` (never `vh`), so landscape is sized by height and portrait by width; portrait overrides are in the PORTRAIT block at the end.
+- `js/version.js`: the version shown in Settings. `sw.js` names its cache after it: bump it when cached files change.
+- `sw.js`: offline cache (HTTPS only). Add new files to `APP_SHELL`.
+- `css/styles.css`: colours, borders (`--line`) and board colours (`--board-*`) are variables at the top. Themes should only need to change those. Sizes use `vmin` (never `vh`, except the portrait band's height), so landscape is sized by height and portrait by width; portrait overrides are in the PORTRAIT block at the end.
 
 ## Environment
 
