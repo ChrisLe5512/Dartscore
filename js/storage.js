@@ -1,5 +1,5 @@
 import { LEGACY_STORAGE_KEYS, PREFS_KEY, STORAGE_KEY } from './config.js';
-import { restoreGame } from './game.js';
+import { restoreGame } from './modes.js';
 import { createHistory } from './history.js';
 
 // localStorage can be missing or throw (private mode, blocked storage, full quota).

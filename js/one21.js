@@ -153,7 +153,9 @@ export function restoreGame(raw) {
 			round: clampInt(p.round, 0, ONE21.rounds, 0),
 		};
 	});
-	return state && { mode: id, ...state, results: restoreResults(raw.results, state.leg) };
+	if (!state) return null;
+	const { settings: _, players, ...rest } = state; // in the order createGame has, so a reloaded game saves the same
+	return { mode: id, settings, players, results: restoreResults(raw.results, state.leg), ...rest };
 }
 
 // ---- How it shows -----------------------------------------------------------
