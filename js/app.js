@@ -1511,8 +1511,6 @@ const setsStepper = $('[data-field="sets"]', newGameDialog);
 const doubleOutInput = $('#double-out');
 const formatButtons = $$('.match-format button', newGameDialog);
 const countsReveal = $('.counts-reveal', newGameDialog);
-const optionsBox = $('.mode-options', newGameDialog);
-const optionsReveal = optionsBox.parentElement;
 const checksBox = $('.game-checks', newGameDialog);
 const soloName = $('.solo-name', newGameDialog);
 const draftList = $('.draft-list', newGameDialog);
@@ -1578,11 +1576,11 @@ function openNewGame(from = null) {
 	ngForm.names = game.players.map(player => player.name);
 	ngForm.solo = ngForm.names.length <= 1;
 	soloName.value = ngForm.names[0] ?? '';
-	// Opening, the choice's line is simply there (or not): no opening out.
-	for (const reveal of [optionsReveal, countsReveal]) reveal.classList.add('instant');
+	// Opening, the legs and sets are simply there (or not): no sliding out.
+	countsReveal.classList.add('instant');
 	renderNewGame();
-	void optionsReveal.offsetHeight;
-	for (const reveal of [optionsReveal, countsReveal]) reveal.classList.remove('instant');
+	void countsReveal.offsetHeight;
+	countsReveal.classList.remove('instant');
 	if (from) switchDialog(from, newGameDialog, ngNextBtn);
 	else openDialog(newGameDialog, ngNextBtn);
 }
@@ -1597,11 +1595,9 @@ function renderNewGame() {
 	else renderPlayersStep();
 }
 
-// Only what the picked game has: a choice of its own (around the clock's
-// beds) right under the tiles; then the match, First to (with the legs and
-// sets sliding out beside it) or Endless; then Double out and the game's
-// checkboxes on a line of their own (kept even when empty, so the screen
-// doesn't jump between games).
+// Only what the picked game has: the match, First to (with the legs and sets
+// sliding out beside it) or Endless; then its Options, Double out or the
+// game's own choice and checkboxes.
 function renderGameStep() {
 	const { mode: id, settings } = readGameForm();
 	for (const tile of $$('.game-tile', choicesBox)) tile.setAttribute('aria-checked', String(tile.dataset.value === ngForm.picked));
@@ -1618,10 +1614,10 @@ function renderGameStep() {
 }
 
 /**
- * The game's own options. A choice is a row of buttons under the tiles, and
- * the game's checkboxes sit beside it (greyed where they don't apply, e.g.
- * Skip ahead with doubles only). A game without a choice has its checkboxes
- * on the line with Double out, shown only where they apply.
+ * The game's own options, on the Options line. A choice is a row of buttons
+ * named beside it, with the game's checkboxes after it, greyed where they
+ * don't apply (e.g. Skip ahead with doubles only, so the line doesn't shift).
+ * A game without a choice shows its checkboxes only where they apply.
  */
 function renderOptions(rules, settings) {
 	const choices = rules.OPTIONS.filter(option => option.type === 'choice');
@@ -1647,19 +1643,11 @@ function renderOptions(rules, settings) {
 		return line;
 	};
 	for (const box of $$('.mode-check', checksBox)) box.remove();
-	// The choice's line opens out and folds away. Folding, it keeps what it
-	// showed (out of reach) until it has closed.
-	optionsReveal.classList.toggle('open', choices.length > 0);
-	optionsReveal.inert = !choices.length;
-	if (!choices.length) {
-		checksBox.append(...checks.map(checkBox));
-		return;
-	}
-	optionsBox.replaceChildren(...choices.map(option => {
+	checksBox.append(...choices.map(option => {
 		const group = document.createElement('div');
-		group.className = 'option-choice';
+		group.className = 'mode-check mode-choice';
 		const label = document.createElement('span');
-		label.className = 'stepper-label';
+		label.className = 'check-line';
 		label.textContent = `${option.label} `;
 		if (option.title) label.append(infoButton(option.title, option.label));
 		const buttons = document.createElement('div');
@@ -1739,7 +1727,10 @@ function goToStep(step) {
 	if (reducedMotion.matches) return;
 	const timing = { duration: 260, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
 	const side = step === 'players' ? 1 : -1;
-	section.animate([{ height: `${from}px` }, { height: `${section.offsetHeight}px` }], timing);
+	// No scrollbar while the step slides in and the panel eases.
+	section.classList.add('sliding');
+	section.animate([{ height: `${from}px` }, { height: `${section.offsetHeight}px` }], timing)
+		.finished.catch(() => {}).finally(() => section.classList.remove('sliding'));
 	(step === 'players' ? playersStep : gameStep).animate(
 		[{ opacity: 0, transform: `translateX(${side * 6}vmin)` }, { opacity: 1, transform: 'none' }], timing);
 }

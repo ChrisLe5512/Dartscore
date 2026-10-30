@@ -510,10 +510,9 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	background: linear-gradient(#2e8a22, #1a5212);
 }
 
-/* Under the tiles, only what the picked game has: legs and sets as − n +
-   steppers, its checkboxes, and its own options. */
-.match-row,
-.mode-options {
+/* Under the tiles, only what the picked game has: the match, with legs and
+   sets as − n + steppers, then its options. */
+.match-row {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: flex-start;
@@ -523,40 +522,9 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	font-size: 3vmin;
 }
 
-/* The line for a game's choice (around the clock's Counts) opens out under
-   the tiles and folds away again, the screen growing and shrinking with it. */
-.options-reveal {
-	display: grid;
-	grid-template-rows: 0fr;
-	opacity: 0;
-	transition: grid-template-rows var(--medium) var(--ease-out), opacity var(--medium) var(--ease-out);
-}
-
-.options-reveal.open {
-	grid-template-rows: 1fr;
-	opacity: 1;
-}
-
-.options-reveal.instant {
-	transition: none;
-}
-
-.options-reveal > .mode-options {
-	min-height: 0;
+/* Sliding between its two steps, the panel shows no scrollbar. */
+.new-game-section.sliding {
 	overflow: hidden;
-	margin-top: 0;
-	padding-top: 2vmin;
-}
-
-/* A game's checkboxes beside its choice: level with the buttons. */
-.mode-options {
-	align-items: flex-end;
-}
-
-.mode-options .settings-check {
-	display: flex;
-	align-items: center;
-	height: var(--choice-height, 5.2vmin);
 }
 
 /* First to: the legs and sets slide out beside the match picker; Endless
@@ -641,10 +609,9 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	font-variant-numeric: tabular-nums;
 }
 
-/* Options: Double out and the game's checkboxes, labelled like Match and
-   Counts. Every game but around the clock (whose checkbox sits beside its
-   Counts) has one here, so the screen keeps its height between them; around
-   the clock has none and the section folds away. */
+/* Options: Double out, or the game's own choice (around the clock's Counts,
+   named beside its buttons) and checkboxes, labelled like Match. A game with
+   none has no section. */
 .game-options-group {
 	display: flex;
 	flex-direction: column;
@@ -664,6 +631,12 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	gap: 0.8vmin 4vmin;
 	color: var(--text);
 	white-space: nowrap;
+}
+
+.mode-choice {
+	display: flex;
+	align-items: center;
+	gap: 1.6vmin;
 }
 
 
