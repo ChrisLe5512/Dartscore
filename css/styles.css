@@ -18,6 +18,8 @@
 	--active-row-big: linear-gradient(#6fb4ff, #3f80c4); /* the same, 1-2 players */
 	--active-stats-big: linear-gradient(#3f80c4, #2f6fb0);
 	--active-line: #173450; /* their history and stats lines */
+	--active-row-dim: linear-gradient(#3e6488, #1d3a58); /* the thrower while someone else is being edited */
+	--active-line-dim: #121f2c;
 	--edit: #e6b84a; /* a player whose menu is open, and the menu */
 	--menu-row: linear-gradient(#e6b84a, #8a6414);
 	--menu-line: #3a2e0e; /* their history and stats lines */
@@ -644,6 +646,15 @@ aside.keypad-hidden .calc-section {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+/* While another player is being edited, the thrower's blue steps back. */
+.scores-tbl:has(tr.menu-open) tr.player-row.active:not(.menu-open) {
+	--row-bg: var(--active-row-dim);
+}
+
+.scores-tbl:has(tr.menu-open) tr.active:not(.player-row, .menu-open) {
+	background: var(--active-line-dim);
 }
 
 /* The player whose menu is open is tinted amber, like the menu. */
