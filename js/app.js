@@ -545,7 +545,12 @@ playerMenu.addEventListener('click', event => {
 
 // While the menu or a past turn is open, a tap anywhere else only closes it:
 // the tap doesn't also press, type or throw on whatever is underneath.
+// The tap's click can come a while after the finger lifts (touch), so it is
+// swallowed whenever it comes, unless a new tap starts first (a drag has none).
+let swallowClick = false;
+
 document.addEventListener('pointerdown', event => {
+	swallowClick = false;
 	if (menuFor !== null) {
 		if (playerMenu.contains(event.target)) return;
 		closePlayerMenu();
@@ -555,20 +560,15 @@ document.addEventListener('pointerdown', event => {
 	} else {
 		return;
 	}
-	swallowNextClick();
+	swallowClick = true;
 }, true);
 
-function swallowNextClick() {
-	const swallow = event => {
-		event.stopPropagation();
-		event.preventDefault();
-	};
-	addEventListener('click', swallow, { capture: true, once: true });
-	// A drag or cancelled tap brings no click: stop waiting once this one ends.
-	const stop = () => setTimeout(() => removeEventListener('click', swallow, true));
-	addEventListener('pointerup', stop, { capture: true, once: true });
-	addEventListener('pointercancel', stop, { capture: true, once: true });
-}
+addEventListener('click', event => {
+	if (!swallowClick) return;
+	swallowClick = false;
+	event.stopPropagation();
+	event.preventDefault();
+}, true);
 scoresSection.addEventListener('scroll', () => menuFor !== null && placePlayerMenu(), { passive: true });
 
 // ---- Keypad -----------------------------------------------------------------
