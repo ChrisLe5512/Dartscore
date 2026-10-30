@@ -376,9 +376,15 @@ function updateScoreFades() {
 	scoresSection.classList.toggle('fade-bottom', scrollTop + clientHeight < scrollHeight - 1);
 }
 
+// While the keypad folds away or comes back, the list resizes on every frame
+// of the animation. The rows keep scaling with it, but the names (which take
+// several layouts each to fit) wait until it settles: fitting them on every
+// frame is what made the animation stutter.
+let keypadMoving = false;
+
 new ResizeObserver(() => {
 	layoutScores();
-	fitNames();
+	if (!keypadMoving) fitNames();
 }).observe(scoresSection);
 scoresSection.addEventListener('scroll', updateScoreFades, { passive: true });
 
@@ -1121,7 +1127,27 @@ function renderControls() {
 const sidebar = $('aside');
 const keypadToggle = $('.ctrl-tbl .keypad-btn');
 
+const calcSection = $('.calc-section');
+let keypadSettled = 0;
+
+/** The keypad's animation has ended (or never ran): fit the names to where the list ended up. */
+function keypadStill() {
+	clearTimeout(keypadSettled);
+	if (!keypadMoving) return;
+	keypadMoving = false;
+	fitNames();
+}
+
+calcSection.addEventListener('transitionend', event => {
+	if (event.target === calcSection && (event.propertyName === 'height' || event.propertyName === 'width')) keypadStill();
+});
+
 function setKeypadHidden(hidden) {
+	if (sidebar.classList.contains('keypad-hidden') !== hidden) {
+		keypadMoving = true;
+		clearTimeout(keypadSettled);
+		keypadSettled = setTimeout(keypadStill, 600); // in case no transition runs (hidden tab, say)
+	}
 	sidebar.classList.toggle('keypad-hidden', hidden);
 	keypadToggle.setAttribute('aria-expanded', String(!hidden));
 	keypadToggle.setAttribute('aria-label', hidden ? 'Show keypad' : 'Hide keypad');
