@@ -15,15 +15,15 @@ function play(state, ...scores) {
 	return { state, event };
 }
 
-test('players are added with defaults and capped at eight', () => {
+test('players are added with defaults and capped at ten', () => {
 	let s = createGame();
 	assert.deepEqual(s.settings, { startScore: 501, legs: 3, sets: 1, doubleOut: true, practice: false });
-	for (let i = 0; i < 10; i++) s = addPlayer(s);
-	assert.equal(s.players.length, 8);
+	for (let i = 0; i < 12; i++) s = addPlayer(s);
+	assert.equal(s.players.length, 10);
 	assert.deepEqual(s.players.slice(0, 4).map(p => p.name), ['Player 1', 'Player 2', 'Player 3', 'Player 4']);
-	assert.equal(s.players[7].name, 'Player 8');
+	assert.equal(s.players[9].name, 'Player 10');
 	assert.ok(s.players.every(p => p.score === 501));
-	assert.equal(new Set(s.players.map(p => p.id)).size, 8);
+	assert.equal(new Set(s.players.map(p => p.id)).size, 10);
 });
 
 test('names are trimmed, limited and never blank', () => {

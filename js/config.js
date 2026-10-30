@@ -1,7 +1,7 @@
 // Game rules and board geometry. Change values here, not in the logic.
 
 export const START_SCORES = [301, 501, 701];
-export const MAX_PLAYERS = 8;
+export const MAX_PLAYERS = 10;
 export const MAX_LEGS = 15;
 export const MAX_SETS = 15;
 export const MAX_TURN_SCORE = 180;

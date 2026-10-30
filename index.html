@@ -156,8 +156,20 @@
 
 		<div class="settings-background" id="settings" role="dialog" aria-modal="true" aria-label="Settings" tabindex="-1" hidden>
 			<section class="settings-section settings-main">
-				<h2 class="settings-heading">Settings<span class="settings-version"></span></h2>
-				<p class="settings-summary"></p>
+				<h2 class="settings-heading">Current game<span class="settings-version"></span></h2>
+				<div class="current-game">
+					<p class="settings-summary"></p>
+					<button type="button" class="settings-btn-action settings-link" data-action="new-game">New game &#8250;</button>
+				</div>
+
+				<h2 class="settings-heading">Settings</h2>
+				<table class="settings-tbl">
+					<tbody>
+						<tr>
+							<td><button type="button" class="settings-btn-action settings-link" data-action="visuals">Board layout &#8250;</button></td>
+						</tr>
+					</tbody>
+				</table>
 
 				<h2 class="settings-heading">Players</h2>
 				<div class="players-scroll">
@@ -168,10 +180,6 @@
 				<table class="settings-tbl">
 					<tbody>
 						<tr>
-							<td colspan="2"><button type="button" class="settings-btn-action settings-link" data-action="visuals">Board layout &#8250;</button></td>
-						</tr>
-						<tr>
-							<td><button type="button" class="settings-btn-action" data-action="new-game">New game &#8250;</button></td>
 							<td><button type="button" class="settings-btn-action" data-action="close">Done</button></td>
 						</tr>
 					</tbody>

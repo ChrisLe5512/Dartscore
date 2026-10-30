@@ -417,12 +417,28 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	cursor: pointer;
 }
 
-/* Settings: the game being played, in a line under the heading. */
+/* Settings, at the top: the game being played in a line, and New game beside it. */
+.current-game {
+	display: flex;
+	align-items: center;
+	gap: 2vmin;
+	margin: 2vmin 2vmin 1vmin;
+}
+
 .settings-summary {
-	margin: 1vmin 1vmin 0;
+	flex: 1;
+	min-width: 0;
+	margin: 0;
 	font-family: var(--font-condensed);
-	font-size: 2.6vmin;
+	font-size: 2.8vmin;
 	color: var(--text-soft);
+}
+
+.current-game .settings-btn-action {
+	flex: none;
+	width: auto;
+	padding: 1vmin 3vmin;
+	font-size: 3vmin;
 }
 
 /* New game: what to play as tiles, grouped, then its options and who plays. */
