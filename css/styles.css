@@ -654,8 +654,9 @@ aside.keypad-hidden .calc-section {
 	text-overflow: ellipsis;
 }
 
-/* The player whose menu is open. */
-.menu-open td {
+/* The player whose menu is open. On the rows, not their cells: a filter on
+   a cell would cut the row's background layer down to that cell. */
+.menu-open {
 	filter: brightness(1.2);
 }
 
