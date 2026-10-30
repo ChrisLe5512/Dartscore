@@ -47,3 +47,27 @@ export function describeTravel(from, to, direction) {
 	if (settings(from) !== settings(to)) return { kind: 'info', title, detail: 'Settings changed' };
 	return { kind: 'info', title, detail: '' };
 }
+
+// Visits worth picking out in a player's history line.
+const TIERS = [[180, 'max'], [140, 'ton-forty'], [100, 'ton']];
+const BEST_FROM = 3; // visits before the best one is marked
+
+/**
+ * Class names for each turn in a history line: 'bust', 'zero', 'checkout',
+ * 'max' (180), 'ton-forty' (140+), 'ton' (100+), 'bull' (a bullseye thrown)
+ * and 'best' (the highest visit so far, once there are a few).
+ */
+export function historyMarks(turns) {
+	const best = turns.length >= BEST_FROM ? Math.max(...turns.map(t => t.score)) : 0;
+	return turns.map(t => {
+		const marks = [];
+		if (t.bust) marks.push('bust');
+		else if (t.score === 0) marks.push('zero');
+		if (t.checkout) marks.push('checkout');
+		const tier = TIERS.find(([min]) => t.score >= min);
+		if (tier) marks.push(tier[1]);
+		if (t.darts?.includes('B')) marks.push('bull');
+		if (best > 0 && t.score === best) marks.push('best');
+		return marks;
+	});
+}

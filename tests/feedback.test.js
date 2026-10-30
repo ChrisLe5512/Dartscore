@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { describeTravel, describeTurn } from '../js/feedback.js';
+import { describeTravel, describeTurn, historyMarks } from '../js/feedback.js';
 import { addPlayer, createGame, movePlayer, newMatch, submitTurn } from '../js/game.js';
 
 const twoPlayers = () =>
@@ -60,4 +60,29 @@ test('player and settings changes get a generic message', () => {
 	assert.equal(describeTravel(movePlayer(s, 0, 1), s, 'undo').detail, 'Players changed');
 	assert.equal(describeTravel(addPlayer(s), s, 'undo').detail, 'Players changed');
 	assert.equal(describeTravel(newMatch(s, { ...s.settings, startScore: 501 }), s, 'undo').detail, 'Settings changed');
+});
+
+test('history marks: busts, zeros, tons, 180s, checkouts, bulls and the best visit', () => {
+	const marks = historyMarks([
+		{ score: 0, bust: true, attempted: 60 },
+		{ score: 0 },
+		{ score: 100 },
+		{ score: 140 },
+		{ score: 180 },
+		{ score: 50, darts: ['B'] },
+		{ score: 40, checkout: true },
+		{ score: 26 },
+	]);
+	assert.deepEqual(marks, [
+		['bust'], ['zero'], ['ton'], ['ton-forty'], ['max', 'best'], ['bull'], ['checkout'], [],
+	]);
+	// No best until there are a few visits to compare.
+	assert.deepEqual(historyMarks([{ score: 60 }, { score: 45 }]), [[], []]);
+});
+
+test('the leg-winning visit is recorded as a checkout', () => {
+	let s = addPlayer(createGame({ startScore: 301, legs: 3, sets: 1 }), 'Ann');
+	s = throwTurn(s, 180);
+	s = throwTurn(s, 121);
+	assert.deepEqual(s.players[0].turns.map(t => t.checkout ?? false), [false, true]);
 });

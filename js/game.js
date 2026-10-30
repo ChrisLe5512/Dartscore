@@ -12,7 +12,7 @@ import { canCheckout } from './checkout.js';
  * State shape:
  * {
  *   settings: { startScore, legs, sets, doubleOut },
- *   players: [{ id, name, score, legs, sets, turns: [{ score, bust?, darts?, hits? }] }],
+ *   players: [{ id, name, score, legs, sets, turns: [{ score, bust?, checkout?, darts?, hits? }] }],
  *   active: index of the player throwing,
  *   starter: index of the player who started the current leg,
  *   winner: index of the match winner, or null,
@@ -178,6 +178,7 @@ export function submitTurn(state, score, darts = null) {
 	}
 
 	player.score -= score;
+	if (player.score === 0) turn.checkout = true;
 	player.turns = [...player.turns, turn];
 
 	if (player.score > 0) {

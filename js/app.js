@@ -8,7 +8,7 @@ import {
 import { boardRings, hitTest, isOnBoard, locate } from './board.js';
 import { getCheckouts } from './checkout.js';
 import { boardRadius, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
-import { describeTravel, describeTurn } from './feedback.js';
+import { describeTravel, describeTurn, historyMarks } from './feedback.js';
 import * as Game from './game.js';
 import * as History from './history.js';
 import { loadPrefs, loadSession, savePrefs, saveSession } from './storage.js';
@@ -31,6 +31,7 @@ const turn = {
 };
 const checkoutChoice = new Map(); // player id -> which suggested route to show
 let review = null; // { id, index }: a past turn whose darts are shown on the board
+let toastSticky = false; // the toast stays up (while a past turn is on show)
 
 /** Apply a change to the game, keeping the old state for undo. */
 function commit(next) {
@@ -291,12 +292,21 @@ function layoutScores() {
 	scoresTable.classList.toggle('big', big);
 	// Only rows too many to fit (at the smallest size) make the list scroll.
 	scoresSection.classList.toggle('overflowing', scale < minScale);
+	updateScoreFades();
+}
+
+/** Fade the list's top or bottom edge where players are scrolled out of view. */
+function updateScoreFades() {
+	const { scrollTop, scrollHeight, clientHeight } = scoresSection;
+	scoresSection.classList.toggle('fade-top', scrollTop > 1);
+	scoresSection.classList.toggle('fade-bottom', scrollTop + clientHeight < scrollHeight - 1);
 }
 
 new ResizeObserver(() => {
 	layoutScores();
 	fitNames();
 }).observe(scoresSection);
+scoresSection.addEventListener('scroll', updateScoreFades, { passive: true });
 
 const atEnd = el => el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
 
@@ -321,11 +331,13 @@ function renderHistory(cell, player) {
 	const added = cell.dataset.turns !== undefined && key > Number(cell.dataset.turns);
 	cell.dataset.turns = key;
 	// Oldest on the left, so the line reads in the order the turns were thrown.
-	cell.replaceChildren(...player.turns.map(t => {
+	const marks = historyMarks(player.turns);
+	cell.replaceChildren(...player.turns.map((t, i) => {
 		const span = document.createElement('span');
 		const bold = document.createElement('b');
 		bold.textContent = t.score;
 		span.append(bold);
+		span.classList.add(...marks[i]);
 		if (t.bust) span.title = `Bust (${t.attempted})`;
 		if (t.hits) span.classList.add('has-hits');
 		return span;
@@ -605,7 +617,7 @@ function boardOffset(event) {
 let hovered = null;
 board.addEventListener('mousemove', event => {
 	const { dx, dy, radius } = boardOffset(event);
-	board.style.cursor = isOnBoard(dx, dy, radius) ? 'crosshair' : 'default';
+	board.classList.toggle('aiming', isOnBoard(dx, dy, radius));
 	const spot = locate(dx, dy, radius, rings);
 	const key = spot && segmentKey(spot.sector, spot.ring);
 	if (key === hovered) return;
@@ -736,6 +748,8 @@ function renderMarks(pop = []) {
 	for (const span of $$('.history span.reviewing', scoresBody)) span.classList.remove('reviewing');
 	if (kind === 'review' && hits.length) {
 		$(`.history-row[data-id="${review.id}"] .history`, scoresBody)?.children[review.index]?.classList.add('reviewing');
+	} else if (toastSticky) {
+		hideToast();
 	}
 }
 
@@ -761,7 +775,8 @@ function toggleReview(player, index) {
 	} else {
 		review = { id: player.id, index };
 		const detail = `${turnThrown.darts.join(' ')} = ${turnThrown.bust ? `bust (${turnThrown.attempted})` : turnThrown.score}`;
-		showToast({ kind: 'info', title: player.name, detail });
+		// Stays up for as long as the turn is on show.
+		showToast({ kind: 'info', title: player.name, detail }, { sticky: true });
 	}
 	renderMarks();
 }
@@ -1075,8 +1090,8 @@ winnerDialog.addEventListener('click', event => {
 const toast = $('.toast');
 let toastTimer = 0;
 
-/** Show a short status message; a new one replaces the last. */
-function showToast(message) {
+/** Show a short status message; a new one replaces the last. sticky: stays until hidden. */
+function showToast(message, { sticky = false } = {}) {
 	if (!message) return;
 	toast.className = `toast ${message.kind}`;
 	$('.toast-title', toast).textContent = message.title;
@@ -1087,11 +1102,13 @@ function showToast(message) {
 	void toast.offsetWidth;
 	toast.style.animation = '';
 	clearTimeout(toastTimer);
-	toastTimer = setTimeout(hideToast, TOAST_MS);
+	toastSticky = sticky;
+	if (!sticky) toastTimer = setTimeout(hideToast, TOAST_MS);
 }
 
 function hideToast() {
 	clearTimeout(toastTimer);
+	toastSticky = false;
 	if (toast.hidden) return;
 	toast.classList.add('leaving');
 	Promise.allSettled(toast.getAnimations().map(a => a.finished)).then(() => {

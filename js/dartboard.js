@@ -121,10 +121,16 @@ export function drawBoard(svg, rings, style = BOARD_STYLE) {
 export function lightSegments(svg, lights) {
 	const layer = svg.querySelector('.lit');
 	if (!layer) return;
-	layer.replaceChildren(...lights.map(({ key, kind }) => {
-		const source = svg.querySelector(`.seg[data-key="${key}"]`);
-		return source ? el('path', { d: source.getAttribute('d'), class: `light ${kind}` }) : null;
-	}).filter(Boolean));
+	// Only add and remove what changed: re-adding a light replays its fade-in.
+	const id = ({ key, kind }) => `${key} ${kind}`;
+	const wanted = new Set(lights.map(id));
+	const shown = new Map([...layer.children].map(path => [path.dataset.light, path]));
+	for (const [light, path] of shown) if (!wanted.has(light)) path.remove();
+	for (const light of lights) {
+		const source = svg.querySelector(`.seg[data-key="${light.key}"]`);
+		if (shown.has(id(light)) || !source) continue;
+		el('path', { d: source.getAttribute('d'), class: `light ${light.kind}`, 'data-light': id(light) }, layer);
+	}
 }
 
 /**

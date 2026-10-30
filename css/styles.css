@@ -14,6 +14,9 @@
 	--button-pressed: linear-gradient(#484848, #202020);
 	--row: #161616;
 	--checkout: #00c800;
+	--history-muted: #6e6e6e; /* zero and bust visits */
+	--ton-forty: #ffa64d; /* 140+ visits */
+	--max: #ff6a3c; /* 180s */
 	--font: "Roboto Flex", sans-serif;
 	--font-condensed: "Roboto Condensed", sans-serif;
 	--bust: #ff3216;
@@ -479,9 +482,38 @@ aside.keypad-hidden .calc-section {
 }
 
 /* The last row's own border divides the scores from the keypad. Only when the
-   list scrolls (a row is cut off) does the list draw the line itself. */
+   list scrolls (a row is cut off) does the list draw the line itself, and the
+   last row drops its own so the two never double up. */
 .scores-section.overflowing {
 	border-bottom: var(--border);
+}
+
+.scores-section.overflowing .add-player:not(.hidden) td,
+.scores-section.overflowing .history-row:has(+ .add-player.hidden) .history-cell {
+	border-bottom: none;
+}
+
+/* Rows scrolled out of view fade out at that edge. The mask leaves the
+   section's own borders (bottom, and right in portrait) untouched. */
+.scores-section {
+	mask-image:
+		linear-gradient(transparent, black var(--fade-top), black calc(100% - var(--fade-bottom)), transparent),
+		linear-gradient(black, black),
+		linear-gradient(black, black);
+	mask-size: 100% 100%, 100% var(--line), var(--line) 100%;
+	mask-position: 0 0, bottom, right;
+	mask-repeat: no-repeat;
+	mask-origin: padding-box, border-box, border-box;
+	mask-clip: padding-box, border-box, border-box;
+	transition: height var(--medium) var(--ease-out), --fade-top var(--medium), --fade-bottom var(--medium);
+}
+
+.scores-section.fade-top {
+	--fade-top: 4vmin;
+}
+
+.scores-section.fade-bottom {
+	--fade-bottom: 4vmin;
 }
 
 .scores-tbl {
@@ -671,6 +703,9 @@ aside.keypad-hidden .calc-section {
 
 .history {
 	flex: 1 1 auto;
+	align-self: stretch;
+	display: flex;
+	align-items: center;
 	min-width: 0;
 	padding-left: 1vw;
 	/* Older turns fade out at the left edge when they scroll past it. */
@@ -687,6 +722,7 @@ aside.keypad-hidden .calc-section {
 }
 
 .history span {
+	flex: none;
 	color: var(--text-soft);
 	font-size: calc(2.25vmin * var(--s));
 	font-weight: normal;
@@ -1198,6 +1234,11 @@ td.back-score {
 }
   
 /* Drawn in js/dartboard.js. The SVG has a 1% margin for the outline, hence × 1.01. */
+/* Over the board: a white crosshair outlined in black, visible on any bed. */
+#dartboard.aiming {
+	cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cg stroke-linecap='round'%3E%3Cpath d='M12 2v7M12 15v7M2 12h7M15 12h7' stroke='black' stroke-width='4'/%3E%3Cpath d='M12 2v7M12 15v7M2 12h7M15 12h7' stroke='white' stroke-width='2'/%3E%3C/g%3E%3Ccircle cx='12' cy='12' r='1.6' fill='white' stroke='black'/%3E%3C/svg%3E") 12 12, crosshair;
+}
+
 #dartboard {
 	display: block;
 	width: calc(min(99%, 99vmin) * 1.01);
@@ -1555,7 +1596,12 @@ td.calc-score:not(.disabled) {
 	}
 
 	/* Fits between the buttons on the left and the darts column on the right. */
-	#dartboard {
+	/* Over the board: a white crosshair outlined in black, visible on any bed. */
+#dartboard.aiming {
+	cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cg stroke-linecap='round'%3E%3Cpath d='M12 2v7M12 15v7M2 12h7M15 12h7' stroke='black' stroke-width='4'/%3E%3Cpath d='M12 2v7M12 15v7M2 12h7M15 12h7' stroke='white' stroke-width='2'/%3E%3C/g%3E%3Ccircle cx='12' cy='12' r='1.6' fill='white' stroke='black'/%3E%3C/svg%3E") 12 12, crosshair;
+}
+
+#dartboard {
 		width: calc(min(100cqw - 30vmin, 98cqh) * 1.01);
 		margin: 0;
 	}
@@ -1588,7 +1634,7 @@ td.calc-score:not(.disabled) {
 		height: 100%;
 		border-bottom: none;
 		border-right: var(--border);
-		transition: width var(--medium) var(--ease-out);
+		transition: width var(--medium) var(--ease-out), --fade-top var(--medium), --fade-bottom var(--medium);
 	}
 
 	.calc-section {
@@ -1786,7 +1832,62 @@ td.calc-score:not(.disabled) {
 	text-underline-offset: 0.3vmin;
 }
 
+/* The turn whose darts are on the board, in the board's highlight colour. */
 .history span.reviewing b {
+	color: black;
+	background: var(--board-hit);
+	border-radius: 0.5vmin;
+	box-shadow: 0 0 0 0.35vmin var(--board-hit);
+	text-decoration: none;
+	text-shadow: none;
+}
+
+/* What each visit was (see historyMarks in feedback.js). */
+.history span.zero b,
+.history span.bust b {
+	color: var(--history-muted);
+	font-weight: normal;
+}
+
+.history span.bust b {
+	text-decoration: line-through color-mix(in srgb, var(--bust) 70%, transparent);
+}
+
+.history span.ton b {
+	font-weight: 700;
+}
+
+.history span.ton-forty b {
+	color: var(--ton-forty);
+	font-weight: 700;
+}
+
+.history span.max b {
+	color: var(--max);
+	font-weight: 800;
+	text-shadow: 0 0 0.8vmin color-mix(in srgb, var(--max) 70%, transparent);
+}
+
+.history span.checkout b {
 	color: var(--checkout);
-	text-decoration-color: var(--checkout);
+	font-weight: 700;
+}
+
+/* A bullseye was in the visit: a small red dot. */
+.history span.bull b::after {
+	content: '';
+	display: inline-block;
+	width: 0.6vmin;
+	height: 0.6vmin;
+	margin-left: 0.25vmin;
+	vertical-align: super;
+	border-radius: 50%;
+	background: var(--board-red);
+}
+
+/* The player's best visit gets a thin ring. */
+.history span.best b {
+	border-radius: 0.5vmin;
+	outline: 1.5px solid var(--text-muted);
+	outline-offset: 0.25vmin;
 }
