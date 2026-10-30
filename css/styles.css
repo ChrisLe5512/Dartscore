@@ -224,7 +224,8 @@ aside.keypad-hidden .calc-section {
 	height: 4vmin;
 }
 
-.settings-tbl input:disabled {
+.settings-tbl input:disabled,
+.new-game-section .settings-check:has(input:disabled) {
 	opacity: 0.4;
 }
 
@@ -494,6 +495,17 @@ aside.keypad-hidden .calc-section {
 	margin: 2vmin 1vmin 0;
 	color: var(--text);
 	font-size: 3vmin;
+}
+
+/* A game's checkboxes beside its choice: level with the buttons. */
+.mode-options {
+	align-items: flex-end;
+}
+
+.mode-options .settings-check {
+	display: flex;
+	align-items: center;
+	height: var(--choice-height, 5.2vmin);
 }
 
 /* Greyed in Practice, which has no legs or sets to reach. */
@@ -1026,7 +1038,7 @@ body.visuals-open #dartboard {
 }
 
 /* Endless: just the count of legs, "legs" under it. */
-.player-wins.endless u {
+.player-wins:is(.endless, .one-set) u {
 	text-decoration: none;
 }
 

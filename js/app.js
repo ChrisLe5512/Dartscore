@@ -284,13 +284,16 @@ function renderScoreboard() {
 		playerRow.classList.toggle('active', isActive);
 		statsRow.classList.toggle('active', isActive);
 		historyRow.classList.toggle('active', isActive);
-		// Endless (practice): the legs just count on, so the card shows the
-		// count with "legs" under it; no sets, nothing to reach.
-		const { practice } = game.settings;
+		// Legs won over sets won, each beside what it takes. A one-set match
+		// shows legs alone (its sets line would never say anything); Endless
+		// (practice) just counts legs, with "legs" under the count.
+		const { practice, legs, sets } = game.settings;
+		const oneSet = !practice && sets === 1;
 		$('.player-wins', playerRow).classList.toggle('endless', practice);
-		$('.player-wins u', playerRow).innerHTML = practice ? String(player.legs) : `${player.legs}&#8196;&#8196;`;
-		$('.player-sets', playerRow).textContent = practice ? 'legs' : player.sets;
-		$('.target-wins', playerRow).innerHTML = practice ? '' : `&nbsp;/${game.settings.legs}<br>&nbsp;/${game.settings.sets}`;
+		$('.player-wins', playerRow).classList.toggle('one-set', oneSet);
+		$('.player-wins u', playerRow).innerHTML = practice || oneSet ? String(player.legs) : `${player.legs}&#8196;&#8196;`;
+		$('.player-sets', playerRow).textContent = practice ? 'legs' : oneSet ? '' : player.sets;
+		$('.target-wins', playerRow).innerHTML = practice ? '' : oneSet ? `&nbsp;/${legs}` : `&nbsp;/${legs}<br>&nbsp;/${sets}`;
 		const score = String(mode().scoreText(player, game));
 		for (const scoreCell of [$('.player-score', playerRow), $('.big-score', statsRow)]) {
 			if (scoreCell.textContent === score) continue;
@@ -1466,12 +1469,29 @@ function renderGameStep() {
 }
 
 /**
- * The game's own options, where they apply: checkboxes join the column under
- * Practice and Double out; a choice is a row of buttons on the line below.
+ * The game's own options. A choice is a row of buttons under the tiles, and
+ * the game's checkboxes sit beside it (greyed where they don't apply, e.g.
+ * Skip ahead with doubles only). A game without a choice has its checkboxes
+ * in the column beside the steppers, shown only where they apply.
  */
 function renderOptions(rules, settings) {
-	const options = rules.OPTIONS.filter(option => option.applies?.(settings) ?? true);
-	const choices = options.filter(option => option.type === 'choice');
+	const choices = rules.OPTIONS.filter(option => option.type === 'choice');
+	const checks = rules.OPTIONS.filter(option => option.type !== 'choice' && (choices.length || (option.applies?.(settings) ?? true)));
+	const checkBox = option => {
+		const box = document.createElement('label');
+		box.className = 'settings-check mode-check';
+		box.title = option.title ?? '';
+		const input = document.createElement('input');
+		input.type = 'checkbox';
+		input.checked = Boolean(settings[option.key]);
+		input.disabled = !(option.applies?.(settings) ?? true);
+		input.addEventListener('change', () => {
+			ngForm.options.set(option.key, input.checked);
+			renderGameStep();
+		});
+		box.append(input, ` ${option.label}`);
+		return box;
+	};
 	optionsBox.hidden = !choices.length;
 	optionsBox.replaceChildren(...choices.map(option => {
 		const group = document.createElement('div');
@@ -1499,20 +1519,7 @@ function renderOptions(rules, settings) {
 		return group;
 	}));
 	for (const box of $$('.mode-check', checksBox)) box.remove();
-	checksBox.append(...options.filter(option => option.type !== 'choice').map(option => {
-		const box = document.createElement('label');
-		box.className = 'settings-check mode-check';
-		box.title = option.title ?? '';
-		const input = document.createElement('input');
-		input.type = 'checkbox';
-		input.checked = Boolean(settings[option.key]);
-		input.addEventListener('change', () => {
-			ngForm.options.set(option.key, input.checked);
-			renderGameStep();
-		});
-		box.append(input, ` ${option.label}`);
-		return box;
-	}));
+	(choices.length ? optionsBox : checksBox).append(...checks.map(checkBox));
 }
 
 function renderPlayersStep() {
