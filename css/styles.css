@@ -337,9 +337,6 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	display: flex;
 	align-items: center;
 	height: 5vmin;
-	/* The whole field drags (see pressPlayer), so touches don't scroll the page. */
-	touch-action: none;
-	cursor: grab;
 	background: #242424;
 	border: 1px solid var(--text-muted);
 	border-radius: var(--radius);
@@ -360,8 +357,11 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 }
 
 /* Three lines: the field can be dragged. */
+/* The handle to drag a player by (see pressPlayer). */
 .grip {
 	align-self: stretch;
+	touch-action: none; /* a drag here moves the player, not the list */
+	cursor: grab;
 	width: 2.2vmin;
 	padding: 0 1.2vmin;
 	color: var(--text-muted);
@@ -783,11 +783,6 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	overflow-y: auto;
 	list-style: none;
 	scrollbar-width: none;
-}
-
-.draft-list .player-field {
-	cursor: default;
-	touch-action: auto;
 }
 
 .draft-list .player-field input {

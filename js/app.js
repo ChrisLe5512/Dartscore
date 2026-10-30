@@ -1338,7 +1338,7 @@ function renderSettings() {
 		up.addEventListener('click', () => slidePlayer(index, -1));
 		down.addEventListener('click', () => slidePlayer(index, 1));
 		$('.delete-player', item).addEventListener('click', () => commit(mode().removePlayer(game, index)));
-		$('.player-field', item).addEventListener('pointerdown', event => pressPlayer(event, item, index));
+		$('.grip', item).addEventListener('pointerdown', event => pressPlayer(event, item, index, $('.player-field', item)));
 		return item;
 	});
 	playersList.replaceChildren(...items);
@@ -1373,13 +1373,12 @@ function slidePlayer(index, offset) {
 	});
 }
 
-// A player can be dragged from anywhere on their field but the buttons. A
-// press that doesn't move is just a press, so tapping the name still edits it.
-function pressPlayer(event, item, from) {
-	if (event.button !== 0 || event.target.closest('.field-btn') || sorting()) return;
-	if (event.target.closest('.grip')) event.preventDefault();
+// A player is dragged by the grip (the three lines) on the left of their
+// field; the rest of the field scrolls the list as usual.
+function pressPlayer(event, item, from, field) {
+	if (event.button !== 0 || sorting()) return;
+	event.preventDefault();
 	const { pointerId, clientY } = event;
-	const field = event.currentTarget;
 	const move = moveEvent => {
 		if (moveEvent.pointerId !== pointerId || Math.abs(moveEvent.clientY - clientY) < DRAG_FROM) return;
 		stop();
