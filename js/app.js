@@ -373,11 +373,23 @@ let foldedAt = null; // the leg being played when they were last all folded
 /** The leg being played, or the last one once the match is won (left open to see). */
 const historyLeg = () => game.leg - (game.winner === null ? 0 : 1);
 
-function toggleLeg(id, leg) {
+async function toggleLeg(id, leg) {
 	const cell = $(`.history-row[data-id="${id}"] .history`, scoresBody);
-	const dotLeft = () => cell.querySelector(`.leg-dot[data-leg="${leg}"]`).getBoundingClientRect().left;
-	const before = dotLeft();
+	if (cell.dataset.folding) return;
 	const open = openLegs.get(id) ?? new Set();
+	// Folding: the leg's turns draw into its dot first.
+	if (open.has(leg)) {
+		const player = game.players.find(p => p.id === id);
+		const spans = [...cell.querySelectorAll('span[data-index]')]
+			.filter(span => (player?.turns[span.dataset.index]?.leg ?? historyLeg()) === leg);
+		cell.dataset.folding = true;
+		spans.forEach(span => span.classList.add('folding'));
+		await Promise.allSettled(spans.flatMap(span => span.getAnimations()).map(a => a.finished));
+		delete cell.dataset.folding;
+		if (!cell.isConnected) return;
+	}
+	const dotLeft = () => cell.querySelector(`.leg-dot[data-leg="${leg}"]`)?.getBoundingClientRect().left ?? 0;
+	const before = dotLeft();
 	if (open.has(leg)) open.delete(leg);
 	else open.add(leg);
 	openLegs.set(id, open);
@@ -413,12 +425,18 @@ function legDot(leg, won, open, visits) {
 	return dot;
 }
 
+/** What a history item is, to tell which are new: a turn by its index, a leg dot by its leg. */
+const historyKey = el => (el.dataset.leg !== undefined ? `leg ${el.dataset.leg}` : `turn ${el.dataset.index}`);
+
 function renderHistory(cell, player) {
 	const leg = historyLeg();
 	const open = openLegs.get(player.id) ?? new Set();
 	const key = `${player.turns.length} ${leg} ${[...open]}`;
 	if (cell.dataset.key === key) return;
-	const added = cell.dataset.turns !== undefined && player.turns.length > Number(cell.dataset.turns);
+	const first = cell.dataset.turns === undefined;
+	const added = !first && player.turns.length > Number(cell.dataset.turns);
+	const removed = !first && player.turns.length < Number(cell.dataset.turns);
+	const shown = new Map([...cell.children].filter(el => !el.classList.contains('leaving')).map(el => [historyKey(el), el]));
 	cell.dataset.key = key;
 	cell.dataset.turns = player.turns.length;
 	// Oldest on the left, so the line reads in the order the turns were thrown.
@@ -428,7 +446,24 @@ function renderHistory(cell, player) {
 		if (!done || open.has(n)) items.push(...turns.map(i => turnSpan(player.turns[i], i, marks[i])));
 		if (done) items.push(legDot(n, won, open.has(n), turns.length));
 	}
-	cell.replaceChildren(...items);
+	// What wasn't there before eases in: a leg opened out, or one an undo
+	// reopened. Undone turns ease out at the end of the line.
+	if (!first) {
+		let i = 0;
+		for (const item of items) {
+			if (shown.has(historyKey(item)) || (added && item === items.at(-1))) continue;
+			item.classList.add('unfold');
+			item.style.setProperty('--i', Math.min(i++, 10));
+		}
+	}
+	const leaving = removed ? [...shown.values()].filter(el => Number(el.dataset.index) >= player.turns.length) : [];
+	for (const el of leaving) el.style.maxWidth = `${el.offsetWidth}px`;
+	cell.replaceChildren(...items, ...leaving);
+	for (const el of leaving) {
+		el.classList.remove('enter', 'unfold', 'reviewing');
+		el.classList.add('leaving');
+		el.addEventListener('animationend', () => el.remove(), { once: true });
+	}
 	if (added) {
 		cell.lastElementChild?.classList.add('enter');
 		cell.dataset.pinned = true;
@@ -990,18 +1025,25 @@ function renderFocus() {
 	}
 }
 
-// The number ring is a miss all round: the pointer lights it, but a dart there
-// doesn't (it still gets its marker).
+// The number ring is a miss all round: a dart there lights it as the pointer
+// does, not as a scoring bed.
 const NUMBER_RING = segmentKey(0, 'numberRing');
 
 function renderLights() {
 	const { hits, kind } = shownHits();
 	const lights = hits.map(({ x, y }) => locate(x, y, 1, rings))
 		.filter(Boolean)
-		.map(spot => ({ key: segmentKey(spot.sector, spot.ring), kind: kind === 'live' ? 'hit' : 'review' }))
-		.filter(light => light.key !== NUMBER_RING);
+		.map(spot => segmentKey(spot.sector, spot.ring))
+		.map(key => ({ key, kind: key === NUMBER_RING ? 'miss' : kind === 'live' ? 'hit' : 'review' }));
 	if (hovered && !lights.some(light => light.key === hovered)) lights.push({ key: hovered, kind: 'hover' });
 	lightSegments(board, lights);
+}
+
+/** "Visit 4" (in the leg being played), or "Leg 2, visit 4" for an earlier leg. */
+function visitName(player, index) {
+	const leg = player.turns[index].leg ?? historyLeg();
+	const visit = player.turns.slice(0, index + 1).filter(t => (t.leg ?? historyLeg()) === leg).length;
+	return leg === historyLeg() ? `Visit ${visit}` : `Leg ${leg + 1}, visit ${visit}`;
 }
 
 function reviewedTurn() {
@@ -1016,7 +1058,7 @@ function toggleReview(player, index) {
 		review = null;
 	} else {
 		review = { id: player.id, index };
-		const detail = `${turnThrown.darts.join(' ')} = ${turnThrown.bust ? `bust (${turnThrown.attempted})` : mode().turnLabel(turnThrown)}`;
+		const detail = `${visitName(player, index)}: ${turnThrown.darts.join(' ')} = ${turnThrown.bust ? `bust (${turnThrown.attempted})` : mode().turnLabel(turnThrown)}`;
 		// Stays up for as long as the turn is on show.
 		showToast({ kind: 'review', title: player.name, detail }, { sticky: true });
 	}
@@ -1083,6 +1125,8 @@ const playersScroll = $('.players-scroll');
 const playersList = $('.players-list');
 const playersAddBtn = $('.players-add');
 const noteRow = $('.settings-note-row');
+const newGameBtn = $('[data-action="new-game"]', settingsDialog);
+const settingsDoneBtn = $('[data-action="close"]', settingsDialog);
 const optionsRow = $('.mode-options', settingsDialog);
 // The options as ticked, by key, kept while other games are picked in the form.
 const optionChecks = new Map();
@@ -1144,7 +1188,13 @@ function closeSettings() {
 
 function renderSettings() {
 	const form = readSettingsForm();
-	noteRow.hidden = !matchStarted() || sameSettings(form, game);
+	// Mid-match, changed game settings only take effect as a new game: say so,
+	// and make the two ways out plain (start it, or cancel the changes).
+	const pending = matchStarted() && !sameSettings(form, game);
+	noteRow.hidden = !pending;
+	newGameBtn.textContent = pending ? 'Start new game' : 'New game';
+	newGameBtn.classList.toggle('primary', pending);
+	settingsDoneBtn.textContent = pending ? 'Cancel' : 'Done';
 	// Practice has no legs or sets to reach; only some games finish on a double.
 	legsInput.disabled = practiceInput.checked;
 	setsInput.disabled = practiceInput.checked;

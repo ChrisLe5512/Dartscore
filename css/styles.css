@@ -2,6 +2,10 @@
 
 :root {
 	--line: 2.6px; /* every border and outline */
+	/* Sizes inside the keypad and the darts column: 1vmin, but smaller where
+	   those are narrower than usual (landscape squarer than 4:3; see PORTRAIT
+	   for the band), so text never outgrows its key. */
+	--u: min(1vmin, 0.75vw);
 	--border: var(--line) solid white;
 	--border-muted: var(--line) solid #969696;
 	--radius: 10px;
@@ -414,7 +418,7 @@ aside.keypad-hidden .calc-section {
 }
 
 .settings-note {
-	color: var(--text-soft);
+	color: var(--text);
 	font-family: var(--font-condensed);
 	font-size: 2.5vmin;
 	text-align: center;
@@ -436,6 +440,13 @@ aside.keypad-hidden .calc-section {
 
 .settings-btn-action:active {
 	background: var(--button-pressed);
+}
+
+/* The action that settings changes are waiting on (Start new game). */
+.settings-btn-action.primary {
+	border-color: var(--checkout);
+	background: linear-gradient(#2e8a22, #1a5212);
+	animation: fade-in var(--medium) var(--ease-out);
 }
 
 /* Smaller link-style button that opens a sub-page of Settings. */
@@ -1178,28 +1189,28 @@ body.dismissing * {
 	width: 100%;
 	height: 100%;
 	text-align: center;
-	font-size: 6vmin;
-	text-shadow: 0 0 0.5vmin black;
-	line-height: 1vmin;
+	font-size: calc(6 * var(--u));
+	text-shadow: 0 0 calc(0.5 * var(--u)) black;
+	line-height: calc(1 * var(--u));
 	color: white;
 }
 
 .calc-tbl td {
 	border: var(--border);
 	border-radius: var(--radius);
-	height: 7.5vmin;
+	height: calc(7.5 * var(--u));
 	background: linear-gradient(#808080, #484848);
 	cursor: pointer;
 }
 
 .calc-tbl td:not(.calc-score):active {
 	background: var(--button-pressed);
-	font-size: 5.5vmin;
+	font-size: calc(5.5 * var(--u));
 }
 
 .calc-tbl td.back-score:active {
 	background: var(--button-pressed);
-	font-size: 4.2vmin;
+	font-size: calc(4.2 * var(--u));
 }
 
 .calc-tbl td.disabled {
@@ -1216,10 +1227,10 @@ td.calc-score {
 	isolation: isolate;
 	font-family: var(--font-condensed);
 	font-weight: 500;
-	line-height: 5.25vmin;
+	line-height: calc(5.25 * var(--u));
 	background: none;
 	border-color: transparent;
-	text-shadow: 0 0 1vmin black;
+	text-shadow: 0 0 calc(1 * var(--u)) black;
 }
 
 /* The cell draws no border of its own, so the plate (inset 0) is exactly the
@@ -1266,11 +1277,11 @@ td.calc-score.tip-down:not(.disabled) .score-face {
    same way). The 1.9% shift cancels that, so it rocks in place. It holds while the
    perspective depth is about 1.5x the box height (--tip-depth, set for portrait). */
 @keyframes tip-up {
-	30% { transform: perspective(var(--tip-depth, 30vmin)) translateY(-1.9%) rotateX(7deg); }
+	30% { transform: perspective(var(--tip-depth, calc(30 * var(--u)))) translateY(-1.9%) rotateX(7deg); }
 }
 
 @keyframes tip-down {
-	30% { transform: perspective(var(--tip-depth, 30vmin)) translateY(1.9%) rotateX(-7deg); }
+	30% { transform: perspective(var(--tip-depth, calc(30 * var(--u)))) translateY(1.9%) rotateX(-7deg); }
 }
 
 /* Same box as the plate, so it tips exactly with it. The arrows sit one line
@@ -1285,13 +1296,13 @@ td.calc-score.tip-down:not(.disabled) .score-face {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	gap: 5.25vmin;
+	gap: calc(5.25 * var(--u));
 	pointer-events: none;
 }
 
 .score-face > * {
 	display: block;
-	height: 5.25vmin;
+	height: calc(5.25 * var(--u));
 }
 
 td.calc-score b {
@@ -1306,7 +1317,7 @@ td.calc-score i {
 }
 
 td.back-score {
-	font-size: 4.6vmin;
+	font-size: calc(4.6 * var(--u));
 	line-height: 1;
 }
 
@@ -1397,6 +1408,16 @@ td.back-score {
 	cursor: pointer;
 }
 
+/* Landscape: each button exactly one keypad row tall (the keypad is 40% of the
+   height in four rows, with 5px between and around them), so the bottom row
+   lines up with the keypad at every screen size. */
+@media (orientation: landscape) {
+	.ctrl-tbl td:not(.hidden, .keypad-btn) {
+		box-sizing: border-box;
+		height: calc((40vmin - 5 * 5px) / 4);
+	}
+}
+
 .ctrl-tbl td.disabled {
 	color: var(--text-muted);
 	background: var(--button-disabled);
@@ -1459,19 +1480,19 @@ td.back-score {
 }
 
 .large-btn {
-	font-size: 6vmin;
+	font-size: calc(6 * var(--u));
 	cursor: pointer;
 }
 
 .darts-clear {
-	font-size: 4vmin;
+	font-size: calc(4 * var(--u));
 	font-weight: normal;
 	cursor: pointer;
 }
 
 .darts-total {
-	line-height: 1.5vmin;
-	font-size: 6vmin;
+	line-height: calc(1.5 * var(--u));
+	font-size: calc(6 * var(--u));
 	font-weight: 400;
 	cursor: default;
 }
@@ -1482,8 +1503,8 @@ td.back-score {
 	flex-direction: column;
 	align-items: center;
 	width: 100%;
-	margin-left: -0.25vmin;
-	font-size: 3vmin;
+	margin-left: calc(-0.25 * var(--u));
+	font-size: calc(3 * var(--u));
 	text-align: center;
 	line-height: 1.05;
 	color: white;
@@ -1494,30 +1515,30 @@ td.back-score {
 
 .darts span {
 	width: 70%;
-	height: 8.65vmin;
-	margin: 1vmin 0;
+	height: calc(8.65 * var(--u));
+	margin: calc(1 * var(--u)) 0;
 	border: var(--line) solid transparent;
 	border-radius: var(--radius);
-	text-shadow: 0 0 0.5vmin black;
+	text-shadow: 0 0 calc(0.5 * var(--u)) black;
 	pointer-events: auto;
 }
 
 .darts u {
-	font-size: 5vmin;
-	text-decoration-thickness: 0.25vmin;
-	text-underline-offset: 0.5vmin;
+	font-size: calc(5 * var(--u));
+	text-decoration-thickness: calc(0.25 * var(--u));
+	text-underline-offset: calc(0.5 * var(--u));
 }
 
 .darts .black {
 	border-color: white;
-	line-height: 8vmin;
+	line-height: calc(8 * var(--u));
 	background: linear-gradient(#646464, #161616);
 	cursor: pointer;
 }
 
 .darts .white {
 	border-color: white;
-	line-height: 8vmin;
+	line-height: calc(8 * var(--u));
 	background: linear-gradient(#c8c8c8, #808080);
 	cursor: pointer;
 }
@@ -1536,7 +1557,7 @@ td.back-score {
 
 .darts .zero {
 	border-color: white;
-	line-height: 8vmin;
+	line-height: calc(8 * var(--u));
 	background: black;
 	cursor: pointer;
 }
@@ -1871,6 +1892,36 @@ td.back-score {
 	display: inline-block;
 }
 
+/* A leg opening out of its dot: its turns slide out of it in turn. Folding
+   back, they draw into it before it closes. */
+.history .unfold {
+	animation: history-unfold var(--medium) var(--ease-out) backwards;
+	animation-delay: calc(var(--i, 0) * 20ms);
+}
+
+.history span.folding {
+	animation: history-fold var(--fast) ease-in forwards;
+}
+
+/* An undone turn: fades and closes up at the end of the line. */
+.history span.leaving {
+	overflow: hidden;
+	white-space: nowrap;
+	animation: history-leave var(--medium) var(--ease-out) forwards;
+}
+
+@keyframes history-unfold {
+	from { opacity: 0; transform: translateX(1.5vmin) scale(0.8); }
+}
+
+@keyframes history-fold {
+	to { opacity: 0; transform: translateX(1.5vmin) scale(0.8); }
+}
+
+@keyframes history-leave {
+	to { opacity: 0; max-width: 0; padding-right: 0; }
+}
+
 .checkout,
 td.calc-score:not(.disabled) {
 	animation: fade-in var(--medium) var(--ease-out);
@@ -1957,6 +2008,7 @@ td.calc-score:not(.disabled) {
 		   leave the board enough of the height. */
 		--band: min(42vh, 60vw);
 		--tip-depth: calc(var(--band) * 0.76); /* the score box is about half the keypad */
+		--u: calc(var(--band) / 60); /* 1vmin while the band is 60vw tall; less when it's shorter */
 		display: grid;
 		grid-template-columns: 100%;
 		grid-template-rows: minmax(0, 1fr) var(--band);
@@ -2152,11 +2204,16 @@ td.calc-score:not(.disabled) {
 	filter: drop-shadow(0 0 1.5px var(--board-hit));
 }
 
-/* Under the mouse pointer. */
-.light.hover {
+/* Under the mouse pointer; and a dart in the number ring (a miss), lit the same. */
+.light.hover,
+.light.miss {
 	fill: rgba(255, 255, 255, 0.14);
 	stroke: rgba(255, 255, 255, 0.45);
 	stroke-width: 0.4;
+}
+
+.light.miss {
+	animation: fade-in var(--medium) var(--ease-out);
 }
 
 /* Centred on where the dart landed. */
@@ -2224,7 +2281,7 @@ td.calc-score:not(.disabled) {
 }
 
 @keyframes editing {
-	to { box-shadow: 0 0 2vmin var(--board-hit); }
+	to { box-shadow: 0 0 calc(2 * var(--u)) var(--board-hit); }
 }
 
 @keyframes editing-mark {
@@ -2235,19 +2292,19 @@ td.calc-score:not(.disabled) {
 /* Corner number on each dart slot, matching its marker on the board. */
 .dart-num {
 	position: absolute;
-	top: -1.1vmin;
-	left: -1.1vmin;
-	width: 2.6vmin;
-	height: 2.6vmin;
+	top: calc(-1.1 * var(--u));
+	left: calc(-1.1 * var(--u));
+	width: calc(2.6 * var(--u));
+	height: calc(2.6 * var(--u));
 	box-sizing: border-box;
 	border: var(--line) solid white;
 	border-radius: 50%;
 	background: black;
 	font-family: var(--font-condensed);
-	font-size: 1.6vmin;
+	font-size: calc(1.6 * var(--u));
 	font-style: normal;
 	font-weight: 600;
-	line-height: 2vmin;
+	line-height: calc(2 * var(--u));
 	text-align: center;
 	text-shadow: none;
 }

@@ -128,7 +128,7 @@ export function drawBoard(svg, rings, style = BOARD_STYLE) {
 
 /**
  * Light up segments: [{ key, kind }] where kind is a class name
- * ('hit', 'review' or 'hover').
+ * ('hit', 'review', 'miss' or 'hover').
  */
 export function lightSegments(svg, lights) {
 	const layer = svg.querySelector('.lit');
