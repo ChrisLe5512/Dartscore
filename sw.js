@@ -17,6 +17,7 @@ const APP_SHELL = [
 	'js/dartboard.js',
 	'js/feedback.js',
 	'js/game.js',
+	'js/match.js',
 	'js/history.js',
 	'js/stats.js',
 	'js/storage.js',

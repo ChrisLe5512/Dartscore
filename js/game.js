@@ -1,12 +1,12 @@
 // Pure game state for X01. Every function takes a state and returns a new one,
 // so the UI can keep snapshots for undo/redo and save them as JSON.
 
-import {
-	DEFAULT_SETTINGS, IMPOSSIBLE_TURN_SCORES, MAX_LEGS, MAX_NAME_LENGTH,
-	MAX_PLAYERS, MAX_SETS, MAX_TURN_SCORE, START_SCORES,
-} from './config.js';
+import { DEFAULT_SETTINGS, IMPOSSIBLE_TURN_SCORES, MAX_PLAYERS, MAX_TURN_SCORE, START_SCORES } from './config.js';
 import { isDouble } from './board.js';
 import { canCheckout } from './checkout.js';
+import { clampInt, cleanName, endLeg, makeTurn, matchSettings, nextIndex, restoreMatch } from './match.js';
+
+export { cleanName };
 
 /**
  * State shape:
@@ -37,23 +37,14 @@ export function createGame(settings = {}) {
 
 export function normalizeSettings(settings = {}) {
 	const s = { ...DEFAULT_SETTINGS, ...settings };
+	const { legs, sets, practice } = matchSettings(s);
 	return {
 		startScore: START_SCORES.includes(Number(s.startScore)) ? Number(s.startScore) : DEFAULT_SETTINGS.startScore,
-		legs: clampInt(s.legs, 1, MAX_LEGS, DEFAULT_SETTINGS.legs),
-		sets: clampInt(s.sets, 1, MAX_SETS, DEFAULT_SETTINGS.sets),
+		legs,
+		sets,
 		doubleOut: Boolean(s.doubleOut),
-		practice: Boolean(s.practice),
+		practice,
 	};
-}
-
-function clampInt(value, min, max, fallback) {
-	const n = Math.trunc(Number(value));
-	return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
-}
-
-export function cleanName(name, fallback) {
-	const trimmed = String(name ?? '').replace(/\s+/g, ' ').trim().slice(0, MAX_NAME_LENGTH);
-	return trimmed || fallback;
 }
 
 /** Whether three darts can make this total. */
@@ -67,13 +58,14 @@ export function canAddPlayer(state) {
 	return state.players.length < MAX_PLAYERS;
 }
 
-export function addPlayer(state, name) {
+/** fields: the new player's own fields for the mode (X01: the score). */
+export function addPlayer(state, name, fields = { score: state.settings.startScore }) {
 	if (!canAddPlayer(state)) return state;
 	const id = state.nextId;
 	const player = {
 		id,
 		name: cleanName(name, `Player ${state.players.length + 1}`),
-		score: state.settings.startScore,
+		...fields,
 		legs: 0,
 		sets: 0,
 		turns: [],
@@ -179,10 +171,7 @@ export function submitTurn(state, score, darts = null) {
 	const players = state.players.slice();
 	const player = { ...players[state.active] };
 	players[state.active] = player;
-	const turn = darts?.length ? { score, darts: darts.map(d => d.label) } : { score };
-	turn.leg = state.leg;
-	// Where each dart landed, when every dart was tapped on the board.
-	if (darts?.length && darts.every(isHit)) turn.hits = darts.map(d => [round3(d.x), round3(d.y)]);
+	const turn = makeTurn(score, darts, state.leg);
 
 	if (isBust(state, score, darts)) {
 		player.turns = [...player.turns, { ...turn, score: 0, bust: true, attempted: score }];
@@ -197,28 +186,8 @@ export function submitTurn(state, score, darts = null) {
 		return { state: { ...state, players, active: nextIndex(state.active, players.length) }, event: 'turn' };
 	}
 
-	// Leg won
-	player.legs += 1;
-	const leg = state.leg + 1;
-	let event = 'leg';
-	if (!state.settings.practice && player.legs >= state.settings.legs) {
-		player.sets += 1;
-		event = 'set';
-		for (let i = 0; i < players.length; i++) {
-			if (players[i].legs) players[i] = { ...players[i], legs: 0 };
-		}
-		if (player.sets >= state.settings.sets) {
-			// Leave the board as it finished so everyone can see it.
-			return { state: { ...state, players, leg, winner: state.active }, event: 'match' };
-		}
-	}
-
-	// Next leg: scores back to the start, the next player in order throws first.
-	const starter = nextIndex(state.starter, players.length);
-	for (let i = 0; i < players.length; i++) {
-		players[i] = { ...players[i], score: state.settings.startScore };
-	}
-	return { state: { ...state, players, leg, starter, active: starter }, event };
+	// Leg won. Next leg: scores back to the start.
+	return endLeg(state, players, state.active, p => ({ ...p, score: state.settings.startScore }));
 }
 
 /** The leg being played, counting from 0 across the whole match (every set). */
@@ -226,55 +195,13 @@ export function currentLeg(state) {
 	return state.leg;
 }
 
-function nextIndex(i, length) {
-	return length ? (i + 1) % length : 0;
-}
-
-// A board position: x, y as a fraction of the board radius from the centre.
-const isHit = d => Number.isFinite(d?.x) && Number.isFinite(d?.y) && Math.hypot(d.x, d.y) <= 1.5;
-const round3 = n => Math.round(n * 1000) / 1000;
-
 // ---- Persistence ------------------------------------------------------------
 
 /** Repair anything loaded from storage; returns null if it is unusable. */
 export function restoreGame(raw) {
-	if (!raw || typeof raw !== 'object' || !Array.isArray(raw.players)) return null;
+	if (!raw || typeof raw !== 'object') return null;
 	const settings = normalizeSettings(raw.settings);
-	let nextId = 1;
-	const players = raw.players.slice(0, MAX_PLAYERS).map((p, i) => {
-		const id = Number.isInteger(p?.id) && p.id > 0 ? p.id : i + 1;
-		const turns = Array.isArray(p?.turns) ? p.turns.filter(t => t && Number.isInteger(t.score)).map(restoreTurn) : [];
-		nextId = Math.max(nextId, id + 1);
-		return {
-			id,
-			name: cleanName(p?.name, `Player ${i + 1}`),
-			score: clampInt(p?.score, 0, settings.startScore, settings.startScore),
-			legs: clampInt(p?.legs, 0, settings.practice ? turns.length : settings.legs, 0),
-			sets: clampInt(p?.sets, 0, settings.sets, 0),
-			turns,
-		};
-	});
-	const index = (v, fallback = 0) =>
-		Number.isInteger(v) && v >= 0 && v < players.length ? v : fallback;
-	// Saved before the leg was kept: every leg won so far, counted.
-	const legsPlayed = players.reduce((sum, p) => sum + p.turns.filter(t => t.checkout).length, 0);
-	return {
-		settings,
-		players,
-		leg: Number.isInteger(raw.leg) && raw.leg >= 0 ? raw.leg : legsPlayed,
-		active: index(raw.active),
-		starter: index(raw.starter),
-		winner: raw.winner === null || raw.winner === undefined ? null : index(raw.winner, null),
-		nextId: Math.max(nextId, Number.isInteger(raw.nextId) ? raw.nextId : 1),
-	};
-}
-
-function restoreTurn(raw) {
-	const turn = { ...raw };
-	const valid = Array.isArray(turn.hits) && turn.hits.length === turn.darts?.length
-		&& turn.hits.every(h => Array.isArray(h) && isHit({ x: h[0], y: h[1] }));
-	if (valid) turn.hits = turn.hits.map(([x, y]) => [x, y]);
-	else delete turn.hits;
-	if (!Number.isInteger(turn.leg) || turn.leg < 0) delete turn.leg; // saved before legs were recorded
-	return turn;
+	return restoreMatch(raw, settings, p => ({
+		score: clampInt(p.score, 0, settings.startScore, settings.startScore),
+	}));
 }
