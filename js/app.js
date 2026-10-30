@@ -274,6 +274,9 @@ addPlayerRow.addEventListener('click', () => {
 	startRename(game.players[index].id);
 });
 
+// The list's edge fades' heights in vmin, as in the CSS (.scores-section.fade-*).
+const SCORE_FADES = { top: 4, bottom: 8 };
+
 function createPlayerRows(player) {
 	const playerRow = document.createElement('tr');
 	playerRow.className = 'player-row';
@@ -423,11 +426,17 @@ function renderScoreboard() {
 	fitNames();
 	if (menuFor !== null) placePlayerMenu();
 
-	// Keep the thrower in view when the list scrolls.
+	// Keep the thrower's whole card (name to history) in view when the list
+	// scrolls, clear of the edge fades, in one scroll: a second smooth scroll
+	// would cut the first short.
 	if (activeRows) {
 		const [first, , last] = activeRows;
-		last.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-		first.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+		const box = scoresSection.getBoundingClientRect();
+		const vmin = Math.min(innerWidth, innerHeight) / 100;
+		const top = first.getBoundingClientRect().top - box.top - SCORE_FADES.top * vmin;
+		const bottom = last.getBoundingClientRect().bottom - box.top + SCORE_FADES.bottom * vmin;
+		const by = top < 0 ? top : Math.min(top, Math.max(0, bottom - scoresSection.clientHeight));
+		if (by) scoresSection.scrollBy({ top: by, behavior: 'smooth' });
 	}
 }
 
@@ -464,9 +473,9 @@ function updateScoreFades() {
 	scoresSection.classList.toggle('fade-bottom', scrollTop + clientHeight < scrollHeight - 1);
 }
 
-// While the keypad folds away or comes back, the list is already laid out for
-// where it's going (see setKeypadHidden), so nothing in it is redone on the
-// way: re-laying the rows and names out on every frame made it stutter.
+// While the keypad folds away or comes back, the list is laid out once, before
+// or after (see setKeypadHidden), and nothing in it is redone on the way:
+// re-laying the rows and names out on every frame made it stutter.
 let keypadMoving = false;
 
 new ResizeObserver(() => {
@@ -1234,15 +1243,19 @@ calcSection.addEventListener('transitionend', event => {
 
 function setKeypadHidden(hidden) {
 	if (sidebar.classList.contains('keypad-hidden') !== hidden) {
-		// Lay the list out for where it ends up (rows and names change once,
-		// now), then put the panels back and let them slide there.
-		sidebar.classList.add('keypad-instant');
-		sidebar.classList.toggle('keypad-hidden', hidden);
-		layoutScores();
-		fitNames();
-		sidebar.classList.toggle('keypad-hidden', !hidden);
-		void sidebar.offsetHeight; // start from here
-		sidebar.classList.remove('keypad-instant');
+		// The list's rows and names change once, never on the way: coming
+		// back, the keypad finds the list already laid out for less room (the
+		// cards then shrink with it); folding away, the cards stretch into the
+		// room it leaves and are laid out for it once it's gone (keypadStill).
+		if (!hidden) {
+			sidebar.classList.add('keypad-instant');
+			sidebar.classList.toggle('keypad-hidden', hidden);
+			layoutScores();
+			fitNames();
+			sidebar.classList.toggle('keypad-hidden', !hidden);
+			void sidebar.offsetHeight; // start from here
+			sidebar.classList.remove('keypad-instant');
+		}
 		keypadMoving = true;
 		clearTimeout(keypadSettled);
 		keypadSettled = setTimeout(keypadStill, 600); // in case no transition runs (hidden tab, say)

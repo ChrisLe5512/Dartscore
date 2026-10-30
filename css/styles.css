@@ -118,6 +118,13 @@ aside.keypad-hidden .calc-section {
 	visibility: hidden;
 }
 
+/* With nothing under it, the list needs no line at its bottom. */
+aside.keypad-hidden .scores-section.overflowing,
+aside.keypad-hidden .scores-section .add-player:not(.hidden) td,
+aside.keypad-hidden .scores-section .history-row:has(+ .add-player.hidden) .history-cell {
+	border-bottom: none;
+}
+
 /* Set for a moment while the list is laid out for where the keypad is going. */
 aside.keypad-instant :is(.scores-section, .calc-section) {
 	transition: none !important;
