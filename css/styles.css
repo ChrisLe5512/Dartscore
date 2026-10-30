@@ -502,6 +502,31 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	font-size: 3vmin;
 }
 
+/* The line for a game's choice (around the clock's Counts) opens out under
+   the tiles and folds away again, the screen growing and shrinking with it. */
+.options-reveal {
+	display: grid;
+	grid-template-rows: 0fr;
+	opacity: 0;
+	transition: grid-template-rows var(--medium) var(--ease-out), opacity var(--medium) var(--ease-out);
+}
+
+.options-reveal.open {
+	grid-template-rows: 1fr;
+	opacity: 1;
+}
+
+.options-reveal.instant {
+	transition: none;
+}
+
+.options-reveal > .mode-options {
+	min-height: 0;
+	overflow: hidden;
+	margin-top: 0;
+	padding-top: 2vmin;
+}
+
 /* A game's checkboxes beside its choice: level with the buttons. */
 .mode-options {
 	align-items: flex-end;

@@ -1422,6 +1422,7 @@ const setsStepper = $('[data-field="sets"]', newGameDialog);
 const doubleOutInput = $('#double-out');
 const practiceInput = $('#practice');
 const optionsBox = $('.mode-options', newGameDialog);
+const optionsReveal = optionsBox.parentElement;
 const checksBox = $('.game-checks', newGameDialog);
 const soloName = $('.solo-name', newGameDialog);
 const draftList = $('.draft-list', newGameDialog);
@@ -1487,7 +1488,11 @@ function openNewGame(from = null) {
 	ngForm.names = game.players.map(player => player.name);
 	ngForm.solo = ngForm.names.length <= 1;
 	soloName.value = ngForm.names[0] ?? '';
+	// Opening, the choice's line is simply there (or not): no opening out.
+	optionsReveal.classList.add('instant');
 	renderNewGame();
+	void optionsReveal.offsetHeight;
+	optionsReveal.classList.remove('instant');
 	if (from) switchDialog(from, newGameDialog, ngNextBtn);
 	else openDialog(newGameDialog, ngNextBtn);
 }
@@ -1544,7 +1549,15 @@ function renderOptions(rules, settings) {
 		box.append(input, ` ${option.label}`);
 		return box;
 	};
-	optionsBox.hidden = !choices.length;
+	for (const box of $$('.mode-check', checksBox)) box.remove();
+	// The choice's line opens out and folds away. Folding, it keeps what it
+	// showed (out of reach) until it has closed.
+	optionsReveal.classList.toggle('open', choices.length > 0);
+	optionsReveal.inert = !choices.length;
+	if (!choices.length) {
+		checksBox.append(...checks.map(checkBox));
+		return;
+	}
 	optionsBox.replaceChildren(...choices.map(option => {
 		const group = document.createElement('div');
 		group.className = 'option-choice';
@@ -1569,9 +1582,7 @@ function renderOptions(rules, settings) {
 		}));
 		group.append(label, buttons);
 		return group;
-	}));
-	for (const box of $$('.mode-check', checksBox)) box.remove();
-	(choices.length ? optionsBox : checksBox).append(...checks.map(checkBox));
+	}), ...checks.map(checkBox));
 }
 
 function renderPlayersStep() {
