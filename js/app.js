@@ -193,6 +193,7 @@ function showInfo(button) {
 }
 
 function hideInfo() {
+	clearTimeout(infoHover);
 	if (!infoFor) return;
 	infoFor.removeAttribute('aria-describedby');
 	infoFor = null;
@@ -208,15 +209,23 @@ document.addEventListener('click', event => {
 	}
 	event.preventDefault();
 	event.stopPropagation();
+	clearTimeout(infoHover);
 	if (infoFor === button) hideInfo();
 	else showInfo(button);
 }, true);
+// With a mouse, a tip waits a moment before showing, so sweeping the pointer
+// across a few ⓘ doesn't flash each one.
+const INFO_HOVER_MS = 350;
+let infoHover = 0;
 document.addEventListener('pointerover', event => {
 	const button = event.target.closest('.info');
-	if (button && event.pointerType === 'mouse' && infoFor !== button) showInfo(button);
+	if (!button || event.pointerType !== 'mouse' || infoFor === button) return;
+	clearTimeout(infoHover);
+	infoHover = setTimeout(() => showInfo(button), INFO_HOVER_MS);
 });
 document.addEventListener('pointerout', event => {
-	if (event.pointerType === 'mouse' && event.target.closest('.info') && !event.relatedTarget?.closest?.('.info')) hideInfo();
+	if (event.pointerType !== 'mouse' || !event.target.closest('.info') || event.relatedTarget?.closest?.('.info')) return;
+	hideInfo();
 });
 document.addEventListener('keydown', event => {
 	if (event.key === 'Escape' && infoFor) {
