@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { describeTravel, describeTurn, historyMarks } from '../js/feedback.js';
-import { addPlayer, createGame, movePlayer, newMatch, submitTurn } from '../js/game.js';
+import { describeTravel, describeTurn, historyMarks, undoWarning } from '../js/feedback.js';
+import { addPlayer, createGame, movePlayer, newMatch, removePlayer, submitTurn } from '../js/game.js';
 
 const twoPlayers = () =>
 	addPlayer(addPlayer(createGame({ startScore: 301, legs: 2, sets: 1 }), 'Ann'), 'Bob');
@@ -62,6 +62,27 @@ test('player and settings changes get a generic message', () => {
 	assert.equal(describeTravel(newMatch(s, { ...s.settings, startScore: 501 }), s, 'undo').detail, 'Settings changed');
 });
 
+test('undo asks first only when it takes back more than a turn', () => {
+	const s = twoPlayers();
+	const turn = throwTurn(s, 60);
+	assert.equal(undoWarning(turn, s), null); // a plain turn
+
+	let leg = throwTurn(throwTurn(throwTurn(s, 180), 60), 81);
+	leg = throwTurn(leg, 60);
+	const legWon = throwTurn(leg, 40);
+	assert.deepEqual(undoWarning(legWon, leg), { title: 'Back to the last leg?', detail: "Ann's 40 won it; undoing takes that back." });
+
+	let one = addPlayer(createGame({ startScore: 301, legs: 1, sets: 1 }), 'Ann');
+	one = throwTurn(throwTurn(one, 180), 81);
+	assert.equal(undoWarning(throwTurn(one, 40), one).title, 'Reopen the match?');
+
+	assert.equal(undoWarning(newMatch(turn), turn).title, 'Back to the last game?');
+	assert.equal(undoWarning(addPlayer(s, 'Cat'), s).title, 'Remove Cat?');
+	assert.equal(undoWarning(removePlayer(s, 1), s).title, 'Bring back Bob?');
+	assert.equal(undoWarning(movePlayer(s, 0, 1), s).title, 'Undo the player change?');
+	assert.equal(undoWarning(newMatch(s, { ...s.settings, startScore: 501 }), s).title, 'Back to the last settings?');
+});
+
 test('history marks: busts, zeros, tons, 180s, checkouts, bulls and the best visit', () => {
 	const marks = historyMarks([
 		{ score: 0, bust: true, attempted: 60 },
@@ -74,7 +95,7 @@ test('history marks: busts, zeros, tons, 180s, checkouts, bulls and the best vis
 		{ score: 26 },
 	]);
 	assert.deepEqual(marks, [
-		['bust'], ['zero'], ['ton'], ['ton-forty'], ['max', 'best'], ['bull'], ['checkout'], [],
+		['bust'], ['zero'], ['ton'], ['ton-forty'], ['max', 'best'], ['bull'], ['finish'], [],
 	]);
 	// No best until there is another visit to compare it with.
 	assert.deepEqual(historyMarks([{ score: 60 }]), [[]]);

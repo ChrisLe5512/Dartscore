@@ -507,6 +507,29 @@ aside.keypad-hidden .calc-section {
 	text-align: center;
 }
 
+/* "Back to the last leg?" and the like, before an undo that takes back more than a turn. */
+.confirm-section {
+	width: auto;
+	min-width: 40%;
+	max-width: 60%;
+	text-align: center;
+}
+
+.confirm-title {
+	margin: 1vmin 1vmin 0;
+	font-family: var(--font-condensed);
+	font-size: 5vmin;
+	font-weight: 500;
+	color: var(--text);
+}
+
+.confirm-detail {
+	margin: 1vmin 1vmin 1.5vmin;
+	font-family: var(--font-condensed);
+	font-size: 3vmin;
+	color: var(--text-soft);
+}
+
 .winner-text {
 	margin: 2vmin;
 	font-family: var(--font-condensed);
@@ -2102,7 +2125,7 @@ td.calc-score:not(.disabled) {
 	text-shadow: 0 0 0.8vmin color-mix(in srgb, var(--max) 70%, transparent);
 }
 
-.history span.checkout b {
+.history span.finish b {
 	color: var(--checkout);
 	font-weight: 700;
 }

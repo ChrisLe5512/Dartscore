@@ -8,7 +8,7 @@ import {
 import { boardRings, hitTest, isOnBoard, locate } from './board.js';
 import { getCheckouts } from './checkout.js';
 import { boardRadius, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
-import { describeTravel, describeTurn, historyMarks } from './feedback.js';
+import { describeTravel, describeTurn, historyMarks, undoWarning } from './feedback.js';
 import * as Game from './game.js';
 import * as History from './history.js';
 import { loadPrefs, loadSession, savePrefs, saveSession } from './storage.js';
@@ -48,8 +48,14 @@ function persist() {
 	saveSession(game, history);
 }
 
+// An undo that takes back more than a turn (a leg won, a new game, a player
+// added...) is asked about first.
 function undo() {
-	travel(History.undo(history, game), 'undo');
+	const result = History.undo(history, game);
+	if (!result) return;
+	const warning = undoWarning(game, result.state);
+	if (warning) confirmUndo(warning);
+	else travel(result, 'undo');
 }
 
 function redo() {
@@ -178,7 +184,7 @@ function createPlayerRows(player) {
 		row.addEventListener('click', () => togglePlayerMenu(player.id));
 	}
 
-	$('.checkout', historyRow).addEventListener('click', () => {
+	$('.history-line > .checkout', historyRow).addEventListener('click', () => {
 		checkoutChoice.set(player.id, (checkoutChoice.get(player.id) ?? 0) + 1);
 		renderScoreboard();
 	});
@@ -343,7 +349,7 @@ function renderCheckout(historyRow, player, isActive) {
 	const dartsLeft = isActive ? DARTS_PER_TURN - turn.darts.length : DARTS_PER_TURN;
 	const remaining = isActive ? player.score - dartsTotal() : player.score;
 	const routes = game.winner === null ? getCheckouts(remaining, dartsLeft) : [];
-	const checkoutCell = $('.checkout', historyRow);
+	const checkoutCell = $('.history-line > .checkout', historyRow);
 	if (routes.length) {
 		const route = routes[(checkoutChoice.get(player.id) ?? 0) % routes.length];
 		checkoutCell.classList.remove('hidden');
@@ -1270,6 +1276,23 @@ winnerDialog.addEventListener('click', event => {
 	if (action || event.target === winnerDialog) closeDialog(winnerDialog);
 });
 
+// ---- Undo confirmation --------------------------------------------------------
+
+const confirmDialog = $('#confirm-undo');
+
+function confirmUndo({ title, detail }) {
+	$('.confirm-title', confirmDialog).textContent = title;
+	$('.confirm-detail', confirmDialog).textContent = detail;
+	openDialog(confirmDialog);
+	$('[data-action="undo"]', confirmDialog).focus();
+}
+
+confirmDialog.addEventListener('click', event => {
+	const action = event.target.closest('[data-action]')?.dataset.action;
+	if (action === 'undo') travel(History.undo(history, game), 'undo');
+	if (action || event.target === confirmDialog) closeDialog(confirmDialog);
+});
+
 // ---- Toast --------------------------------------------------------------------
 
 const toast = $('.toast');
@@ -1315,10 +1338,11 @@ document.addEventListener('keydown', event => {
 		return;
 	}
 
-	const dialogOpen = !settingsDialog.hidden || !winnerDialog.hidden;
+	const dialogOpen = !settingsDialog.hidden || !winnerDialog.hidden || !confirmDialog.hidden;
 	if (event.key === 'Escape' && dialogOpen) {
 		if (!settingsDialog.hidden) closeSettings();
 		closeDialog(winnerDialog);
+		closeDialog(confirmDialog);
 		return;
 	}
 	if (dialogOpen || event.target.closest('input, select, textarea')) return;

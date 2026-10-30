@@ -48,12 +48,45 @@ export function describeTravel(from, to, direction) {
 	return { kind: 'info', title, detail: '' };
 }
 
+/**
+ * Whether undoing from `from` back to `to` takes back more than a plain turn
+ * (a leg, set or match won, a new game, a player or settings change), and so
+ * is asked about first: { title, detail } for the question, or null.
+ */
+export function undoWarning(from, to) {
+	if (turnCount(from) === 0 && turnCount(to) > 0) {
+		return { title: 'Back to the last game?', detail: 'This new game is dropped and the last one picks up where it was.' };
+	}
+
+	if (turnCount(from) === turnCount(to) + 1) {
+		const player = from.players.find((p, i) => p.turns.length > (to.players[i]?.turns.length ?? 0));
+		const last = player?.turns.at(-1);
+		if (!last) return null;
+		const won = what => ({ title: `Reopen the ${what}?`, detail: `${player.name}'s ${last.score} won it; undoing takes that back.` });
+		if (from.winner !== null && to.winner === null) return won('match');
+		if (total(from, 'sets') !== total(to, 'sets')) return won('set');
+		if (total(from, 'legs') !== total(to, 'legs')) return { ...won('leg'), title: 'Back to the last leg?' };
+		return null;
+	}
+
+	const ids = state => state.players.map(p => p.id);
+	const added = from.players.filter(p => !ids(to).includes(p.id));
+	const removed = to.players.filter(p => !ids(from).includes(p.id));
+	if (added.length === 1 && !removed.length) return { title: `Remove ${added[0].name}?`, detail: 'Undoes adding them to the game.' };
+	if (removed.length === 1 && !added.length) return { title: `Bring back ${removed[0].name}?`, detail: 'Undoes removing them, with their scores.' };
+	if (ids(from).join() !== ids(to).join()) return { title: 'Undo the player change?', detail: 'The players go back to how they were.' };
+	if (JSON.stringify(from.settings) !== JSON.stringify(to.settings)) {
+		return { title: 'Back to the last settings?', detail: 'Undoes the settings change and the new game it started.' };
+	}
+	return null;
+}
+
 // Visits worth picking out in a player's history line.
 const TIERS = [[180, 'max'], [140, 'ton-forty'], [100, 'ton']];
 const BEST_FROM = 2; // visits before the best one is marked
 
 /**
- * Class names for each turn in a history line: 'bust', 'zero', 'checkout',
+ * Class names for each turn in a history line: 'bust', 'zero', 'finish',
  * 'max' (180), 'ton-forty' (140+), 'ton' (100+), 'bull' (a bullseye thrown)
  * and 'best' (the highest visit so far, once there are a few).
  */
@@ -63,7 +96,7 @@ export function historyMarks(turns) {
 		const marks = [];
 		if (t.bust) marks.push('bust');
 		else if (t.score === 0) marks.push('zero');
-		if (t.checkout) marks.push('checkout');
+		if (t.checkout) marks.push('finish'); // not 'checkout': that's the suggestion beside the history
 		const tier = TIERS.find(([min]) => t.score >= min);
 		if (tier) marks.push(tier[1]);
 		if (t.darts?.includes('B')) marks.push('bull');
