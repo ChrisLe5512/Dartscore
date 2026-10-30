@@ -1,17 +1,17 @@
-// Wires the game logic to the page. All game rules live in game.js;
-// this file only turns taps into actions and state into DOM.
+// Wires the game logic to the page. All game rules live in the mode modules
+// (game.js for X01, see modes.js); this file only turns taps into actions and
+// state into DOM.
 
 import {
 	BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_OUTLINE_LIMITS, BOARD_STYLE,
-	DARTS_PER_TURN, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_SETS, MAX_TURN_SCORE, SCORES_LAYOUT, START_SCORES, TOAST_MS,
+	DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_SETS, SCORES_LAYOUT, TOAST_MS,
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate } from './board.js';
 import { getCheckouts } from './checkout.js';
 import { boardRadius, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
-import { describeTravel, describeTurn, historyLegs, historyMarks, undoWarning } from './feedback.js';
-import * as Game from './game.js';
+import { describeTravel, describeTurn, historyLegs, undoWarning } from './feedback.js';
 import * as History from './history.js';
-import { matchStats, playerStats } from './stats.js';
+import { GAME_CHOICES, MODES, choiceOf, createGame, modeOf, startMatch, wonLegs } from './modes.js';
 import { loadPrefs, loadSession, savePrefs, saveSession } from './storage.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -21,8 +21,11 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
 const saved = loadSession();
 const prefs = loadPrefs(); // this device's view choices (keypad, board look)
-let game = saved?.game ?? Game.createGame();
+let game = saved?.game ?? createGame();
 let history = saved?.history ?? History.createHistory();
+
+/** The rules (and look) of the game being played. */
+const mode = () => modeOf(game);
 
 // The turn being entered. Not part of the game until it is submitted.
 const turn = {
@@ -54,7 +57,7 @@ function persist() {
 function undo() {
 	const result = History.undo(history, game);
 	if (!result) return;
-	const warning = undoWarning(game, result.state);
+	const warning = undoWarning(game, result.state, mode().turnLabel);
 	if (warning) confirmUndo(warning);
 	else travel(result, 'undo');
 }
@@ -68,7 +71,7 @@ function travel(result, direction) {
 	// Renaming isn't an undoable step, so names always stay as last typed.
 	const names = new Map(game.players.map(p => [p.id, p.name]));
 	const next = { ...result.state, players: result.state.players.map(p => ({ ...p, name: names.get(p.id) ?? p.name })) };
-	showToast(describeTravel(game, next, direction));
+	showToast(describeTravel(game, next, direction, mode().turnLabel));
 	game = next;
 	history = result.history;
 	checkoutChoice.clear();
@@ -86,7 +89,7 @@ function clearTurn() {
 
 /** Returns the game event, or null if the turn wasn't recorded. */
 function submit(score, darts = null) {
-	const { state, event } = Game.submitTurn(game, score, darts);
+	const { state, event } = mode().submitTurn(game, score, darts);
 	if (!event) {
 		if (game.winner !== null) showWinner();
 		return null;
@@ -95,7 +98,7 @@ function submit(score, darts = null) {
 	clearTurn();
 	commit(state);
 	if (event === 'match') showWinner();
-	else showToast(describeTurn(before, event, score));
+	else showToast(describeTurn(before, event, score, state));
 	return event;
 }
 
@@ -155,8 +158,8 @@ const scoresBody = $('tbody', scoresTable);
 const addPlayerRow = $('.add-player', scoresTable);
 
 function addPlayer() {
-	if (!Game.canAddPlayer(game)) return;
-	commit(Game.addPlayer(game));
+	if (!mode().canAddPlayer(game)) return;
+	commit(mode().addPlayer(game));
 	return game.players.length - 1;
 }
 
@@ -271,23 +274,24 @@ function renderScoreboard() {
 		$('.player-wins u', playerRow).innerHTML = `${player.legs}&#8196;&#8196;`;
 		$('.player-sets', playerRow).textContent = practice ? '' : player.sets;
 		$('.target-wins', playerRow).innerHTML = practice ? '' : `&nbsp;/${game.settings.legs}<br>&nbsp;/${game.settings.sets}`;
+		const score = String(mode().scoreText(player, game));
 		for (const scoreCell of [$('.player-score', playerRow), $('.big-score', statsRow)]) {
-			if (scoreCell.textContent === String(player.score)) continue;
+			if (scoreCell.textContent === score) continue;
 			if (scoreCell.textContent !== '') replay(scoreCell, 'bump');
-			scoreCell.textContent = player.score;
+			scoreCell.textContent = score;
 		}
 		const nameText = $('.name-text span', playerRow);
 		if (nameText.textContent !== player.name) nameText.textContent = player.name;
 
 		renderHistory($('.history', historyRow), player);
-		renderCheckout(historyRow, player, isActive);
+		renderCheckout(historyRow, player, index, isActive);
 		renderStats(statsRow, player);
 	});
 
 	for (const rows of rowsById.values()) rows.forEach(row => row.remove());
 	renderInputting();
 	// New players join from the scoreboard before the first throw, from Settings after.
-	addPlayerRow.classList.toggle('hidden', !Game.canAddPlayer(game) || matchStarted());
+	addPlayerRow.classList.toggle('hidden', !mode().canAddPlayer(game) || matchStarted());
 	layoutScores();
 	fitNames();
 	if (menuFor !== null) placePlayerMenu();
@@ -363,7 +367,7 @@ const openLegs = new Map(); // player id → the legs shown open
 let foldedAt = null; // the leg being played when they were last all folded
 
 /** The leg being played, or the last one once the match is won (left open to see). */
-const historyLeg = () => Game.currentLeg(game) - (game.winner === null ? 0 : 1);
+const historyLeg = () => game.leg - (game.winner === null ? 0 : 1);
 
 function toggleLeg(id, leg) {
 	const cell = $(`.history-row[data-id="${id}"] .history`, scoresBody);
@@ -385,7 +389,7 @@ function turnSpan(t, index, marks) {
 	const span = document.createElement('span');
 	const bold = document.createElement('b');
 	// A bust shows what it would have scored, struck through (it counts as 0).
-	bold.textContent = t.bust ? t.attempted ?? 0 : t.score;
+	bold.textContent = t.bust ? t.attempted ?? 0 : mode().turnText(t);
 	span.append(bold);
 	span.classList.add(...marks);
 	span.dataset.index = index;
@@ -414,9 +418,9 @@ function renderHistory(cell, player) {
 	cell.dataset.key = key;
 	cell.dataset.turns = player.turns.length;
 	// Oldest on the left, so the line reads in the order the turns were thrown.
-	const marks = historyMarks(player.turns);
+	const marks = mode().historyMarks(player.turns);
 	const items = [];
-	for (const { leg: n, turns, done, won } of historyLegs(player.turns, leg)) {
+	for (const { leg: n, turns, done, won } of historyLegs(player.turns, leg, wonLegs(game, player))) {
 		if (!done || open.has(n)) items.push(...turns.map(i => turnSpan(player.turns[i], i, marks[i])));
 		if (done) items.push(legDot(n, won, open.has(n), turns.length));
 	}
@@ -428,16 +432,26 @@ function renderHistory(cell, player) {
 	stickToEnd(cell, added ? 'smooth' : 'instant');
 }
 
-function renderCheckout(historyRow, player, isActive) {
+// Beside the history: checkout routes where the mode has them (X01, 121), or
+// the mode's hint (doubles practice: the double to throw at).
+function renderCheckout(historyRow, player, index, isActive) {
 	// The thrower's suggestion follows the darts already on the board.
+	const from = mode().checkoutFrom(player, game);
 	const dartsLeft = isActive ? DARTS_PER_TURN - turn.darts.length : DARTS_PER_TURN;
-	const remaining = isActive ? player.score - dartsTotal() : player.score;
-	const routes = game.winner === null ? getCheckouts(remaining, dartsLeft, game.settings.doubleOut) : [];
+	const remaining = isActive ? from - dartsTotal() : from;
+	const routes = game.winner === null && from !== null ? getCheckouts(remaining, dartsLeft, game.settings.doubleOut) : [];
+	const hint = game.winner === null && !routes.length ? mode().hint(game, index) : null;
 	const checkoutCell = $('.history-line > .checkout', historyRow);
+	checkoutCell.classList.toggle('hint', Boolean(hint));
+	checkoutCell.classList.toggle('muted', Boolean(hint?.muted));
 	if (routes.length) {
 		const route = routes[(checkoutChoice.get(player.id) ?? 0) % routes.length];
 		checkoutCell.classList.remove('hidden');
 		checkoutCell.textContent = `\u{1F3AF} ${route.join(' ')}`;
+	} else if (hint) {
+		checkoutCell.classList.remove('hidden');
+		checkoutCell.textContent = hint.text;
+		checkoutChoice.delete(player.id);
 	} else {
 		checkoutCell.classList.add('hidden');
 		checkoutCell.textContent = '';
@@ -446,11 +460,12 @@ function renderCheckout(historyRow, player, isActive) {
 }
 
 function renderStats(statsRow, player) {
-	const { average, visits, best } = playerStats(player);
-	const none = visits === 0; // nothing thrown yet
-	$('.stat-average', statsRow).textContent = none ? '–' : average.toFixed(1);
-	$('.stat-best', statsRow).textContent = none ? '–' : best;
-	$('.stat-visits', statsRow).textContent = visits;
+	const line = mode().statsLine(player, game);
+	$$('.stats span', statsRow).forEach((span, i) => {
+		const [label, value] = line[i];
+		if (span.firstChild?.textContent !== `${label} `) span.replaceChildren(`${label} `, document.createElement('b'));
+		span.lastChild.textContent = value;
+	});
 }
 
 // ---- Player names -------------------------------------------------------------
@@ -598,7 +613,7 @@ function finishRename(save) {
 	renameBtn.setAttribute('aria-label', 'Rename');
 	const index = game.players.findIndex(p => p.id === menuFor);
 	if (save && index >= 0 && menuInput.value !== game.players[index].name) {
-		game = Game.renamePlayer(game, index, menuInput.value);
+		game = mode().renamePlayer(game, index, menuInput.value);
 		persist();
 		render();
 	}
@@ -630,13 +645,13 @@ playerMenu.addEventListener('click', event => {
 	closePlayerMenu();
 	if (action === 'throw') {
 		clearTurn();
-		commit(Game.setActive(game, index));
+		commit(mode().setActive(game, index));
 		showToast({ kind: 'info', title: name, detail: 'to throw' });
 	} else if (action === 'up' || action === 'down') {
-		commit(Game.movePlayer(game, index, action === 'up' ? -1 : 1));
+		commit(mode().movePlayer(game, index, action === 'up' ? -1 : 1));
 		togglePlayerMenu(id); // keep it open to move again
 	} else if (action === 'remove') {
-		commit(Game.removePlayer(game, index));
+		commit(mode().removePlayer(game, index));
 		showToast({ kind: 'info', title: 'Removed', detail: `${name} · Undo brings them back` });
 	} else if (action === 'stats') {
 		showStats();
@@ -702,14 +717,14 @@ const scoreDisplay = $('.calc-score');
 
 function typeDigit(digit) {
 	const next = String(parseInt(turn.keypad + digit, 10));
-	if (Number(next) <= MAX_TURN_SCORE) turn.keypad = next;
+	if (Number(next) <= mode().maxInput) turn.keypad = next;
 	renderKeypad();
 }
 
 function stepKeypad(step) {
 	if (turn.keypad === '') return;
 	const next = Number(turn.keypad) + step;
-	if (next >= 0 && next <= MAX_TURN_SCORE) turn.keypad = String(next);
+	if (next >= 0 && next <= mode().maxInput) turn.keypad = String(next);
 	renderKeypad();
 	// The score box rocks like a switch towards the half that was pressed.
 	scoreDisplay.classList.remove('tip-up', 'tip-down');
@@ -729,7 +744,7 @@ function resetKeypad() {
 function submitKeypad() {
 	if (turn.keypad === '') return;
 	const score = Number(turn.keypad);
-	if (Game.isValidTurnScore(score)) submit(score);
+	if (mode().isValidInput(score)) submit(score);
 }
 
 $$('.calc-tbl td[data-digit]').forEach(cell => {
@@ -755,7 +770,7 @@ function renderInputting() {
 function renderKeypad() {
 	renderInputting();
 	const score = turn.keypad;
-	const up = score === String(MAX_TURN_SCORE) ? 'b' : 'i'; // <b> = greyed arrow at the limit
+	const up = score === String(mode().maxInput) ? 'b' : 'i'; // <b> = greyed arrow at the limit
 	const down = score === '0' ? 'b' : 'i';
 	// The arrows sit on a face that tips with the box; the number stays still.
 	scoreDisplay.innerHTML = score === '' ? ''
@@ -763,7 +778,7 @@ function renderKeypad() {
 
 	const empty = score === '';
 	[backBtn, resetBtn, scoreDisplay].forEach(el => el.classList.toggle('disabled', empty));
-	checkBtn.classList.toggle('disabled', empty || !Game.isValidTurnScore(Number(score)));
+	checkBtn.classList.toggle('disabled', empty || !mode().isValidInput(Number(score)));
 }
 
 // ---- Dartboard and darts column ----------------------------------------------
@@ -908,7 +923,7 @@ function renderDarts(pop = []) {
 	const hasDarts = turn.darts.length > 0;
 	dartsClearBtn.textContent = hasDarts ? 'Clear' : 'Darts';
 	dartsClearBtn.classList.toggle('disabled', !hasDarts);
-	dartsTotalCell.textContent = hasDarts ? dartsTotal() : '';
+	dartsTotalCell.textContent = hasDarts ? mode().dartsValue(game, turn.darts) : '';
 	dartsTotalCell.classList.toggle('disabled', !hasDarts);
 	doneBtn.classList.toggle('disabled', !hasDarts);
 
@@ -994,7 +1009,7 @@ function toggleReview(player, index) {
 		review = null;
 	} else {
 		review = { id: player.id, index };
-		const detail = `${turnThrown.darts.join(' ')} = ${turnThrown.bust ? `bust (${turnThrown.attempted})` : turnThrown.score}`;
+		const detail = `${turnThrown.darts.join(' ')} = ${turnThrown.bust ? `bust (${turnThrown.attempted})` : mode().turnLabel(turnThrown)}`;
 		// Stays up for as long as the turn is on show.
 		showToast({ kind: 'review', title: player.name, detail }, { sticky: true });
 	}
@@ -1052,7 +1067,7 @@ function toggleFullscreen() {
 // ---- Settings ---------------------------------------------------------------
 
 const settingsDialog = $('#settings');
-const startScoreSelect = $('#start-score');
+const gameSelect = $('#game-choice');
 const legsInput = $('#num-legs');
 const setsInput = $('#num-sets');
 const doubleOutInput = $('#double-out');
@@ -1062,46 +1077,65 @@ const playersList = $('.players-list');
 const playersAddBtn = $('.players-add');
 const noteRow = $('.settings-note-row');
 
-startScoreSelect.append(...START_SCORES.map(score => new Option(score, score)));
+// The Game picker: X01's start scores, then the practice games.
+for (const group of new Set(GAME_CHOICES.map(choice => choice.group))) {
+	const optgroup = document.createElement('optgroup');
+	optgroup.label = group;
+	optgroup.append(...GAME_CHOICES.filter(choice => choice.group === group).map(choice => new Option(choice.label, choice.value)));
+	gameSelect.append(optgroup);
+}
 legsInput.max = MAX_LEGS;
 setsInput.max = MAX_SETS;
 $('.settings-version', settingsDialog).textContent = `v${self.DARTSCORE_VERSION ?? ''}`;
 
+/** The form as { mode, settings }, the settings as that mode keeps them. */
 function readSettingsForm() {
-	return Game.normalizeSettings({
-		startScore: startScoreSelect.value,
-		legs: legsInput.value,
-		sets: setsInput.value,
-		doubleOut: doubleOutInput.checked,
-		practice: practiceInput.checked,
-	});
+	const choice = GAME_CHOICES.find(c => c.value === gameSelect.value) ?? GAME_CHOICES[0];
+	return {
+		mode: choice.mode,
+		settings: MODES[choice.mode].normalizeSettings({
+			legs: legsInput.value,
+			sets: setsInput.value,
+			doubleOut: doubleOutInput.checked,
+			practice: practiceInput.checked,
+			...choice.settings,
+		}),
+	};
 }
 
-const sameSettings = (a, b) => Object.keys(a).every(key => a[key] === b[key]);
+const sameSettings = ({ mode: id, settings }, state) => id === modeOf(state).id
+	&& Object.keys(settings).every(key => settings[key] === state.settings[key]);
 
 function openSettings() {
-	const { startScore, legs, sets, doubleOut, practice } = game.settings;
-	startScoreSelect.value = startScore;
+	const { legs, sets, doubleOut, practice } = game.settings;
+	gameSelect.value = choiceOf(game).value;
 	legsInput.value = legs;
 	setsInput.value = sets;
-	doubleOutInput.checked = doubleOut;
+	doubleOutInput.checked = doubleOut ?? DEFAULT_SETTINGS.doubleOut; // for a game switched to that has it
 	practiceInput.checked = practice;
 	renderSettings();
 	openDialog(settingsDialog);
 }
 
+/** A new match as the form is set: the mode picked, with the same players. */
+const matchFromForm = () => {
+	const { mode: id, settings } = readSettingsForm();
+	return startMatch(game, id, settings);
+};
+
 function closeSettings() {
 	// Before the first throw, new settings apply straight away.
-	const settings = readSettingsForm();
-	if (!matchStarted() && !sameSettings(settings, game.settings)) commit(Game.newMatch(game, settings));
+	if (!matchStarted() && !sameSettings(readSettingsForm(), game)) commit(matchFromForm());
 	closeDialog(settingsDialog);
 }
 
 function renderSettings() {
-	noteRow.hidden = !matchStarted() || sameSettings(readSettingsForm(), game.settings);
-	// Practice has no legs or sets to reach.
+	const form = readSettingsForm();
+	noteRow.hidden = !matchStarted() || sameSettings(form, game);
+	// Practice has no legs or sets to reach; only some games finish on a double.
 	legsInput.disabled = practiceInput.checked;
 	setsInput.disabled = practiceInput.checked;
+	doubleOutInput.disabled = !('doubleOut' in form.settings);
 
 	const items = game.players.map((player, index) => {
 		const item = document.createElement('li');
@@ -1117,7 +1151,7 @@ function renderSettings() {
 		const input = $('input', item);
 		input.value = player.name;
 		input.addEventListener('input', () => {
-			game = Game.renamePlayer(game, index, input.value);
+			game = mode().renamePlayer(game, index, input.value);
 			persist();
 			renderScoreboard();
 		});
@@ -1130,12 +1164,12 @@ function renderSettings() {
 		down.disabled = index === game.players.length - 1;
 		up.addEventListener('click', () => slidePlayer(index, -1));
 		down.addEventListener('click', () => slidePlayer(index, 1));
-		$('.delete-player', item).addEventListener('click', () => commit(Game.removePlayer(game, index)));
+		$('.delete-player', item).addEventListener('click', () => commit(mode().removePlayer(game, index)));
 		$('.player-field', item).addEventListener('pointerdown', event => pressPlayer(event, item, index));
 		return item;
 	});
 	playersList.replaceChildren(...items);
-	playersAddBtn.hidden = !Game.canAddPlayer(game);
+	playersAddBtn.hidden = !mode().canAddPlayer(game);
 	updateListFades();
 }
 
@@ -1162,7 +1196,7 @@ function slidePlayer(index, offset) {
 	other.style.transform = `translateY(${-step}px)`;
 	afterTransitions(item, () => {
 		playersList.classList.remove('sorting');
-		commit(Game.movePlayer(game, index, offset));
+		commit(mode().movePlayer(game, index, offset));
 	});
 }
 
@@ -1245,7 +1279,7 @@ function startDrag(event, field, item, from, startY) {
 		item.style.transform = `translateY(${(to - from) * step}px)`;
 		afterTransitions(item, () => {
 			playersList.classList.remove('sorting');
-			if (to !== from) commit(Game.movePlayerTo(game, from, to));
+			if (to !== from) commit(mode().movePlayerTo(game, from, to));
 			else renderSettings();
 		});
 	};
@@ -1264,12 +1298,12 @@ function updateListFades() {
 	playersScroll.classList.toggle('fade-bottom', scrollTop + clientHeight < scrollHeight - 1);
 }
 
-[startScoreSelect, legsInput, setsInput, doubleOutInput, practiceInput].forEach(el => {
+[gameSelect, legsInput, setsInput, doubleOutInput, practiceInput].forEach(el => {
 	el.addEventListener('change', renderSettings);
 	el.addEventListener('input', renderSettings);
 });
-legsInput.addEventListener('blur', () => { legsInput.value = readSettingsForm().legs; });
-setsInput.addEventListener('blur', () => { setsInput.value = readSettingsForm().sets; });
+legsInput.addEventListener('blur', () => { legsInput.value = readSettingsForm().settings.legs; });
+setsInput.addEventListener('blur', () => { setsInput.value = readSettingsForm().settings.sets; });
 
 playersScroll.addEventListener('scroll', updateListFades, { passive: true });
 new ResizeObserver(updateListFades).observe(playersScroll);
@@ -1287,9 +1321,9 @@ settingsDialog.addEventListener('click', event => {
 	const action = event.target.closest('[data-action]')?.dataset.action;
 	if (action === 'new-game') {
 		clearTurn();
-		commit(Game.newMatch(game, readSettingsForm()));
+		commit(matchFromForm());
 		closeDialog(settingsDialog);
-		showToast({ kind: 'info', title: 'New game', detail: `${game.settings.startScore}` });
+		showToast({ kind: 'info', title: 'New game', detail: `${mode().title(game.settings)}` });
 	} else if (action === 'close' || event.target === settingsDialog) {
 		closeSettings();
 	} else if (action === 'visuals') {
@@ -1391,7 +1425,7 @@ winnerDialog.addEventListener('click', event => {
 	const action = event.target.closest('[data-action]')?.dataset.action;
 	if (action === 'rematch') {
 		clearTurn();
-		commit(Game.newMatch(game));
+		commit(mode().newMatch(game));
 		showToast({ kind: 'info', title: 'Rematch', detail: 'Game on' });
 	}
 	if (action || event.target === winnerDialog) closeDialog(winnerDialog);
@@ -1399,19 +1433,8 @@ winnerDialog.addEventListener('click', event => {
 
 // ---- Match stats ----------------------------------------------------------------
 
-// One line per stat, one column per player. value: the number (null for none
-// yet); show: how it reads; note: small print after it; low: the lowest leads.
-const STAT_ROWS = [
-	{ label: 'Legs won', value: s => s.finishes },
-	{ label: '3-dart average', value: s => (s.visits ? s.average : null), show: n => n.toFixed(1) },
-	{ label: 'First 9 average', value: s => (s.visits ? s.first9 : null), show: n => n.toFixed(1) },
-	{ label: 'Checkout', value: s => (s.chances ? s.finishes / s.chances : null), show: n => `${Math.round(n * 100)}%`, note: s => `${s.finishes}/${s.chances}` },
-	{ label: 'Best leg', value: s => s.bestLeg, show: n => `${n} darts`, low: true },
-	{ label: 'High finish', value: s => s.highFinish },
-	{ label: '180s', value: s => s.tons[180] },
-	{ label: '140+', value: s => s.tons[140] },
-	{ label: '100+', value: s => s.tons[100] },
-];
+// One line per stat, one column per player; each mode has its own lines
+// (STAT_ROWS in its module).
 
 const statsDialog = $('#stats');
 
@@ -1424,10 +1447,10 @@ function cell(tag, text, scope) {
 
 /** The stats table for everyone in the match; with several players, each line's leader is picked out. */
 function fillStatsTable(table) {
-	const stats = game.players.map(player => matchStats(player, game.settings));
+	const stats = game.players.map(player => mode().matchStats(player, game));
 	const head = document.createElement('tr');
 	head.append(cell('th', ''), ...game.players.map(player => cell('th', player.name, 'col')));
-	const rows = STAT_ROWS.map(({ label, value, show = String, note, low }) => {
+	const rows = mode().STAT_ROWS.map(({ label, value, show = String, note, low }) => {
 		const row = document.createElement('tr');
 		row.append(cell('th', label, 'row'));
 		const values = stats.map(value);

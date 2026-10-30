@@ -978,6 +978,15 @@ body.dismissing * {
 	cursor: pointer;
 }
 
+/* A practice game's hint in the checkout's place (e.g. the double to throw at). */
+.checkout.hint {
+	cursor: default;
+}
+
+.checkout.hint.muted {
+	color: var(--history-muted);
+}
+
 /* Only when there is room: a line of match stats between the name and the history. */
 .stats-row {
 	position: relative; /* see the player-wins layer below */
