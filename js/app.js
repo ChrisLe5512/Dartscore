@@ -4,7 +4,7 @@
 
 import {
 	BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_OUTLINE_LIMITS, BOARD_STYLE,
-	DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_SETS, SCORES_LAYOUT, TOAST_MS,
+	DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, TOAST_MS,
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate } from './board.js';
 import { getCheckouts } from './checkout.js';
@@ -284,10 +284,12 @@ function renderScoreboard() {
 		playerRow.classList.toggle('active', isActive);
 		statsRow.classList.toggle('active', isActive);
 		historyRow.classList.toggle('active', isActive);
-		// In practice the legs just count on: no sets, nothing to reach.
+		// Endless (practice): the legs just count on, so the card shows the
+		// count with "legs" under it; no sets, nothing to reach.
 		const { practice } = game.settings;
-		$('.player-wins u', playerRow).innerHTML = `${player.legs}&#8196;&#8196;`;
-		$('.player-sets', playerRow).textContent = practice ? '' : player.sets;
+		$('.player-wins', playerRow).classList.toggle('endless', practice);
+		$('.player-wins u', playerRow).innerHTML = practice ? String(player.legs) : `${player.legs}&#8196;&#8196;`;
+		$('.player-sets', playerRow).textContent = practice ? 'legs' : player.sets;
 		$('.target-wins', playerRow).innerHTML = practice ? '' : `&nbsp;/${game.settings.legs}<br>&nbsp;/${game.settings.sets}`;
 		const score = String(mode().scoreText(player, game));
 		for (const scoreCell of [$('.player-score', playerRow), $('.big-score', statsRow)]) {
@@ -1155,7 +1157,7 @@ function closeSettings() {
 function gameSummary() {
 	const { legs, sets, practice, doubleOut } = game.settings;
 	const parts = [mode().title(game.settings)];
-	if (practice) parts.push('practice');
+	if (practice) parts.push('endless');
 	else parts.push(`first to ${legs} leg${legs === 1 ? '' : 's'}${sets > 1 ? `, ${sets} sets` : ''}`);
 	if (doubleOut) parts.push('double out');
 	for (const option of mode().OPTIONS) if (option.type !== 'choice' && game.settings[option.key]) parts.push(option.label.toLowerCase());
@@ -1445,9 +1447,11 @@ function renderNewGame() {
 	else renderPlayersStep();
 }
 
-// Only what the picked game has: Double out where a game finishes on a
-// double, and its own options. Every checkbox sits in one column, Practice
-// always first; legs and sets stay in place, greyed in Practice (no winner).
+// Only what the picked game has: a choice of its own (around the clock's
+// beds) right under the tiles, then legs and sets with Double out and its
+// checkboxes beside them (room is kept for two, so the screen doesn't jump
+// between games), and Endless, for every game, underneath. Legs and sets
+// stay in place, greyed when Endless (no winner).
 function renderGameStep() {
 	const { mode: id, settings } = readGameForm();
 	for (const tile of $$('.game-tile', choicesBox)) tile.setAttribute('aria-checked', String(tile.dataset.value === ngForm.picked));
@@ -1568,6 +1572,12 @@ function startNewGame() {
 choicesBox.addEventListener('click', event => {
 	const tile = event.target.closest('.game-tile');
 	if (!tile) return;
+	// Another kind of game starts from the usual legs and sets.
+	const modeOfChoice = value => GAME_CHOICES.find(c => c.value === value)?.mode;
+	if (modeOfChoice(tile.dataset.value) !== modeOfChoice(ngForm.picked)) {
+		ngForm.legs = DEFAULT_SETTINGS.legs;
+		ngForm.sets = DEFAULT_SETTINGS.sets;
+	}
 	ngForm.picked = tile.dataset.value;
 	renderGameStep();
 });

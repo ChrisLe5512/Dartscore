@@ -26,7 +26,7 @@ VS Code's Live Server or `python -m http.server` work too.
 - **Checkout** suggestions appear in green once a finish is possible and update as you tap darts on the board. Tap the suggestion to see other routes. They follow the Double out setting.
 - **↶ / ↷** undo and redo whole turns, players added or removed, and new games. Undoing a leg, set or match win, a new game, or a player or settings change asks first.
 - **New game** (opens by itself when no game is under way; also from ⚙ Settings and the winner screen), in two steps:
-  1. **The game:** a tile for 301, 501 or 701, or a practice game (below; 501 by default), then only what that game has: legs and sets to win as − / + steppers (hidden in Practice), **Double out** where a game finishes on a double (on by default: finishes must end on a double or bull, and leaving 1 is a bust), **Practice** (legs go on and on, no winner) and the game's own options.
+  1. **The game:** a tile for 301, 501 or 701, or a practice game (below; 501 by default), then only what that game has: legs and sets to win as − / + steppers (back to 3 and 1 for another kind of game), **Double out** where a game finishes on a double (on by default: finishes must end on a double or bull, and leaving 1 is a bust), the game's own options, and **Endless** for any game (no winner: legs just keep counting, shown on each card as the number of legs).
   2. **Who's playing:** **Solo** (one name) or **Two or more** (a list to add to, reorder and remove from, up to 8), then **Start**.
 
   It opens set to the last game and its players, so replaying is two taps. **Cancel** (or Back) changes nothing until Start.
@@ -39,7 +39,7 @@ Each new leg starts with the next player in order. Winning a set resets everyone
 
 ### Practice games
 
-Pick one on the **New game** screen. They use the same players, legs, sets, Practice, undo and match stats as X01. On the keypad, enter how many targets or doubles a visit hit (0 to 3); on the board, tap the darts and only the ones that count are counted.
+Pick one on the **New game** screen. They use the same players, legs, sets, Endless, undo and match stats as X01. On the keypad, enter how many targets or doubles a visit hit (0 to 3); on the board, tap the darts and only the ones that count are counted.
 
 - **Around the clock:** hit 1, 2, 3 … 20 in order, then the bull. The big number is the target. **Counts:** any bed, doubles only or trebles only (the bull: the bullseye for doubles, either bull for trebles). The first player round wins the leg. Option: **Skip ahead** (any bed only): a double moves you on two targets, a treble three; the keypad then enters targets moved on (up to 9).
 - **Doubles practice (27):** everyone starts on 27 and goes round the doubles, D1 to D20 then the bullseye, one visit at each (the double to aim at shows beside the history). Each double hit adds its value; a visit with none takes the double's value off. At 0 or below you're out. When everyone is round or out, the highest score still in wins the leg; a tie draws it. Option: **Play on below 0**: nobody goes out.

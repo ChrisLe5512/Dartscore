@@ -186,6 +186,7 @@
 				<div class="ng-step" data-step="game">
 					<h2 class="settings-heading" id="new-game-title">New game</h2>
 					<div class="game-choices"></div>
+					<div class="mode-options"></div>
 					<div class="game-options">
 						<div class="stepper" data-field="legs">
 							<span class="stepper-label">Legs to win</span>
@@ -196,11 +197,10 @@
 							<div class="stepper-row"><button type="button" class="stepper-btn" data-by="-1" aria-label="Fewer sets">&minus;</button><output></output><button type="button" class="stepper-btn" data-by="1" aria-label="More sets">+</button></div>
 						</div>
 						<div class="game-checks">
-							<label class="settings-check" title="Legs go on and on: no sets, no winner"><input type="checkbox" id="practice"> Practice</label>
 							<label class="settings-check"><input type="checkbox" id="double-out"> Double out</label>
 						</div>
 					</div>
-					<div class="mode-options"></div>
+					<label class="settings-check endless-check"><input type="checkbox" id="practice"> Endless <small>no winner: legs just keep counting</small></label>
 				</div>
 
 				<div class="ng-step" data-step="players" hidden>
