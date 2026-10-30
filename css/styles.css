@@ -1025,10 +1025,19 @@ td.calc-score {
 	text-shadow: 0 0 1vmin black;
 }
 
+/* The cell draws no border of its own, so the plate (inset 0) is exactly the
+   cell, edge for edge with the buttons around it. Reaching out by --line over
+   a border instead left its edges between screen pixels (borders snap to whole
+   pixels, --line doesn't), and Chrome drew them a pixel wider while tipping. */
+.calc-tbl td.calc-score,
+.calc-tbl td.calc-score.disabled {
+	border: none;
+}
+
 td.calc-score::before {
 	content: "";
 	position: absolute;
-	inset: calc(-1 * var(--line));
+	inset: 0;
 	z-index: -1;
 	border: var(--border);
 	border-radius: var(--radius);
@@ -1071,7 +1080,7 @@ td.calc-score.tip-down:not(.disabled) .score-face {
    above and below the middle, where the number is. */
 .score-face {
 	position: absolute;
-	inset: calc(-1 * var(--line));
+	inset: 0;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
