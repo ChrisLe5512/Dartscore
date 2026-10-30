@@ -26,7 +26,7 @@ VS Code's Live Server or `python -m http.server` work too.
 - **Checkout** suggestions appear in green once a finish is possible and update as you tap darts on the board. Tap the suggestion to see other routes. They follow the Double out setting.
 - **↶ / ↷** undo and redo whole turns, players added or removed, and new games. Undoing a leg, set or match win, a new game, or a player or settings change asks first.
 - **New game** (opens by itself when no game is under way; also from ⚙ Settings and the winner screen), in two steps:
-  1. **The game:** a tile for 301, 501 or 701, or a practice game (below; 501 by default), then only what that game has: legs and sets to win as − / + steppers (back to 3 and 1 for another kind of game), **Double out** where a game finishes on a double (on by default: finishes must end on a double or bull, and leaving 1 is a bust), the game's own options, and **Endless** for any game (no winner: legs just keep counting, shown on each card as the number of legs).
+  1. **The game:** a tile for 301, 501 or 701, or a practice game (below; 501 by default), then only what that game has: legs and sets to win as − / + steppers (back to 3 and 1 when switching between X01 and a practice game), **Double out** where a game finishes on a double (on by default: finishes must end on a double or bull, and leaving 1 is a bust), the game's own options, and **Endless** for any game (no winner: legs just keep counting, shown on each card as the number of legs).
   2. **Who's playing:** **Solo** (one name) or **Two or more** (a list to add to, reorder and remove from, up to 8), then **Start**.
 
   It opens set to the last game and its players, so replaying is two taps. **Cancel** (or Back) changes nothing until Start.

@@ -1595,9 +1595,10 @@ function startNewGame() {
 choicesBox.addEventListener('click', event => {
 	const tile = event.target.closest('.game-tile');
 	if (!tile) return;
-	// Another kind of game starts from the usual legs and sets.
-	const modeOfChoice = value => GAME_CHOICES.find(c => c.value === value)?.mode;
-	if (modeOfChoice(tile.dataset.value) !== modeOfChoice(ngForm.picked)) {
+	// Crossing between X01 and the practice games starts from the usual legs
+	// and sets; moving within either group keeps what was set.
+	const groupOf = value => GAME_CHOICES.find(c => c.value === value)?.group;
+	if (groupOf(tile.dataset.value) !== groupOf(ngForm.picked)) {
 		ngForm.legs = DEFAULT_SETTINGS.legs;
 		ngForm.sets = DEFAULT_SETTINGS.sets;
 	}
