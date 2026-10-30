@@ -601,22 +601,6 @@ aside.keypad-hidden .calc-section {
 	color: #e1e1e1;
 }
 
-.player-name input {
-	width: 100%;
-	border: none;
-	background: transparent;
-	color: inherit;
-	font-family: var(--font-condensed);
-	font-weight: normal;
-	font-size: calc(6.5vmin * var(--s));
-	text-align: left;
-	text-shadow: 0 0 1vmin black;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	text-indent: 0.5vmin;
-}
-
 /* The name as shown; fitName in js/app.js narrows, wraps or shrinks it to fit. */
 .player-name {
 	cursor: pointer;
@@ -1345,6 +1329,23 @@ td.back-score {
 	text-overflow: ellipsis;
 }
 
+/* Renaming: the name becomes a text field with an amber underline. */
+.player-menu-input {
+	flex: 1;
+	min-width: 0;
+	margin: 0.4vmin 0;
+	padding: 0.3vmin 0.4vmin;
+	font-family: inherit;
+	font-size: 2.6vmin;
+	color: white;
+	background: rgba(0, 0, 0, 0.35);
+	border: none;
+	border-bottom: 2px solid var(--edit);
+	border-radius: 0.4vmin 0.4vmin 0 0;
+	outline: none;
+	user-select: text;
+}
+
 .player-menu .player-menu-rename {
 	flex: none;
 	margin: 0.2vmin 0 0.4vmin;
@@ -1454,6 +1455,16 @@ td.back-score {
 
 .toast.win .toast-title {
 	color: var(--checkout);
+}
+
+/* A past turn on show, in the board's highlight colour. */
+.toast.review {
+	border-color: var(--board-hit);
+	box-shadow: 0 1vmin 3vmin rgba(0, 0, 0, 0.6), 0 0 2vmin color-mix(in srgb, var(--board-hit) 35%, transparent);
+}
+
+.toast.review .toast-title {
+	color: var(--board-hit);
 }
 
 @keyframes toast-in {
@@ -1761,10 +1772,10 @@ td.calc-score:not(.disabled) {
 
 /* A past turn being looked back at. */
 .light.review {
-	fill: color-mix(in srgb, var(--board-hit) 18%, transparent);
+	fill: color-mix(in srgb, var(--board-hit) 45%, transparent);
 	stroke: var(--board-hit);
-	stroke-width: 0.6;
-	stroke-dasharray: 2 1.5;
+	stroke-width: 1;
+	filter: drop-shadow(0 0 1.5px var(--board-hit));
 }
 
 /* Under the mouse pointer. */

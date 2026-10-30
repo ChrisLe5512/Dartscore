@@ -3,7 +3,7 @@
 
 import {
 	BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_OUTLINE_LIMITS, BOARD_STYLE,
-	DARTS_PER_TURN, MAX_LEGS, MAX_SETS, MAX_TURN_SCORE, SCORES_LAYOUT, START_SCORES, TOAST_MS,
+	DARTS_PER_TURN, MAX_LEGS, MAX_NAME_LENGTH, MAX_SETS, MAX_TURN_SCORE, SCORES_LAYOUT, START_SCORES, TOAST_MS,
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate } from './board.js';
 import { getCheckouts } from './checkout.js';
@@ -145,7 +145,7 @@ function createPlayerRows(player) {
 	playerRow.innerHTML = `
 		<td class="player-wins"><u></u><br><span class="player-sets"></span></td>
 		<td class="target-wins"></td>
-		<td colspan="4" class="player-name"><div class="name-text"><span></span></div><input type="text" autocomplete="off" spellcheck="false" aria-label="Player name" hidden></td>
+		<td colspan="4" class="player-name"><div class="name-text"><span></span></div></td>
 		<td class="player-score"></td>`;
 
 	// History and checkout share one line; the checkout takes what it needs.
@@ -173,22 +173,9 @@ function createPlayerRows(player) {
 			<div class="big-score"></div>
 		</div></td>`;
 
-	// Renaming happens in place, started from the player menu (Rename).
-	const input = $('input', playerRow);
-	input.addEventListener('blur', () => finishRename(player.id, input));
-	input.addEventListener('keydown', event => {
-		if (event.key === 'Enter') input.blur();
-		if (event.key === 'Escape') {
-			input.value = game.players.find(p => p.id === player.id)?.name ?? input.value;
-			input.blur();
-		}
-	});
-
 	// Tapping a player opens their menu beside the scores.
 	for (const row of [playerRow, statsRow]) {
-		row.addEventListener('click', event => {
-			if (!event.target.closest('input')) togglePlayerMenu(player.id);
-		});
+		row.addEventListener('click', () => togglePlayerMenu(player.id));
 	}
 
 	$('.checkout', historyRow).addEventListener('click', () => {
@@ -424,30 +411,6 @@ document.fonts?.addEventListener('loadingdone', () => {
 	fitNames();
 });
 
-function startRename(id) {
-	const row = $(`.player-row[data-id="${id}"]`, scoresBody);
-	const player = game.players.find(p => p.id === id);
-	if (!row || !player) return;
-	const input = $('input', row);
-	input.value = player.name;
-	$('.name-text', row).hidden = true;
-	input.hidden = false;
-	input.focus();
-	input.select();
-}
-
-function finishRename(id, input) {
-	if (input.hidden) return;
-	const index = game.players.findIndex(p => p.id === id);
-	if (index >= 0) {
-		game = Game.renamePlayer(game, index, input.value);
-		persist();
-	}
-	input.hidden = true;
-	input.closest('.player-row').querySelector('.name-text').hidden = false;
-	render();
-}
-
 // ---- Player menu --------------------------------------------------------------
 
 // Opens beside a player's rows, over the board: rename, hand them the throw,
@@ -462,6 +425,7 @@ function togglePlayerMenu(id) {
 		closePlayerMenu();
 		return;
 	}
+	finishRename(true); // a rename in progress belongs to the player it started on
 	menuFor = id;
 	playerMenu.hidden = false;
 	replay(playerMenu, 'opening');
@@ -469,6 +433,7 @@ function togglePlayerMenu(id) {
 }
 
 function closePlayerMenu() {
+	finishRename(true);
 	menuFor = null;
 	playerMenu.hidden = true;
 	for (const row of $$('.menu-open', scoresBody)) row.classList.remove('menu-open');
@@ -501,15 +466,70 @@ function placePlayerMenu() {
 	}
 }
 
+// Renaming happens in the menu: the pencil turns its name line into a text
+// field (and itself into a tick that saves it).
+const menuName = $('.player-menu-name', playerMenu);
+const menuInput = $('.player-menu-input', playerMenu);
+const renameBtn = $('[data-menu="rename"]', playerMenu);
+menuInput.maxLength = MAX_NAME_LENGTH;
+
+function startRename(id) {
+	const player = game.players.find(p => p.id === id);
+	if (!player) return;
+	if (menuFor !== id) togglePlayerMenu(id);
+	menuInput.value = player.name;
+	menuName.hidden = true;
+	menuInput.hidden = false;
+	playerMenu.classList.add('renaming');
+	$('span', renameBtn).textContent = '✓';
+	$('span', renameBtn).classList.remove('flip');
+	renameBtn.setAttribute('aria-label', 'Save name');
+	menuInput.focus();
+	menuInput.select();
+}
+
+/** Leave renaming, keeping the new name (save) or not. */
+function finishRename(save) {
+	if (menuInput.hidden) return;
+	menuInput.hidden = true;
+	menuName.hidden = false;
+	playerMenu.classList.remove('renaming');
+	$('span', renameBtn).textContent = '✎';
+	$('span', renameBtn).classList.add('flip');
+	renameBtn.setAttribute('aria-label', 'Rename');
+	const index = game.players.findIndex(p => p.id === menuFor);
+	if (save && index >= 0 && menuInput.value !== game.players[index].name) {
+		game = Game.renamePlayer(game, index, menuInput.value);
+		persist();
+		render();
+	}
+}
+
+menuInput.addEventListener('blur', () => finishRename(true));
+menuInput.addEventListener('keydown', event => {
+	if (event.key === 'Enter') finishRename(true);
+	if (event.key === 'Escape') {
+		event.stopPropagation(); // cancels the rename, leaves the menu open
+		finishRename(false);
+	}
+});
+// Keep the field focused when the tick is pressed, so the click saves it.
+renameBtn.addEventListener('pointerdown', event => {
+	if (!menuInput.hidden) event.preventDefault();
+});
+
 playerMenu.addEventListener('click', event => {
 	const action = event.target.closest('[data-menu]')?.dataset.menu;
 	const index = game.players.findIndex(p => p.id === menuFor);
 	if (!action || index < 0) return;
+	if (action === 'rename') {
+		if (menuInput.hidden) startRename(menuFor);
+		else finishRename(true);
+		return;
+	}
 	const { id, name } = game.players[index];
 	closePlayerMenu();
-	if (action === 'rename') {
-		startRename(id);
-	} else if (action === 'throw') {
+	if (action === 'throw') {
 		clearTurn();
 		commit(Game.setActive(game, index));
 		showToast({ kind: 'info', title: name, detail: 'to throw' });
@@ -777,7 +797,7 @@ function toggleReview(player, index) {
 		review = { id: player.id, index };
 		const detail = `${turnThrown.darts.join(' ')} = ${turnThrown.bust ? `bust (${turnThrown.attempted})` : turnThrown.score}`;
 		// Stays up for as long as the turn is on show.
-		showToast({ kind: 'info', title: player.name, detail }, { sticky: true });
+		showToast({ kind: 'review', title: player.name, detail }, { sticky: true });
 	}
 	renderMarks();
 }
