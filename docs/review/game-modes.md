@@ -2,6 +2,13 @@
 
 These are judgement calls made while adding the practice games. All of them work and are tested. Each one is easy to change if you'd rather have it another way.
 
+**Reviewed (v2.7.0):** all kept. Added as options, a checkbox under the Game row in Settings that shows only for that game:
+- 121: "Miss: back to last checkout"
+- Doubles practice: "Play on below 0"
+- Around the clock: "Skip ahead"
+
+121 now shows its target beside the score when the stats line has no room. Cricket comes after the practice games have been played for a while.
+
 ## 1. The Game picker is one list
 
 Settings' "Start score" became "Game": 301, 501 and 701, then the practice games (Around the clock and its doubles and trebles versions, Doubles practice (27), 121 checkout). This keeps the settings row exactly as it was.

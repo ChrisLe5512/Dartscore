@@ -86,3 +86,25 @@ test('stats line and a saved game', () => {
 	const broken = One21.restoreGame({ players: [{ target: 5, score: 900, visit: 7 }] });
 	assert.deepEqual([broken.players[0].target, broken.players[0].score, broken.players[0].visit], [121, 121, 2]);
 });
+
+test('drop back: a miss goes back to the last target checked out', () => {
+	let { state, event } = play(twoPlayers({ dropBack: true }), 121);
+	assert.equal(state.settings.dropBack, true);
+	assert.deepEqual([state.players[0].target, state.players[0].safe], [122, 121]);
+	({ state } = play(state, 0, 0, 0)); // Bob misses 121: nothing to drop back to
+	assert.equal(state.players[1].target, 121);
+	({ state } = play(state, 122)); // Ann checks out 122, on to 123
+	({ state } = play(state, 0, 0, 0)); // Bob
+	({ state, event } = play(state, 0, 0, 0)); // Ann misses 123
+	assert.equal(event, 'missed');
+	assert.deepEqual([state.players[0].target, state.players[0].score, state.players[0].safe], [122, 122, 122]);
+	// Without the option the target stays.
+	({ state } = play(twoPlayers(), 121));
+	({ state } = play(state, 0, 0, 0, 0, 0, 0));
+	assert.equal(state.players[0].target, 122);
+	// Saved and loaded, safe comes back.
+	const saved = One21.restoreGame(JSON.parse(JSON.stringify(play(twoPlayers({ dropBack: true }), 121).state)));
+	assert.equal(saved.players[0].safe, 121);
+	assert.equal(saved.settings.dropBack, true);
+	assert.equal(One21.scoreNote(saved.players[0]), '/122');
+});

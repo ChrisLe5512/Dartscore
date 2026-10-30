@@ -280,6 +280,10 @@ function renderScoreboard() {
 			if (scoreCell.textContent !== '') replay(scoreCell, 'bump');
 			scoreCell.textContent = score;
 		}
+		const note = mode().scoreNote?.(player, game);
+		const scoreCell = $('.player-score', playerRow);
+		if (note) scoreCell.dataset.note = note;
+		else delete scoreCell.dataset.note;
 		const nameText = $('.name-text span', playerRow);
 		if (nameText.textContent !== player.name) nameText.textContent = player.name;
 
@@ -715,16 +719,19 @@ const checkBtn = $('.check-score');
 const resetBtn = $('.reset-score');
 const scoreDisplay = $('.calc-score');
 
+/** The most the keypad takes: the mode's, or with some options more (around the clock's skip). */
+const inputMax = () => mode().inputMax?.(game) ?? mode().maxInput;
+
 function typeDigit(digit) {
 	const next = String(parseInt(turn.keypad + digit, 10));
-	if (Number(next) <= mode().maxInput) turn.keypad = next;
+	if (Number(next) <= inputMax()) turn.keypad = next;
 	renderKeypad();
 }
 
 function stepKeypad(step) {
 	if (turn.keypad === '') return;
 	const next = Number(turn.keypad) + step;
-	if (next >= 0 && next <= mode().maxInput) turn.keypad = String(next);
+	if (next >= 0 && next <= inputMax()) turn.keypad = String(next);
 	renderKeypad();
 	// The score box rocks like a switch towards the half that was pressed.
 	scoreDisplay.classList.remove('tip-up', 'tip-down');
@@ -744,7 +751,7 @@ function resetKeypad() {
 function submitKeypad() {
 	if (turn.keypad === '') return;
 	const score = Number(turn.keypad);
-	if (mode().isValidInput(score)) submit(score);
+	if (mode().isValidInput(score, game)) submit(score);
 }
 
 $$('.calc-tbl td[data-digit]').forEach(cell => {
@@ -770,7 +777,7 @@ function renderInputting() {
 function renderKeypad() {
 	renderInputting();
 	const score = turn.keypad;
-	const up = score === String(mode().maxInput) ? 'b' : 'i'; // <b> = greyed arrow at the limit
+	const up = score === String(inputMax()) ? 'b' : 'i'; // <b> = greyed arrow at the limit
 	const down = score === '0' ? 'b' : 'i';
 	// The arrows sit on a face that tips with the box; the number stays still.
 	scoreDisplay.innerHTML = score === '' ? ''
@@ -778,7 +785,7 @@ function renderKeypad() {
 
 	const empty = score === '';
 	[backBtn, resetBtn, scoreDisplay].forEach(el => el.classList.toggle('disabled', empty));
-	checkBtn.classList.toggle('disabled', empty || !mode().isValidInput(Number(score)));
+	checkBtn.classList.toggle('disabled', empty || !mode().isValidInput(Number(score), game));
 }
 
 // ---- Dartboard and darts column ----------------------------------------------
@@ -1076,6 +1083,9 @@ const playersScroll = $('.players-scroll');
 const playersList = $('.players-list');
 const playersAddBtn = $('.players-add');
 const noteRow = $('.settings-note-row');
+const optionsRow = $('.mode-options', settingsDialog);
+// The options as ticked, by key, kept while other games are picked in the form.
+const optionChecks = new Map();
 
 // The Game picker: X01's start scores, then the practice games.
 for (const group of new Set(GAME_CHOICES.map(choice => choice.group))) {
@@ -1098,6 +1108,7 @@ function readSettingsForm() {
 			sets: setsInput.value,
 			doubleOut: doubleOutInput.checked,
 			practice: practiceInput.checked,
+			...Object.fromEntries(optionChecks),
 			...choice.settings,
 		}),
 	};
@@ -1113,6 +1124,8 @@ function openSettings() {
 	setsInput.value = sets;
 	doubleOutInput.checked = doubleOut ?? DEFAULT_SETTINGS.doubleOut; // for a game switched to that has it
 	practiceInput.checked = practice;
+	optionChecks.clear();
+	for (const { key } of mode().OPTIONS) optionChecks.set(key, Boolean(game.settings[key]));
 	renderSettings();
 	openDialog(settingsDialog);
 }
@@ -1136,6 +1149,7 @@ function renderSettings() {
 	legsInput.disabled = practiceInput.checked;
 	setsInput.disabled = practiceInput.checked;
 	doubleOutInput.disabled = !('doubleOut' in form.settings);
+	renderOptions(form);
 
 	const items = game.players.map((player, index) => {
 		const item = document.createElement('li');
@@ -1171,6 +1185,30 @@ function renderSettings() {
 	playersList.replaceChildren(...items);
 	playersAddBtn.hidden = !mode().canAddPlayer(game);
 	updateListFades();
+}
+
+/** The picked game's own options as checkboxes; the line is hidden for games without any. */
+function renderOptions(form) {
+	const options = MODES[form.mode].OPTIONS.filter(option => option.applies?.(form.settings) ?? true);
+	const cell = optionsRow.firstElementChild;
+	const key = options.map(option => option.key).join();
+	optionsRow.hidden = !options.length;
+	if (cell.dataset.key === key) return; // rebuilt only when the options change, so a tick keeps its focus
+	cell.dataset.key = key;
+	cell.replaceChildren(...options.map(({ key: name, label, title }) => {
+		const box = document.createElement('label');
+		box.className = 'settings-check';
+		box.title = title;
+		const input = document.createElement('input');
+		input.type = 'checkbox';
+		input.checked = optionChecks.get(name) ?? false;
+		input.addEventListener('change', () => {
+			optionChecks.set(name, input.checked);
+			renderSettings();
+		});
+		box.append(input, ` ${label}`);
+		return box;
+	}));
 }
 
 const DRAG_FROM = 6; // px the pointer moves before a press on a player becomes a drag
@@ -1452,12 +1490,12 @@ function fillStatsTable(table) {
 	head.append(cell('th', ''), ...game.players.map(player => cell('th', player.name, 'col')));
 	const rows = mode().STAT_ROWS.map(({ label, value, show = String, note, low }) => {
 		const row = document.createElement('tr');
-		row.append(cell('th', label, 'row'));
+		row.append(cell('th', typeof label === 'function' ? label(game.settings) : label, 'row'));
 		const values = stats.map(value);
 		const scored = values.filter(v => v !== null && v > 0);
 		const lead = game.players.length > 1 && scored.length ? (low ? Math.min : Math.max)(...scored) : null;
 		values.forEach((v, i) => {
-			const td = cell('td', v === null ? '–' : show(v));
+			const td = cell('td', v === null ? '–' : show(v, game.settings));
 			if (v !== null && note) td.append(' ', cell('small', note(stats[i])));
 			if (v !== null && v === lead) td.className = 'lead';
 			row.append(td);

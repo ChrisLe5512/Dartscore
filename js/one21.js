@@ -1,5 +1,6 @@
 // 121: check out 121 in three visits (nine darts). Check out and the next
-// target is one higher; miss and you try the same number again. Each player
+// target is one higher; miss and you try the same number again (or, with
+// dropBack, go back to the last number you checked out). Each player
 // throws all their visits at a target before the next player's turn. After
 // ten targets each, the highest target reached wins the leg (a tie draws it).
 // Busts work as in X01. Pure, like game.js.
@@ -13,9 +14,10 @@ export { canAddPlayer, movePlayer, movePlayerTo, renamePlayer } from './game.js'
 
 /**
  * State: as in game.js, plus mode: '121' and results.
- *   settings: { legs, sets, doubleOut, practice }
- *   players: [{ id, name, score, target, visit, round, legs, sets, turns }]
- *     score: what is left of the target; visit: visits thrown at it; round: targets played this leg
+ *   settings: { legs, sets, doubleOut, practice, dropBack }
+ *   players: [{ id, name, score, target, safe, visit, round, legs, sets, turns }]
+ *     score: what is left of the target; safe: the last target checked out (0: none yet);
+ *     visit: visits thrown at the target; round: targets played this leg
  *   turns: as in X01, plus target (on a checkout: the target it finished)
  *     and missed (the last visit at a target that wasn't checked out)
  *   results: per leg played, the id of the player who won it, or null if drawn
@@ -25,7 +27,7 @@ export const id = '121';
 export function normalizeSettings(settings = {}) {
 	const s = { ...DEFAULT_SETTINGS, ...settings };
 	const { legs, sets, practice } = matchSettings(s);
-	return { legs, sets, doubleOut: Boolean(s.doubleOut), practice };
+	return { legs, sets, doubleOut: Boolean(s.doubleOut), practice, dropBack: Boolean(s.dropBack) };
 }
 
 export function createGame(settings = {}) {
@@ -35,10 +37,11 @@ export function createGame(settings = {}) {
 	};
 }
 
-const fresh = p => ({ ...p, score: ONE21.start, target: ONE21.start, visit: 0, round: 0 });
+const START = Object.freeze({ score: ONE21.start, target: ONE21.start, safe: 0, visit: 0, round: 0 });
+const fresh = p => ({ ...p, ...START });
 
 export function addPlayer(state, name) {
-	return Game.addPlayer(state, name, { score: ONE21.start, target: ONE21.start, visit: 0, round: 0 });
+	return Game.addPlayer(state, name, START);
 }
 
 /** Same players, everything else back to zero. */
@@ -55,6 +58,10 @@ export function newMatch(state, settings = state.settings) {
 		winner: null,
 	};
 }
+
+export const OPTIONS = [
+	{ key: 'dropBack', label: 'Miss: back to last checkout', title: 'Three visits without a checkout send you back to the last target you checked out' },
+];
 
 /** Targets left to play this leg. */
 export const canThrow = p => p.round < ONE21.rounds;
@@ -85,11 +92,12 @@ export function submitTurn(state, score, darts = null) {
 	if (player.score === 0) {
 		turn.checkout = true;
 		turn.target = before.target;
-		player = { ...player, target: before.target + 1 };
+		player = { ...player, target: before.target + 1, safe: before.target };
 		event = 'checkout';
 	} else if (player.visit >= ONE21.visits) {
 		turn.missed = true;
 		event = 'missed';
+		if (state.settings.dropBack) player = { ...player, target: player.safe || ONE21.start };
 	}
 	player.turns = [...before.turns, turn];
 	const players = state.players.slice();
@@ -146,9 +154,11 @@ export function restoreGame(raw) {
 	const settings = normalizeSettings(raw.settings);
 	const state = restoreMatch(raw, settings, p => {
 		const target = clampInt(p.target, ONE21.start, ONE21.start + ONE21.rounds, ONE21.start);
+		const safe = clampInt(p.safe, 0, ONE21.start + ONE21.rounds - 1, 0);
 		return {
 			score: clampInt(p.score, 0, target, target),
 			target,
+			safe: safe >= ONE21.start ? safe : 0,
 			visit: clampInt(p.visit, 0, ONE21.visits - 1, 0),
 			round: clampInt(p.round, 0, ONE21.rounds, 0),
 		};
@@ -161,6 +171,9 @@ export function restoreGame(raw) {
 // ---- How it shows -----------------------------------------------------------
 
 export const scoreText = player => player.score;
+
+/** Beside the score when the stats line has no room: the target it is left of. */
+export const scoreNote = player => `/${player.target}`;
 
 /** What checkout suggestions start from: what is left of the target. */
 export const checkoutFrom = player => (canThrow(player) ? player.score : null);

@@ -18,7 +18,8 @@ test('a game without a mode is X01, and every mode has the same parts', () => {
 	for (const [key, mode] of Object.entries(MODES)) {
 		assert.equal(mode.id, key);
 		for (const part of parts) assert.equal(typeof mode[part], 'function', `${key}.${part}`);
-		assert.ok(mode.STAT_ROWS.length && Number.isInteger(mode.maxInput));
+		assert.ok(mode.STAT_ROWS.length && Number.isInteger(mode.maxInput) && Array.isArray(mode.OPTIONS));
+		for (const { key } of mode.OPTIONS) assert.equal(mode.normalizeSettings({ [key]: true, ring: 'any' })[key], true, `${key} is kept`);
 	}
 });
 
@@ -32,7 +33,7 @@ test('switching mode keeps the players and their order, nothing else', () => {
 		{ id: 2, name: 'Bob', step: 0, legs: 0, sets: 0, turns: [] },
 	]);
 	assert.equal(clock.nextId, 3);
-	assert.deepEqual(clock.settings, { ring: 'double', legs: 2, sets: 1, practice: false });
+	assert.deepEqual(clock.settings, { ring: 'double', skip: false, legs: 2, sets: 1, practice: false });
 	assert.equal(choiceOf(clock).value, 'clock-double');
 
 	// And back: an X01 game as if it had never been anything else.

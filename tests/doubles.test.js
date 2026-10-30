@@ -104,3 +104,13 @@ test('a saved game loads back the same', () => {
 	assert.deepEqual(broken.players[0].round, 21);
 	assert.deepEqual(broken.results, [null]);
 });
+
+test('play on: below zero is not out', () => {
+	const alone = Doubles.addPlayer(Doubles.createGame({ legs: 1, sets: 1, playOn: true }), 'Ann');
+	assert.equal(alone.settings.playOn, true);
+	const { state, event } = play(alone, 0, 0, 0, 0, 0);
+	assert.equal(state.players[0].score, 27 - 2 - 4 - 6 - 8 - 10);
+	assert.equal(state.players[0].out, false);
+	assert.equal(event, 'turn');
+	assert.equal(Doubles.canThrow(state.players[0]), true);
+});

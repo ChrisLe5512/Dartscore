@@ -1,7 +1,8 @@
 // Doubles practice: everyone starts on 27 and goes round the doubles, D1 to
 // D20 then the bullseye, one visit at each. Every double hit adds its value;
 // a visit that hits none takes the double's value off, and at 0 or below a
-// player is out. When everyone is round or out, the highest score still in
+// player is out (or, with playOn, plays on below zero). When everyone is round
+// or out, the highest score still in
 // wins the leg (a tie draws it). Pure, like game.js.
 
 import { CLOCK_TARGETS, DARTS_PER_TURN, DEFAULT_SETTINGS, DOUBLES_START } from './config.js';
@@ -12,7 +13,7 @@ export { canAddPlayer, movePlayer, movePlayerTo, renamePlayer } from './game.js'
 
 /**
  * State: as in game.js, plus mode: 'doubles' and results.
- *   settings: { legs, sets, practice }
+ *   settings: { legs, sets, practice, playOn }
  *   players: [{ id, name, score, round, out, legs, sets, turns }], round: doubles thrown at this leg
  *   turns: [{ score, made, leg, darts?, hits? }], score: points won or lost, made: doubles hit
  *   results: per leg played, the id of the player who won it, or null if drawn
@@ -20,7 +21,7 @@ export { canAddPlayer, movePlayer, movePlayerTo, renamePlayer } from './game.js'
 export const id = 'doubles';
 
 export function normalizeSettings(settings = {}) {
-	return matchSettings({ ...DEFAULT_SETTINGS, ...settings });
+	return { ...matchSettings({ ...DEFAULT_SETTINGS, ...settings }), playOn: Boolean(settings.playOn) };
 }
 
 export function createGame(settings = {}) {
@@ -62,6 +63,10 @@ export const visitPoints = (target, made) => (made ? made * target * 2 : -target
 
 const doublesHit = (darts, target) => darts.filter(d => d.sector === target && d.multiplier === 2).length;
 
+export const OPTIONS = [
+	{ key: 'playOn', label: 'Play on below 0', title: 'Going to 0 or below doesn\'t put you out' },
+];
+
 /** The keypad enters how many doubles the visit hit. */
 export const maxInput = DARTS_PER_TURN;
 export const isValidInput = n => Number.isInteger(n) && n >= 0 && n <= DARTS_PER_TURN;
@@ -82,7 +87,7 @@ export function submitTurn(state, score, darts = null) {
 
 	const players = state.players.slice();
 	const player = { ...before, score: before.score + turn.score, round: before.round + 1, turns: [...before.turns, turn] };
-	if (player.score <= 0) player.out = true;
+	if (player.score <= 0 && !state.settings.playOn) player.out = true;
 	players[state.active] = player;
 	return moveOn({ ...state, players }, player.out ? 'out' : 'turn');
 }

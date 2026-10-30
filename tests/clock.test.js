@@ -15,7 +15,7 @@ function play(state, ...visits) {
 test('players start on 1 and the keypad enters targets hit', () => {
 	let s = twoPlayers();
 	assert.equal(s.mode, 'clock');
-	assert.deepEqual(s.settings, { ring: 'any', legs: 1, sets: 1, practice: false });
+	assert.deepEqual(s.settings, { ring: 'any', skip: false, legs: 1, sets: 1, practice: false });
 	assert.equal(Clock.scoreText(s.players[0], s), '1');
 	const { state, event } = play(s, 2);
 	assert.equal(event, 'turn');
@@ -76,11 +76,11 @@ test('going round wins the leg and the match', () => {
 
 test('stats and history marks', () => {
 	const { state } = play(twoPlayers(), 3, 0, 1);
-	assert.deepEqual(Clock.statsLine(state.players[0]), [['Hits', 4], ['Darts', 6], ['Rate', '67%']]);
-	assert.deepEqual(Clock.statsLine(state.players[1]), [['Hits', 0], ['Darts', 3], ['Rate', '0%']]);
+	assert.deepEqual(Clock.statsLine(state.players[0], state), [['Hits', 4], ['Darts', 6], ['Rate', '67%']]);
+	assert.deepEqual(Clock.statsLine(state.players[1], state), [['Hits', 0], ['Darts', 3], ['Rate', '0%']]);
 	assert.deepEqual(Clock.historyMarks(state.players[0].turns), [['ton-forty'], []]);
 	assert.deepEqual(Clock.historyMarks(state.players[1].turns), [['zero']]);
-	assert.equal(Clock.turnLabel(state.players[0].turns[1]), '1 hit');
+	assert.equal(Clock.turnLabel(state.players[0].turns[1]), '1 target');
 });
 
 test('a saved game loads back the same, and bad values are repaired', () => {
@@ -98,4 +98,28 @@ test('new match keeps the players and starts them on 1', () => {
 	const fresh = Clock.newMatch(state, { ring: 'treble' });
 	assert.equal(fresh.settings.ring, 'treble');
 	assert.deepEqual(fresh.players.map(p => [p.name, p.step, p.turns.length]), [['Ann', 0, 0], ['Bob', 0, 0]]);
+});
+
+test('skip: a double moves on two targets and a treble three; only when any bed counts', () => {
+	let s = twoPlayers({ skip: true });
+	assert.equal(s.settings.skip, true);
+	assert.equal(twoPlayers({ skip: true, ring: 'double' }).settings.skip, false);
+	// On 1: D1 moves to 3, T3 to 6, a single 6 to 7.
+	let { state } = play(s, [makeDart(1, 2), makeDart(3, 3), makeDart(6, 1)]);
+	assert.equal(state.players[0].step, 6);
+	assert.equal(state.players[0].turns[0].score, 6);
+	assert.equal(Clock.scoreText(state.players[0], state), '7');
+	// The keypad enters targets moved on, up to nine.
+	assert.equal(Clock.inputMax(state), 9);
+	assert.equal(Clock.isValidInput(9, state), true);
+	assert.equal(Clock.isValidInput(10, state), false);
+	({ state } = play(state, 9));
+	assert.equal(state.players[1].step, 9);
+	assert.deepEqual(Clock.statsLine(state.players[0], state), [['Moved', 6], ['Darts', 3], ['Per dart', '2.00']]);
+	// Never past the bull: a treble 20 from 19 goes round.
+	s = { ...twoPlayers({ skip: true }) };
+	s.players = s.players.map(p => ({ ...p, step: 18 }));
+	({ state } = play(s, [makeDart(19, 3)]));
+	assert.equal(state.players[0].step, 21, 'round, on the bull');
+	assert.equal(Clock.hitsFrom(20, [makeDart(25, 2)], 'any', true), 1);
 });

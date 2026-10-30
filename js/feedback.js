@@ -32,7 +32,10 @@ export function describeTurn(before, event, score, after) {
 	if (event === 'draw') return { kind: 'info', title: 'Leg', detail: 'Drawn' };
 	if (event === 'out') return { kind: 'bust', title: 'Out', detail: name };
 	if (event === 'checkout') return { kind: 'win', title: 'Checkout', detail: next ? `${name} · ${next.target} next` : name };
-	if (event === 'missed') return { kind: 'bust', title: 'Missed', detail: next ? `${name} · ${next.target} again` : name };
+	if (event === 'missed') {
+		const again = next?.target === before.players[before.active].target;
+		return { kind: 'bust', title: 'Missed', detail: next ? `${name} · ${again ? `${next.target} again` : `back to ${next.target}`}` : name };
+	}
 	if (event === 'turn' && score === 180) return { kind: 'win', title: '180!', detail: name };
 	return null;
 }

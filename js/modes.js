@@ -17,6 +17,7 @@ const X01 = {
 	id: 'x01',
 	maxInput: MAX_TURN_SCORE,
 	isValidInput: Game.isValidTurnScore,
+	OPTIONS: [],
 	scoreText: player => player.score,
 	checkoutFrom: player => player.score,
 	hint: () => null,

@@ -1,6 +1,7 @@
 // Around the clock: hit 1, 2, 3 … 20 in order, then the bull. The first
-// player round wins the leg. Pure, like game.js: every function takes a state
-// and returns a new one.
+// player round wins the leg. With skip (any bed counts), a double moves you on
+// two targets and a treble three. Pure, like game.js: every function takes a
+// state and returns a new one.
 
 import { CLOCK_RINGS, CLOCK_TARGETS, DARTS_PER_TURN, DEFAULT_SETTINGS } from './config.js';
 import * as Game from './game.js';
@@ -10,15 +11,16 @@ export { canAddPlayer, movePlayer, movePlayerTo, removePlayer, renamePlayer, set
 
 /**
  * State: as in game.js, plus mode: 'clock'.
- *   settings: { ring, legs, sets, practice }, ring: the beds that count, one of CLOCK_RINGS
- *   players: [{ id, name, step, legs, sets, turns }], step: targets hit so far this leg
- *   turns: [{ score, leg, darts?, hits?, checkout? }], score: targets hit in the visit
+ *   settings: { ring, skip, legs, sets, practice }, ring: the beds that count, one of CLOCK_RINGS
+ *   players: [{ id, name, step, legs, sets, turns }], step: targets passed so far this leg
+ *   turns: [{ score, leg, darts?, hits?, checkout? }], score: targets the visit moved on
  */
 export const id = 'clock';
 
 export function normalizeSettings(settings = {}) {
 	const s = { ...DEFAULT_SETTINGS, ...settings };
-	return { ring: CLOCK_RINGS.includes(s.ring) ? s.ring : CLOCK_RINGS[0], ...matchSettings(s) };
+	const ring = CLOCK_RINGS.includes(s.ring) ? s.ring : CLOCK_RINGS[0];
+	return { ring, skip: ring === 'any' && Boolean(s.skip), ...matchSettings(s) };
 }
 
 export function createGame(settings = {}) {
@@ -51,20 +53,26 @@ export function counts(dart, target, ring) {
 	return true;
 }
 
-/** How many targets these darts hit in order, starting from `step`. */
-export function hitsFrom(step, darts, ring) {
+/** How many targets these darts move on, in order, starting from `step` (with skip, a double is two and a treble three). */
+export function hitsFrom(step, darts, ring, skip = false) {
 	let hits = 0;
 	for (const dart of darts) {
 		const target = CLOCK_TARGETS[step + hits];
 		if (target === undefined) break;
-		if (counts(dart, target, ring)) hits++;
+		if (counts(dart, target, ring)) hits += skip ? dart.multiplier : 1;
 	}
-	return hits;
+	return Math.min(hits, CLOCK_TARGETS.length - step);
 }
 
-/** The keypad enters how many targets the visit hit. */
+/** Each game's own options, as checkboxes in Settings (applies: whether it means anything with these settings). */
+export const OPTIONS = [
+	{ key: 'skip', label: 'Skip ahead', title: 'A double moves you on two targets, a treble three', applies: s => s.ring === 'any' },
+];
+
+/** The keypad enters how many targets the visit moved on: one per dart, or with skip up to three. */
 export const maxInput = DARTS_PER_TURN;
-export const isValidInput = n => Number.isInteger(n) && n >= 0 && n <= DARTS_PER_TURN;
+export const inputMax = state => (state.settings.skip ? DARTS_PER_TURN * 3 : DARTS_PER_TURN);
+export const isValidInput = (n, state) => Number.isInteger(n) && n >= 0 && n <= (state ? inputMax(state) : maxInput);
 
 /**
  * Record a visit for the active player: the darts thrown, or (from the
@@ -73,10 +81,11 @@ export const isValidInput = n => Number.isInteger(n) && n >= 0 && n <= DARTS_PER
  */
 export function submitTurn(state, score, darts = null) {
 	if (state.players.length === 0 || state.winner !== null) return { state, event: null };
-	if (!darts?.length && !isValidInput(score)) return { state, event: null };
+	if (!darts?.length && !isValidInput(score, state)) return { state, event: null };
 	const before = state.players[state.active];
 	const left = CLOCK_TARGETS.length - before.step;
-	const hits = Math.min(left, darts?.length ? hitsFrom(before.step, darts, state.settings.ring) : score);
+	const { ring, skip } = state.settings;
+	const hits = Math.min(left, darts?.length ? hitsFrom(before.step, darts, ring, skip) : score);
 	const turn = makeTurn(hits, darts, state.leg);
 	if (hits === left) turn.checkout = true;
 
@@ -114,17 +123,17 @@ export const hint = () => null;
 /** What the darts on the board so far would hit, for the darts column. */
 export function dartsValue(state, darts) {
 	const player = state.players[state.active];
-	return player ? hitsFrom(player.step, darts, state.settings.ring) : 0;
+	return player ? hitsFrom(player.step, darts, state.settings.ring, state.settings.skip) : 0;
 }
 
 export const turnText = t => t.score;
-export const turnLabel = t => `${t.score} hit${t.score === 1 ? '' : 's'}`;
+export const turnLabel = t => `${t.score} target${t.score === 1 ? '' : 's'}`;
 
 export function historyMarks(turns) {
 	return turns.map(t => {
 		const marks = [];
 		if (t.score === 0) marks.push('zero');
-		if (t.score === DARTS_PER_TURN) marks.push('ton-forty');
+		if (t.score >= DARTS_PER_TURN) marks.push('ton-forty');
 		if (t.checkout) marks.push('finish');
 		if (t.darts?.includes('B')) marks.push('bull');
 		return marks;
@@ -135,7 +144,7 @@ export function historyMarks(turns) {
 const dartsIn = t => (t.checkout ? t.darts?.length || DARTS_PER_TURN : DARTS_PER_TURN);
 const percent = n => `${Math.round(n * 100)}%`;
 
-/** legs: legs won; hits, darts; bestLeg: fewest darts to go round; threes: visits that hit three. */
+/** legs: legs won; hits: targets moved on; darts; bestLeg: fewest darts to go round; threes: visits that moved three or more. */
 export function matchStats(player) {
 	let hits = 0;
 	let darts = 0;
@@ -149,7 +158,7 @@ export function matchStats(player) {
 		hits += t.score;
 		darts += dartsIn(t);
 		legDarts += dartsIn(t);
-		if (t.score === DARTS_PER_TURN) threes++;
+		if (t.score >= DARTS_PER_TURN) threes++;
 		if (t.checkout) {
 			legs++;
 			bestLeg = Math.min(bestLeg ?? Infinity, legDarts);
@@ -158,15 +167,19 @@ export function matchStats(player) {
 	return { hits, darts, visits: player.turns.length, legs, threes, bestLeg };
 }
 
+// With skip a dart can move on more than one target, so the rate is per dart, not a percentage.
+const rate = (n, settings) => (settings.skip ? n.toFixed(2) : percent(n));
+
 /** The stats line under a player: [label, value] three times. */
-export function statsLine(player) {
+export function statsLine(player, state) {
 	const { hits, darts } = matchStats(player);
-	return [['Hits', hits], ['Darts', darts], ['Rate', darts ? percent(hits / darts) : '–']];
+	const { skip } = state.settings;
+	return [[skip ? 'Moved' : 'Hits', hits], ['Darts', darts], [skip ? 'Per dart' : 'Rate', darts ? rate(hits / darts, state.settings) : '–']];
 }
 
 export const STAT_ROWS = [
 	{ label: 'Legs won', value: s => s.legs },
-	{ label: 'Hit rate', value: s => (s.darts ? s.hits / s.darts : null), show: percent, note: s => `${s.hits}/${s.darts}` },
+	{ label: settings => (settings.skip ? 'Targets per dart' : 'Hit rate'), value: s => (s.darts ? s.hits / s.darts : null), show: rate, note: s => `${s.hits}/${s.darts}` },
 	{ label: 'Best leg', value: s => s.bestLeg, show: n => `${n} darts`, low: true },
 	{ label: 'Three in a visit', value: s => s.threes },
 ];
