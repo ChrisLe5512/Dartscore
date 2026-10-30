@@ -187,11 +187,12 @@ test('restoreGame keeps valid hits and drops broken ones', () => {
 	assert.equal(turns[2].hits, undefined);
 });
 
-test('playerStats gives the three-dart average, darts thrown and best turn', () => {
-	assert.deepEqual(playerStats({ turns: [] }), { average: 0, darts: 0, best: 0 });
+test('playerStats gives the three-dart average, darts thrown, visits and best turn', () => {
+	assert.deepEqual(playerStats({ turns: [] }), { average: 0, darts: 0, visits: 0, best: 0 });
 	const player = { turns: [{ score: 100 }, { score: 0, bust: true }, { score: 41, darts: ['T7', 'D10'] }] };
 	const stats = playerStats(player);
 	assert.equal(stats.darts, 8);
+	assert.equal(stats.visits, 3);
 	assert.equal(stats.best, 100);
 	assert.equal(stats.average.toFixed(2), (141 / 8 * 3).toFixed(2));
 });

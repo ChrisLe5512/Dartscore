@@ -218,8 +218,9 @@ const round3 = n => Math.round(n * 1000) / 1000;
 // ---- Stats ------------------------------------------------------------------
 
 /**
- * Match stats for one player. Keypad turns count as three darts; board turns
- * count the darts tapped. Busts score nothing but their darts still count.
+ * Match stats for one player. visits: turns at the board. The three-dart average
+ * counts keypad turns as three darts and board turns as the darts tapped; busts
+ * score nothing but their darts still count.
  */
 export function playerStats(player) {
 	let points = 0;
@@ -230,7 +231,7 @@ export function playerStats(player) {
 		darts += t.darts?.length || 3;
 		best = Math.max(best, t.score);
 	}
-	return { average: darts ? points / darts * 3 : 0, darts, best };
+	return { average: darts ? points / darts * 3 : 0, darts, visits: player.turns.length, best };
 }
 
 // ---- Persistence ------------------------------------------------------------

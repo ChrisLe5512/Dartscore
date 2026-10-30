@@ -167,7 +167,7 @@ function createPlayerRows(player) {
 			<div class="stats">
 				<span>Avg <b class="stat-average"></b></span>
 				<span>Best <b class="stat-best"></b></span>
-				<span>Darts <b class="stat-darts"></b></span>
+				<span>Visits <b class="stat-visits"></b></span>
 			</div>
 			<div class="big-score"></div>
 		</div></td>`;
@@ -355,11 +355,11 @@ function renderCheckout(historyRow, player, isActive) {
 }
 
 function renderStats(statsRow, player) {
-	const { average, darts, best } = Game.playerStats(player);
-	const none = darts === 0; // nothing thrown yet
+	const { average, visits, best } = Game.playerStats(player);
+	const none = visits === 0; // nothing thrown yet
 	$('.stat-average', statsRow).textContent = none ? '–' : average.toFixed(1);
 	$('.stat-best', statsRow).textContent = none ? '–' : best;
-	$('.stat-darts', statsRow).textContent = darts;
+	$('.stat-visits', statsRow).textContent = visits;
 }
 
 // ---- Player names -------------------------------------------------------------
