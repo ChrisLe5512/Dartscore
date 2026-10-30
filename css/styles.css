@@ -713,14 +713,20 @@ aside.keypad-hidden .calc-section {
    rows get .review-focus. */
 .ctrl-section,
 .dartboard-section,
-.btn-section,
-.calc-section {
+.btn-section {
 	transition: opacity var(--medium) var(--ease-out);
 }
 
-body.menu-focus :is(.ctrl-section, .dartboard-section, .btn-section, .calc-section),
-body.review-focus :is(.ctrl-section, .btn-section, .calc-section) {
+body.menu-focus :is(.ctrl-section, .dartboard-section, .btn-section),
+body.review-focus :is(.ctrl-section, .btn-section) {
 	opacity: 0.4;
+}
+
+/* The keypad sits on the lighter side panel, where fading would wash it out:
+   it darkens like the player rows above it instead (its transition is set
+   with its fold-away one, under CALCULATOR). */
+body:is(.menu-focus, .review-focus) .calc-section {
+	filter: var(--dim);
 }
 
 /* The sections themselves let taps through; their buttons and the board opt back in. */
@@ -947,7 +953,7 @@ body:is(.menu-focus, .review-focus) #dartboard {
 	height: 40%;
 	flex: none;
 	overflow: hidden;
-	transition: height var(--medium) var(--ease-out), visibility var(--medium);
+	transition: height var(--medium) var(--ease-out), visibility var(--medium), filter var(--medium) var(--ease-out);
 	font-family: var(--font);
 	font-weight: 500;
 }
@@ -1795,7 +1801,7 @@ td.calc-score:not(.disabled) {
 	.calc-section {
 		width: calc(var(--band) * 0.82);
 		height: 100%;
-		transition: width var(--medium) var(--ease-out), visibility var(--medium);
+		transition: width var(--medium) var(--ease-out), visibility var(--medium), filter var(--medium) var(--ease-out);
 	}
 
 	aside.keypad-hidden .scores-section {
