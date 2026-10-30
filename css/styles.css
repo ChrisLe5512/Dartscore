@@ -611,7 +611,7 @@ aside.keypad-hidden .calc-section {
 
 .player-score {
 	width: calc(12vmin * var(--s));
-	padding-right: 0.5vw;
+	padding-right: 1.4vmin;
 	font-size: calc(7.5vmin * var(--s));
 	text-align: right;
 	text-shadow: 0 0 1vmin black;
@@ -704,7 +704,7 @@ aside.keypad-hidden .calc-section {
 }
 
 .stats-cell {
-	padding: 0 0.5vw 0 1vw;
+	padding: 0 1.4vmin 0 1vw;
 }
 
 .stats-line {
@@ -1300,6 +1300,11 @@ td.back-score {
 	from { opacity: 0; transform: translateX(-2vmin); }
 }
 
+/* In portrait the menu opens above the scores, so it rises from them. */
+@keyframes menu-up {
+	from { opacity: 0; transform: translateY(2vmin); }
+}
+
 /* TOAST */
 
 .toast {
@@ -1533,11 +1538,16 @@ td.calc-score:not(.disabled) {
 		margin: 0;
 	}
 
+	/* Line the right-hand column up with the keypad below: each of its columns is one
+	   keypad key wide, so BUST and DONE are exactly two keys. The button table has
+	   three columns at 296% of this section, with 5px spacing. */
 	.btn-section {
+		--key: calc((var(--band) * 0.82 - 5 * 5px) / 4);
+		--section: calc((3 * var(--key) + 4 * 5px) / 2.96);
 		justify-self: end;
 		height: 100%;
-		width: 13vmin;
-		right: 12.8vmin;
+		width: var(--section);
+		right: calc(3 * 5px + 2 * var(--key) - var(--section));
 	}
 
 	aside {
@@ -1584,6 +1594,10 @@ td.calc-score:not(.disabled) {
 
 	.keypad-btn[aria-expanded="false"] span {
 		transform: rotate(90deg);
+	}
+
+	.player-menu.opening {
+		animation-name: menu-up;
 	}
 
 	.toast {
