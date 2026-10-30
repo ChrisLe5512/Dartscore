@@ -719,7 +719,8 @@ playerMenu.addEventListener('keydown', event => {
 });
 
 // While the menu or a past turn is open, a tap anywhere else only closes it:
-// the tap doesn't also press, type or throw on whatever is underneath.
+// the tap doesn't also press, type or throw on whatever is underneath. The one
+// exception: a tap on another player's card moves the menu straight to them.
 // The tap's click can come a while after the finger lifts (touch), so it is
 // swallowed whenever it comes, unless a new tap starts first (a drag has none).
 let swallowClick = false;
@@ -728,6 +729,9 @@ document.addEventListener('pointerdown', event => {
 	swallowClick = false;
 	if (menuFor !== null) {
 		if (playerMenu.contains(event.target)) return;
+		const card = event.target.closest('[data-id]');
+		if (card && scoresBody.contains(card) && Number(card.dataset.id) !== menuFor
+			&& !event.target.closest('.leg-dot, span.has-hits, .checkout:not(.hint)')) return; // its click opens their menu
 		closePlayerMenu();
 	} else if (review !== null) {
 		// Another of the same player's board turns: the tap just switches to it.
@@ -1126,90 +1130,37 @@ function toggleFullscreen() {
 // ---- Settings ---------------------------------------------------------------
 
 const settingsDialog = $('#settings');
-const gameSelect = $('#game-choice');
-const legsInput = $('#num-legs');
-const setsInput = $('#num-sets');
-const doubleOutInput = $('#double-out');
-const practiceInput = $('#practice');
+const settingsSummary = $('.settings-summary', settingsDialog);
 const playersScroll = $('.players-scroll');
 const playersList = $('.players-list');
 const playersAddBtn = $('.players-add');
-const noteRow = $('.settings-note-row');
-const newGameBtn = $('[data-action="new-game"]', settingsDialog);
-const settingsDoneBtn = $('[data-action="close"]', settingsDialog);
-const optionsRow = $('.mode-options', settingsDialog);
-// The options as ticked, by key, kept while other games are picked in the form.
-const optionChecks = new Map();
 
-// The Game picker: X01's start scores, then the practice games.
-for (const group of new Set(GAME_CHOICES.map(choice => choice.group))) {
-	const optgroup = document.createElement('optgroup');
-	optgroup.label = group;
-	optgroup.append(...GAME_CHOICES.filter(choice => choice.group === group).map(choice => new Option(choice.label, choice.value)));
-	gameSelect.append(optgroup);
-}
-legsInput.max = MAX_LEGS;
-setsInput.max = MAX_SETS;
 $('.settings-version', settingsDialog).textContent = `v${self.DARTSCORE_VERSION ?? ''}`;
 
-/** The form as { mode, settings }, the settings as that mode keeps them. */
-function readSettingsForm() {
-	const choice = GAME_CHOICES.find(c => c.value === gameSelect.value) ?? GAME_CHOICES[0];
-	return {
-		mode: choice.mode,
-		settings: MODES[choice.mode].normalizeSettings({
-			legs: legsInput.value,
-			sets: setsInput.value,
-			doubleOut: doubleOutInput.checked,
-			practice: practiceInput.checked,
-			...Object.fromEntries(optionChecks),
-			...choice.settings,
-		}),
-	};
-}
-
-const sameSettings = ({ mode: id, settings }, state) => id === modeOf(state).id
-	&& Object.keys(settings).every(key => settings[key] === state.settings[key]);
-
 function openSettings() {
-	const { legs, sets, doubleOut, practice } = game.settings;
-	gameSelect.value = choiceOf(game).value;
-	legsInput.value = legs;
-	setsInput.value = sets;
-	doubleOutInput.checked = doubleOut ?? DEFAULT_SETTINGS.doubleOut; // for a game switched to that has it
-	practiceInput.checked = practice;
-	optionChecks.clear();
-	for (const { key } of mode().OPTIONS) optionChecks.set(key, Boolean(game.settings[key]));
 	renderSettings();
 	openDialog(settingsDialog);
 }
 
-/** A new match as the form is set: the mode picked, with the same players. */
-const matchFromForm = () => {
-	const { mode: id, settings } = readSettingsForm();
-	return startMatch(game, id, settings);
-};
-
 function closeSettings() {
-	// Before the first throw, new settings apply straight away.
-	if (!matchStarted() && !sameSettings(readSettingsForm(), game)) commit(matchFromForm());
 	closeDialog(settingsDialog);
 }
 
+/** The game being played, in a line: "501 · first to 3 legs · double out". */
+function gameSummary() {
+	const { legs, sets, practice, doubleOut } = game.settings;
+	const parts = [mode().title(game.settings)];
+	if (practice) parts.push('practice');
+	else parts.push(`first to ${legs} leg${legs === 1 ? '' : 's'}${sets > 1 ? `, ${sets} sets` : ''}`);
+	if (doubleOut) parts.push('double out');
+	for (const option of mode().OPTIONS) if (game.settings[option.key]) parts.push(option.label.toLowerCase());
+	return parts.join(' · ');
+}
+
+// Settings: what can change during a game (the players, the board's look).
+// What to play is the New game screen's.
 function renderSettings() {
-	const form = readSettingsForm();
-	// Mid-match, changed game settings only take effect as a new game: say so,
-	// and make the two ways out plain (start it, or cancel the changes).
-	const pending = matchStarted() && !sameSettings(form, game);
-	noteRow.hidden = !pending;
-	newGameBtn.textContent = pending ? 'Start new game' : 'New game';
-	newGameBtn.classList.toggle('primary', pending);
-	settingsDoneBtn.textContent = pending ? 'Cancel' : 'Done';
-	// Practice has no legs or sets to reach; only some games finish on a double.
-	legsInput.disabled = practiceInput.checked;
-	setsInput.disabled = practiceInput.checked;
-	doubleOutInput.disabled = !('doubleOut' in form.settings);
-	renderOptions(form);
+	settingsSummary.textContent = gameSummary();
 
 	const items = game.players.map((player, index) => {
 		const item = document.createElement('li');
@@ -1245,30 +1196,6 @@ function renderSettings() {
 	playersList.replaceChildren(...items);
 	playersAddBtn.hidden = !mode().canAddPlayer(game);
 	updateListFades();
-}
-
-/** The picked game's own options as checkboxes; the line is hidden for games without any. */
-function renderOptions(form) {
-	const options = MODES[form.mode].OPTIONS.filter(option => option.applies?.(form.settings) ?? true);
-	const cell = optionsRow.firstElementChild;
-	const key = options.map(option => option.key).join();
-	optionsRow.hidden = !options.length;
-	if (cell.dataset.key === key) return; // rebuilt only when the options change, so a tick keeps its focus
-	cell.dataset.key = key;
-	cell.replaceChildren(...options.map(({ key: name, label, title }) => {
-		const box = document.createElement('label');
-		box.className = 'settings-check';
-		box.title = title;
-		const input = document.createElement('input');
-		input.type = 'checkbox';
-		input.checked = optionChecks.get(name) ?? false;
-		input.addEventListener('change', () => {
-			optionChecks.set(name, input.checked);
-			renderSettings();
-		});
-		box.append(input, ` ${label}`);
-		return box;
-	}));
 }
 
 const DRAG_FROM = 6; // px the pointer moves before a press on a player becomes a drag
@@ -1396,13 +1323,6 @@ function updateListFades() {
 	playersScroll.classList.toggle('fade-bottom', scrollTop + clientHeight < scrollHeight - 1);
 }
 
-[gameSelect, legsInput, setsInput, doubleOutInput, practiceInput].forEach(el => {
-	el.addEventListener('change', renderSettings);
-	el.addEventListener('input', renderSettings);
-});
-legsInput.addEventListener('blur', () => { legsInput.value = readSettingsForm().settings.legs; });
-setsInput.addEventListener('blur', () => { setsInput.value = readSettingsForm().settings.sets; });
-
 playersScroll.addEventListener('scroll', updateListFades, { passive: true });
 new ResizeObserver(updateListFades).observe(playersScroll);
 
@@ -1418,15 +1338,158 @@ playersAddBtn.addEventListener('click', () => {
 settingsDialog.addEventListener('click', event => {
 	const action = event.target.closest('[data-action]')?.dataset.action;
 	if (action === 'new-game') {
-		clearTurn();
-		commit(matchFromForm());
 		closeDialog(settingsDialog);
-		showToast({ kind: 'info', title: 'New game', detail: `${mode().title(game.settings)}` });
+		openNewGame();
 	} else if (action === 'close' || event.target === settingsDialog) {
 		closeSettings();
 	} else if (action === 'visuals') {
 		openVisuals();
 	}
+});
+
+// ---- New game -------------------------------------------------------------------
+
+// What to play: picked fresh each time and started with the same players
+// (names and order; everything else back to the start). Everything only a
+// new game can change lives here, so nothing is ever left half-changed.
+const newGameDialog = $('#new-game');
+const choicesBox = $('.game-choices', newGameDialog);
+const legsInput = $('#num-legs');
+const setsInput = $('#num-sets');
+const doubleOutInput = $('#double-out');
+const practiceInput = $('#practice');
+const optionsRow = $('.mode-options', newGameDialog);
+const playersLine = $('.new-game-players', newGameDialog);
+// The options as ticked, by key, kept while other games are picked.
+const optionChecks = new Map();
+let picked = GAME_CHOICES[0].value;
+
+// A tile per game, under its group's heading (X01, Practice).
+for (const group of new Set(GAME_CHOICES.map(choice => choice.group))) {
+	const heading = document.createElement('h3');
+	heading.className = 'game-group';
+	heading.textContent = group;
+	const tiles = document.createElement('div');
+	tiles.className = 'game-tiles';
+	tiles.setAttribute('role', 'radiogroup');
+	tiles.setAttribute('aria-label', group);
+	tiles.append(...GAME_CHOICES.filter(choice => choice.group === group).map(choice => {
+		const tile = document.createElement('button');
+		tile.type = 'button';
+		tile.className = 'game-tile';
+		tile.dataset.value = choice.value;
+		tile.setAttribute('role', 'radio');
+		const label = document.createElement('b');
+		label.textContent = choice.label;
+		tile.append(label);
+		if (choice.note) {
+			const note = document.createElement('small');
+			note.textContent = choice.note;
+			tile.append(note);
+		}
+		return tile;
+	}));
+	choicesBox.append(heading, tiles);
+}
+legsInput.max = MAX_LEGS;
+setsInput.max = MAX_SETS;
+
+choicesBox.addEventListener('click', event => {
+	const tile = event.target.closest('.game-tile');
+	if (!tile) return;
+	picked = tile.dataset.value;
+	renderNewGame();
+});
+
+/** The form as { mode, settings }, the settings as that mode keeps them. */
+function readGameForm() {
+	const choice = GAME_CHOICES.find(c => c.value === picked) ?? GAME_CHOICES[0];
+	return {
+		mode: choice.mode,
+		settings: MODES[choice.mode].normalizeSettings({
+			legs: legsInput.value,
+			sets: setsInput.value,
+			doubleOut: doubleOutInput.checked,
+			practice: practiceInput.checked,
+			...Object.fromEntries(optionChecks),
+			...choice.settings,
+		}),
+	};
+}
+
+/** Opens set to the game being played, so Start alone plays a fresh one of the same. */
+function openNewGame() {
+	const { legs, sets, doubleOut, practice } = game.settings;
+	picked = choiceOf(game).value;
+	legsInput.value = legs;
+	setsInput.value = sets;
+	doubleOutInput.checked = doubleOut ?? DEFAULT_SETTINGS.doubleOut; // for a game switched to that has it
+	practiceInput.checked = practice;
+	optionChecks.clear();
+	for (const { key } of mode().OPTIONS) optionChecks.set(key, Boolean(game.settings[key]));
+	renderNewGame();
+	openDialog(newGameDialog, $('[data-action="start"]', newGameDialog));
+}
+
+function renderNewGame() {
+	const form = readGameForm();
+	for (const tile of $$('.game-tile', choicesBox)) tile.setAttribute('aria-checked', String(tile.dataset.value === picked));
+	// Practice has no legs or sets to reach; only some games finish on a double.
+	legsInput.disabled = practiceInput.checked;
+	setsInput.disabled = practiceInput.checked;
+	doubleOutInput.disabled = !('doubleOut' in form.settings);
+	renderOptions(form);
+	const names = game.players.map(player => player.name);
+	playersLine.textContent = names.length
+		? `Players: ${names.join(', ')}`
+		: 'Add players on the scoreboard once it starts.';
+}
+
+function startNewGame() {
+	const { mode: id, settings } = readGameForm();
+	clearTurn();
+	commit(startMatch(game, id, settings));
+	closeDialog(newGameDialog);
+	showToast({ kind: 'info', title: 'New game', detail: mode().title(game.settings) });
+}
+
+/** The picked game's own options as checkboxes; the line is hidden for games without any. */
+function renderOptions(form) {
+	const options = MODES[form.mode].OPTIONS.filter(option => option.applies?.(form.settings) ?? true);
+	const cell = optionsRow.firstElementChild;
+	const key = options.map(option => option.key).join();
+	optionsRow.hidden = !options.length;
+	if (cell.dataset.key === key) return; // rebuilt only when the options change, so a tick keeps its focus
+	cell.dataset.key = key;
+	cell.replaceChildren(...options.map(({ key: name, label, title }) => {
+		const box = document.createElement('label');
+		box.className = 'settings-check';
+		box.title = title;
+		const input = document.createElement('input');
+		input.type = 'checkbox';
+		input.checked = optionChecks.get(name) ?? false;
+		input.addEventListener('change', () => {
+			optionChecks.set(name, input.checked);
+			renderNewGame();
+		});
+		box.append(input, ` ${label}`);
+		return box;
+	}));
+}
+
+
+[legsInput, setsInput, doubleOutInput, practiceInput].forEach(el => {
+	el.addEventListener('change', renderNewGame);
+	el.addEventListener('input', renderNewGame);
+});
+legsInput.addEventListener('blur', () => { legsInput.value = readGameForm().settings.legs; });
+setsInput.addEventListener('blur', () => { setsInput.value = readGameForm().settings.sets; });
+
+
+newGameDialog.addEventListener('click', event => {
+	const action = event.target.closest('[data-action]')?.dataset.action;
+	if (action === 'start') startNewGame();
+	else if (action === 'close' || event.target === newGameDialog) closeDialog(newGameDialog);
 });
 
 // ---- Settings: board and visuals ----------------------------------------------
@@ -1527,6 +1590,7 @@ winnerDialog.addEventListener('click', event => {
 		showToast({ kind: 'info', title: 'Rematch', detail: 'Game on' });
 	}
 	if (action || event.target === winnerDialog) closeDialog(winnerDialog);
+	if (action === 'new-game') openNewGame();
 });
 
 // ---- Match stats ----------------------------------------------------------------
@@ -1653,7 +1717,7 @@ document.addEventListener('keydown', event => {
 
 	if (event.key === 'Escape' && dialogs.length) {
 		if (!settingsDialog.hidden) closeSettings();
-		for (const dialog of [winnerDialog, confirmDialog, statsDialog]) closeDialog(dialog);
+		for (const dialog of [winnerDialog, confirmDialog, statsDialog, newGameDialog]) closeDialog(dialog);
 		return;
 	}
 	if (dialogs.length || event.target.closest('input, select, textarea')) return;
@@ -1716,6 +1780,10 @@ function render() {
 	renderDarts(); // and the scoreboard, whose checkout follows the darts
 	renderControls();
 	if (!settingsDialog.hidden) renderSettings();
+	if (!newGameDialog.hidden) renderNewGame();
 }
 
 render();
+// Opened with no game under way: start on the New game screen, set to the
+// last game played, so it's one tap to play it again or a few to change it.
+if (!matchStarted()) openNewGame();

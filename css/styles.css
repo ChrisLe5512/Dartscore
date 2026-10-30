@@ -417,11 +417,89 @@ aside.keypad-hidden .calc-section {
 	cursor: pointer;
 }
 
-.settings-note {
-	color: var(--text);
+/* Settings: the game being played, in a line under the heading. */
+.settings-summary {
+	margin: 1vmin 1vmin 0;
 	font-family: var(--font-condensed);
-	font-size: 2.5vmin;
+	font-size: 2.6vmin;
+	color: var(--text-soft);
+}
+
+/* New game: what to play as tiles, grouped, then its options and who plays. */
+.new-game-section {
+	width: max(50%, 78vmin);
+}
+
+.game-group {
+	margin: 1.6vmin 1vmin 1vmin;
+	font-family: var(--font-condensed);
+	font-size: 2.2vmin;
+	font-weight: 500;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
+.game-tiles {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 1.4vmin;
+	padding: 0 1vmin;
+}
+
+.game-tile {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.3vmin;
+	min-height: 9vmin;
+	padding: 1vmin;
+	font-family: var(--font-condensed);
+	color: var(--text);
+	text-shadow: 0 0 8px black;
+	border: var(--border);
+	border-radius: var(--radius);
+	background: var(--button);
+	cursor: pointer;
+	transition: transform var(--fast) var(--ease-out), border-color var(--medium), background var(--medium);
+}
+
+.game-tile:active {
+	transform: scale(0.96);
+}
+
+.game-tile b {
+	font-size: 3vmin;
+	font-weight: 500;
+}
+
+/* X01's tiles are just the start score: bigger. */
+.game-tile:not(:has(small)) b {
+	font-size: 4.4vmin;
+}
+
+.game-tile small {
+	font-size: 2vmin;
+	color: var(--text-soft);
+}
+
+.game-tile[aria-checked="true"] {
+	border-color: var(--checkout);
+	background: linear-gradient(#2e8a22, #1a5212);
+}
+
+.new-game-section .game-tbl {
+	margin-top: 1.6vmin;
+}
+
+.new-game-players {
+	margin: 1.4vmin 1vmin 0;
+	font-family: var(--font-condensed);
+	font-size: 2.4vmin;
 	text-align: center;
+	color: var(--text-soft);
+	overflow-wrap: anywhere;
 }
 
 .settings-btn-action {

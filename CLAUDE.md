@@ -13,7 +13,7 @@ Darts X01 scoreboard web app (301/501/701), built for tablets in landscape (16:1
 - `js/game.js`: pure X01 game state and rules (no DOM). Every function returns a new state.
 - `js/clock.js`, `js/doubles.js`, `js/one21.js`: the practice games (around the clock, doubles practice, 121), pure rules modules like `game.js`, each with how it shows (score text, stats line, history marks, STAT_ROWS).
 - `js/match.js`: what every mode shares (turn records, legs/sets via `endLeg`, restoring a save).
-- `js/modes.js`: the mode registry. `modeOf(state)` gives a game's rules and look (no `mode` = X01, so old saves load); `GAME_CHOICES` fills the Game picker. A new mode (cricket) is a new module with the same exports, added here.
+- `js/modes.js`: the mode registry. `modeOf(state)` gives a game's rules and look (no `mode` = X01, so old saves load); `GAME_CHOICES` fills the New game screen's tiles. A new mode (cricket) is a new module with the same exports, added here.
 - `js/checkout.js`: ranked checkout suggestions
 - `js/feedback.js`: status toast messages for turns and undo/redo (pure)
 - `js/board.js`: board geometry (adjustable ring layout), hit-testing and dart colours (pure)

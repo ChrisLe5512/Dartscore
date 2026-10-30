@@ -156,14 +156,38 @@
 
 		<div class="settings-background" id="settings" role="dialog" aria-modal="true" aria-label="Settings" tabindex="-1" hidden>
 			<section class="settings-section settings-main">
-				<h2 class="settings-heading">Game settings<span class="settings-version"></span></h2>
+				<h2 class="settings-heading">Settings<span class="settings-version"></span></h2>
+				<p class="settings-summary"></p>
+
+				<h2 class="settings-heading">Players</h2>
+				<div class="players-scroll">
+					<ol class="players-list"></ol>
+					<button type="button" class="players-add" aria-label="Add player">+</button>
+				</div>
+
+				<table class="settings-tbl">
+					<tbody>
+						<tr>
+							<td colspan="2"><button type="button" class="settings-btn-action settings-link" data-action="visuals">Board &amp; visuals &#8250;</button></td>
+						</tr>
+						<tr>
+							<td><button type="button" class="settings-btn-action" data-action="new-game">New game &#8250;</button></td>
+							<td><button type="button" class="settings-btn-action" data-action="close">Done</button></td>
+						</tr>
+					</tbody>
+				</table>
+			</section>
+
+		</div>
+
+		<!-- What to play: picked here, started fresh with the same players. -->
+		<div class="settings-background" id="new-game" role="dialog" aria-modal="true" aria-labelledby="new-game-title" tabindex="-1" hidden>
+			<section class="settings-section new-game-section">
+				<h2 class="settings-heading" id="new-game-title">New game</h2>
+				<div class="game-choices"></div>
 				<table class="settings-tbl game-tbl">
 					<tbody>
 						<tr>
-							<td>
-								<label for="game-choice">Game</label>
-								<select id="game-choice"></select>
-							</td>
 							<td>
 								<label for="num-legs">Legs to win</label>
 								<input type="number" id="num-legs" inputmode="numeric" min="1">
@@ -178,33 +202,20 @@
 							</td>
 						</tr>
 						<tr class="mode-options" hidden>
-							<td colspan="4"></td>
+							<td colspan="3"></td>
 						</tr>
 					</tbody>
 				</table>
-
-				<h2 class="settings-heading">Players</h2>
-				<div class="players-scroll">
-					<ol class="players-list"></ol>
-					<button type="button" class="players-add" aria-label="Add player">+</button>
-				</div>
-
+				<p class="new-game-players"></p>
 				<table class="settings-tbl">
 					<tbody>
 						<tr>
-							<td colspan="2"><button type="button" class="settings-btn-action settings-link" data-action="visuals">Board &amp; visuals &#8250;</button></td>
-						</tr>
-						<tr class="settings-note-row" hidden>
-							<td colspan="2" class="settings-note">These changes need a new game.</td>
-						</tr>
-						<tr>
-							<td><button type="button" class="settings-btn-action" data-action="new-game">New game</button></td>
-							<td><button type="button" class="settings-btn-action" data-action="close">Done</button></td>
+							<td><button type="button" class="settings-btn-action" data-action="close">Cancel</button></td>
+							<td><button type="button" class="settings-btn-action primary" data-action="start">Start</button></td>
 						</tr>
 					</tbody>
 				</table>
 			</section>
-
 		</div>
 
 		<div class="settings-background" id="winner" role="dialog" aria-modal="true" aria-label="Match won" tabindex="-1" hidden>
@@ -215,6 +226,7 @@
 					<tbody>
 						<tr>
 							<td><button type="button" class="settings-btn-action" data-action="rematch">Rematch</button></td>
+							<td><button type="button" class="settings-btn-action" data-action="new-game">New game &#8250;</button></td>
 							<td><button type="button" class="settings-btn-action" data-action="close">Close</button></td>
 						</tr>
 					</tbody>

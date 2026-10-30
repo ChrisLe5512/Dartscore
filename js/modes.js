@@ -69,18 +69,19 @@ export function startMatch(state, mode, settings) {
 /** The legs a player won (for the history's dots), or null where the visit that won a leg says so. */
 export const wonLegs = (state, player) => modeOf(state).wonLegs?.(state, player) ?? null;
 
-// The Game picker in Settings: X01 by its start score, then the practice games
-// (with around the clock's variants). Each choice is a mode and the settings it sets.
+// The New game screen's choices: X01 by its start score, then the practice
+// games (with around the clock's variants). Each choice is a mode and the
+// settings it sets; note says in a few words what it is.
 export const GAME_CHOICES = Object.freeze([
 	...START_SCORES.map(score => ({ value: String(score), label: String(score), group: 'X01', mode: 'x01', settings: { startScore: score } })),
-	{ value: 'clock', label: 'Around the clock', group: 'Practice', mode: 'clock', settings: { ring: 'any' } },
-	{ value: 'clock-double', label: 'Around the clock: doubles', group: 'Practice', mode: 'clock', settings: { ring: 'double' } },
-	{ value: 'clock-treble', label: 'Around the clock: trebles', group: 'Practice', mode: 'clock', settings: { ring: 'treble' } },
-	{ value: 'doubles', label: 'Doubles practice (27)', group: 'Practice', mode: 'doubles', settings: {} },
-	{ value: '121', label: '121 checkout', group: 'Practice', mode: '121', settings: {} },
+	{ value: 'clock', label: 'Around the clock', note: '1 to 20, then the bull', group: 'Practice', mode: 'clock', settings: { ring: 'any' } },
+	{ value: 'clock-double', label: 'Around the clock', note: 'Doubles only', group: 'Practice', mode: 'clock', settings: { ring: 'double' } },
+	{ value: 'clock-treble', label: 'Around the clock', note: 'Trebles only', group: 'Practice', mode: 'clock', settings: { ring: 'treble' } },
+	{ value: 'doubles', label: 'Doubles practice', note: 'From 27, D1 to the bull', group: 'Practice', mode: 'doubles', settings: {} },
+	{ value: '121', label: '121 checkout', note: 'Nine darts each target', group: 'Practice', mode: '121', settings: {} },
 ]);
 
-/** The picker's choice for a game being played. */
+/** The New game choice for a game being played. */
 export function choiceOf(state) {
 	const mode = modeOf(state).id;
 	return GAME_CHOICES.find(choice => choice.mode === mode
