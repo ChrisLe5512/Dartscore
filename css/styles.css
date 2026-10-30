@@ -190,8 +190,11 @@ aside.keypad-hidden .calc-section {
 
 /* Settings never scrolls as a whole; only the player list does. */
 .settings-main {
-	/* Half the screen, but wide enough for the game settings row on 4:3. */
+	/* Half the screen, but wide enough for the game settings row on 4:3. Full
+	   height, the room left over going to the player list. */
 	width: max(50%, 78vmin);
+	height: 95%;
+	max-height: 95%;
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
@@ -238,7 +241,7 @@ aside.keypad-hidden .calc-section {
 }
 
 .players-scroll {
-	flex: 0 1 auto;
+	flex: 1 1 auto;
 	min-height: 12vmin;
 	/* In line with the fields and buttons in the tables around it. */
 	margin: 1vmin 2vmin 0;
@@ -272,13 +275,27 @@ aside.keypad-hidden .calc-section {
 	padding: 0.5vmin 0;
 }
 
-.player-item.dragging {
+/* While a player is dragged the others slide aside to make room (JS sets
+   their transforms); on release the player settles into its slot. */
+.players-list.sorting .player-item {
+	transition: transform var(--medium) var(--ease-out);
+}
+
+.player-item:is(.dragging, .dropping) {
 	position: relative;
 	z-index: 1;
+}
+
+.players-list.sorting .player-item.dragging {
+	transition: none;
 	opacity: 0.9;
 }
 
-.player-item.dragging .player-field {
+.players-list.sorting .player-item.dropping {
+	transition: transform var(--fast) var(--ease-out);
+}
+
+.player-item:is(.dragging, .dropping) .player-field {
 	border-color: var(--text);
 	box-shadow: 0 1vmin 2vmin rgba(0, 0, 0, 0.6);
 }
@@ -1817,6 +1834,11 @@ td.calc-score:not(.disabled) {
 
 	.settings-section {
 		width: 90%;
+	}
+
+	/* Tall screen: only as tall as it needs. */
+	.settings-main {
+		height: auto;
 	}
 
 	.visuals-section {

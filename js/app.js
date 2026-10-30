@@ -1011,45 +1011,66 @@ function renderSettings() {
 }
 
 // Drag a player by the grip to reorder; saved as one undoable step on release.
+// The list keeps its order while dragging: the others slide aside to show
+// where the player will land, and on release the player settles into that slot.
 function startDrag(event, item, from) {
 	event.preventDefault();
+	if (playersList.classList.contains('sorting')) return; // the last drop is still settling
 	const grip = event.currentTarget;
 	try {
 		grip.setPointerCapture(event.pointerId); // keep getting moves when the pointer leaves the grip
 	} catch { /* pointer already gone */ }
+	const items = [...playersList.children];
+	const step = items.length > 1 ? items[1].offsetTop - items[0].offsetTop : item.offsetHeight;
+	const startY = event.clientY;
+	const startScroll = playersScroll.scrollTop;
+	let pointerY = startY;
+	let to = from;
+	let frame = 0;
+	playersList.classList.add('sorting');
 	item.classList.add('dragging');
-	let startY = event.clientY;
+
+	const layout = () => {
+		const offset = pointerY - startY + playersScroll.scrollTop - startScroll;
+		const dy = Math.max(-from * step, Math.min((items.length - 1 - from) * step, offset));
+		item.style.transform = `translateY(${dy}px)`;
+		to = from + Math.round(dy / step);
+		items.forEach((other, i) => {
+			if (other === item) return;
+			const shift = i > from && i <= to ? -step : i < from && i >= to ? step : 0;
+			other.style.transform = shift ? `translateY(${shift}px)` : '';
+		});
+	};
+
+	// Scroll the list while the pointer is held near its top or bottom edge.
+	const autoScroll = () => {
+		const box = playersScroll.getBoundingClientRect();
+		const over = Math.min(step, Math.max(box.top + step - pointerY, 0)) - Math.min(step, Math.max(pointerY - box.bottom + step, 0));
+		if (over) {
+			playersScroll.scrollTop -= over * 0.25;
+			layout();
+		}
+		frame = requestAnimationFrame(autoScroll);
+	};
+	frame = requestAnimationFrame(autoScroll);
 
 	const move = moveEvent => {
-		let offset = moveEvent.clientY - startY;
-		// Swap places with a neighbour once dragged past half of it.
-		const prev = item.previousElementSibling;
-		const next = item.nextElementSibling;
-		if (prev && offset < -prev.offsetHeight / 2) {
-			playersList.insertBefore(item, prev);
-			startY -= prev.offsetHeight;
-		} else if (next && offset > next.offsetHeight / 2) {
-			playersList.insertBefore(next, item);
-			startY += next.offsetHeight;
-		}
-		offset = moveEvent.clientY - startY;
-		item.style.transform = `translateY(${offset}px)`;
-
-		// Scroll the list when dragging near its edges.
-		const box = playersScroll.getBoundingClientRect();
-		if (moveEvent.clientY < box.top + 20) playersScroll.scrollTop -= 8;
-		else if (moveEvent.clientY > box.bottom - 20) playersScroll.scrollTop += 8;
+		pointerY = moveEvent.clientY;
+		layout();
 	};
 
 	const end = () => {
+		cancelAnimationFrame(frame);
 		grip.removeEventListener('pointermove', move);
 		grip.removeEventListener('pointerup', end);
 		grip.removeEventListener('pointercancel', end);
-		item.classList.remove('dragging');
-		item.style.transform = '';
-		const to = [...playersList.children].indexOf(item);
-		if (to !== from) commit(Game.movePlayerTo(game, from, to));
-		else renderSettings();
+		item.classList.replace('dragging', 'dropping');
+		item.style.transform = `translateY(${(to - from) * step}px)`;
+		Promise.allSettled(item.getAnimations().map(a => a.finished)).then(() => {
+			playersList.classList.remove('sorting');
+			if (to !== from) commit(Game.movePlayerTo(game, from, to));
+			else renderSettings();
+		});
 	};
 
 	grip.addEventListener('pointermove', move);
