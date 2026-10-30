@@ -181,6 +181,7 @@ aside.keypad-hidden .calc-section {
 }
 
 .settings-tbl .settings-check input {
+	flex: none;
 	width: 3vmin;
 	height: 3vmin;
 	margin: 0;
@@ -189,9 +190,29 @@ aside.keypad-hidden .calc-section {
 
 /* Settings never scrolls as a whole; only the player list does. */
 .settings-main {
+	/* Half the screen, but wide enough for the game settings row on 4:3. */
+	width: max(50%, 78vmin);
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
+}
+
+/* Game settings: one row, so the player list gets the room. */
+.game-tbl {
+	table-layout: fixed;
+}
+
+.game-tbl td {
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+.game-tbl label {
+	white-space: nowrap;
+}
+
+.game-tbl .settings-check {
+	height: 4vmin;
 }
 
 .settings-heading {
@@ -219,7 +240,8 @@ aside.keypad-hidden .calc-section {
 .players-scroll {
 	flex: 0 1 auto;
 	min-height: 12vmin;
-	margin: 1vmin 1vmin 0;
+	/* In line with the fields and buttons in the tables around it. */
+	margin: 1vmin 2vmin 0;
 	overflow-y: auto;
 	overscroll-behavior: contain;
 	scrollbar-width: none;
