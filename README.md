@@ -25,12 +25,20 @@ VS Code's Live Server or `python -m http.server` work too.
 - **BUST** is a quick turn of 0 (three misses, or a bust you didn't enter dart by dart). Entering a score that goes too far is a bust by itself.
 - **Checkout** suggestions appear in green once a finish is possible and update as you tap darts on the board. Tap the suggestion to see other routes. They follow the Double out setting.
 - **↶ / ↷** undo and redo whole turns, players added or removed, and new games. Undoing a leg, set or match win, a new game, or a player or settings change asks first.
-- **Settings:** start score (501 by default), legs to win a set, sets to win, **Double out** (on by default: finishes must end on a double or bull, and leaving 1 is a bust) and **Practice** (legs go on and on, no winner). Changing these before the first throw applies immediately; mid-game they start a new game.
+- **Settings:** the game (301, 501 or 701, or a practice game, below; 501 by default), legs to win a set, sets to win, **Double out** (on by default: finishes must end on a double or bull, and leaving 1 is a bust) and **Practice** (legs go on and on, no winner). Changing these before the first throw applies immediately; mid-game they start a new game.
 - **Match stats** (player menu, and under the winner): legs won, 3-dart and first-9 averages, checkout % (legs won from visits that started on a finish), best leg, high finish, and 100+/140+/180 counts. Visits are three darts, except a leg-winning one entered on the board.
 - The game is saved on the device, so a refresh or closing the app doesn't lose it.
 - Keyboard: digits, Enter, Backspace, Esc, ↑/↓, Ctrl+Z / Ctrl+Y, F11 for full screen.
 
 Each new leg starts with the next player in order. Winning a set resets everyone's legs.
+
+### Practice games
+
+Pick one under **Game** in Settings. They use the same players, legs, sets, Practice, undo and match stats as X01. On the keypad, enter how many targets or doubles a visit hit (0 to 3); on the board, tap the darts and only the ones that count are counted.
+
+- **Around the clock:** hit 1, 2, 3 … 20 in order, then the bull. The big number is the target. Variants count only doubles or only trebles (the bull: the bullseye for doubles, either bull for trebles). The first player round wins the leg.
+- **Doubles practice (27):** everyone starts on 27 and goes round the doubles, D1 to D20 then the bullseye, one visit at each (the double to aim at shows beside the history). Each double hit adds its value; a visit with none takes the double's value off. At 0 or below you're out. When everyone is round or out, the highest score still in wins the leg; a tie draws it.
+- **121 checkout:** three visits (nine darts) to check out 121, scored as in X01 (Double out applies). Check out and your next target is one higher; miss and you try the same number again. Each player throws all their visits at a target before the next player's turn. After ten targets each, the highest target reached wins the leg; a tie draws it.
 
 ## Project layout
 
@@ -38,7 +46,12 @@ Each new leg starts with the next player in order. Winning a set resets everyone
 index.html         page markup
 css/styles.css     all styling (colours and borders as variables at the top)
 js/config.js       rules and board geometry constants
-js/game.js         game state and rules (pure functions, no DOM)
+js/game.js         X01 game state and rules (pure functions, no DOM)
+js/clock.js        around the clock rules
+js/doubles.js      doubles practice rules
+js/one21.js        121 checkout rules
+js/match.js        what every mode shares: recording turns, legs and sets, loading
+js/modes.js        the game modes: each mode's rules and how it shows
 js/checkout.js     checkout suggestions
 js/board.js        board geometry, hit detection and dart colours
 js/dartboard.js    draws the board (SVG)

@@ -10,7 +10,10 @@ Darts X01 scoreboard web app (301/501/701), built for tablets in landscape (16:1
 ## Layout
 
 - `js/config.js`: rules and board geometry constants. Put tunable values here.
-- `js/game.js`: pure game state and rules (no DOM). Every function returns a new state.
+- `js/game.js`: pure X01 game state and rules (no DOM). Every function returns a new state.
+- `js/clock.js`, `js/doubles.js`, `js/one21.js`: the practice games (around the clock, doubles practice, 121), pure rules modules like `game.js`, each with how it shows (score text, stats line, history marks, STAT_ROWS).
+- `js/match.js`: what every mode shares (turn records, legs/sets via `endLeg`, restoring a save).
+- `js/modes.js`: the mode registry. `modeOf(state)` gives a game's rules and look (no `mode` = X01, so old saves load); `GAME_CHOICES` fills the Game picker. A new mode (cricket) is a new module with the same exports, added here.
 - `js/checkout.js`: ranked checkout suggestions
 - `js/feedback.js`: status toast messages for turns and undo/redo (pure)
 - `js/board.js`: board geometry (adjustable ring layout), hit-testing and dart colours (pure)
@@ -31,7 +34,7 @@ Darts X01 scoreboard web app (301/501/701), built for tablets in landscape (16:1
 ## Rules for changes
 
 - **The owner likes the current look and layout. Don't change styling or layout unless asked.** Verify visual changes with before/after screenshots.
-- Keep game rules in `game.js` with tests, not in `app.js`.
+- Keep game rules in the mode modules (`game.js` for X01) with tests, not in `app.js`. `app.js` reaches them through `mode()`.
 - Never insert user text (player names) with innerHTML. Use textContent.
 - Indent with tabs.
 - Work on the `dev` branch. `main` is what GitHub Pages may be serving. Merge to `main` only through a pull request the owner approves.
@@ -57,5 +60,5 @@ Darts X01 scoreboard web app (301/501/701), built for tablets in landscape (16:1
 - Accounts and database: sign-in, match history and stats synced across devices. The game state is already plain JSON (`game.js`), so matches can be saved as-is. Pick a hosted backend that suits Cloudflare Pages or Vercel.
 - Entitlements: one place that answers "is this extra unlocked?" (free, unlocked by playing, or paid), checked by the UI only. Never by game rules.
 - Ads: a single banner slot and a post-match slot, off by default in development, removed for paying users.
-- More game modes (cricket, around the clock) as separate rule modules with tests, like `game.js`.
+- More game modes: cricket next, as a rule module registered in `modes.js` (around the clock, doubles practice and 121 are done).
 - Parked: automatic scoring hardware add-on. See `docs/ideas/auto-scoring.md` before starting.

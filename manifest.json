@@ -2,7 +2,7 @@
 	"id": "./",
 	"name": "Dartscore",
 	"short_name": "Dartscore",
-	"description": "Fast darts scoreboard for 301, 501 and 701 with checkout suggestions.",
+	"description": "Fast darts scoreboard for 301, 501 and 701 with checkout suggestions and practice games.",
 	"start_url": "./",
 	"scope": "./",
 	"display": "standalone",
