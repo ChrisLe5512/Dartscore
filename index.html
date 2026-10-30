@@ -73,7 +73,7 @@
 					<label class="range">Number ring <button type="button" class="info" aria-label="About the number ring" data-info="The outer black ring with the numbers. A dart there scores 0.">i</button> <output></output><input type="range" data-layout="legend" step="0.5"></label>
 					<label class="range">Outline <button type="button" class="info" aria-label="About the outline" data-info="The rings drawn round the doubles and the board&#39;s edge: how thick, and (below) what colour.">i</button> <output></output><input type="range" data-style="outline" step="0.1"></label>
 					<div class="swatches" role="group" aria-label="Outline colour"></div>
-					<label class="settings-check"><input type="checkbox" data-style="wires"> Wires round every bed <button type="button" class="info" aria-label="About wires" data-info="Draws a thin wire round every bed, like the metal spider on a real board.">i</button></label>
+					<span class="check-line"><label class="settings-check"><input type="checkbox" data-style="wires"> Wires round every bed</label><button type="button" class="info" aria-label="About wires" data-info="Draws a thin wire round every bed, like the metal spider on a real board.">i</button></span>
 				</div>
 				<div class="visuals-actions">
 					<button type="button" class="settings-btn-action" data-action="visuals-reset">Reset</button>
@@ -205,10 +205,10 @@
 							<div class="stepper-row"><button type="button" class="stepper-btn" data-by="-1" aria-label="Fewer sets">&minus;</button><output></output><button type="button" class="stepper-btn" data-by="1" aria-label="More sets">+</button></div>
 						</div>
 						<div class="game-checks">
-							<label class="settings-check"><input type="checkbox" id="double-out"> Double out <button type="button" class="info" aria-label="About Double out" data-info="The last dart must be a double or the bullseye. Leaving 1, or going below 0, is a bust.">i</button></label>
+							<span class="check-line"><label class="settings-check"><input type="checkbox" id="double-out"> Double out</label><button type="button" class="info" aria-label="About Double out" data-info="The last dart must be a double or the bullseye. Leaving 1, or going below 0, is a bust.">i</button></span>
 						</div>
 					</div>
-					<label class="settings-check endless-check"><input type="checkbox" id="practice"> Endless <button type="button" class="info" aria-label="About Endless" data-info="No winner and no sets: play leg after leg for as long as you like. Each card counts the legs won.">i</button></label>
+					<span class="check-line endless-check"><label class="settings-check"><input type="checkbox" id="practice"> Endless</label><button type="button" class="info" aria-label="About Endless" data-info="No winner and no sets: play leg after leg for as long as you like. Each card counts the legs won.">i</button></span>
 				</div>
 
 				<div class="ng-step" data-step="players" hidden>

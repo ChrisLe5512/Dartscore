@@ -614,14 +614,13 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 .game-options {
 	display: grid;
 	grid-template-columns: auto auto 1fr;
-	column-gap: 3vmin;
+	column-gap: 2.5vmin;
 }
 
 .game-checks {
 	display: flex;
 	flex-direction: column;
 	gap: 0.8vmin;
-	padding-left: 1vmin;
 	white-space: nowrap;
 }
 
@@ -670,6 +669,17 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 .info[aria-describedby] {
 	color: var(--text);
 	border-color: var(--text);
+}
+
+/* A checkbox with its ⓘ: beside the label rather than in it, so pressing the
+   ⓘ doesn't flash the checkbox. */
+.check-line {
+	display: flex;
+	align-items: center;
+}
+
+.check-line .info {
+	margin-left: 0.6vmin;
 }
 
 /* The bubble it opens, over everything. */

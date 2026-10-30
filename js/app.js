@@ -1599,7 +1599,7 @@ function renderGameStep() {
 		$('[data-by="-1"]', stepper).disabled = settings.practice || value <= 1;
 		$('[data-by="1"]', stepper).disabled = settings.practice || value >= max;
 	}
-	doubleOutInput.closest('label').hidden = !('doubleOut' in settings);
+	doubleOutInput.closest('.check-line').hidden = !('doubleOut' in settings);
 	renderOptions(MODES[id], settings);
 }
 
@@ -1614,7 +1614,7 @@ function renderOptions(rules, settings) {
 	const checks = rules.OPTIONS.filter(option => option.type !== 'choice' && (choices.length || (option.applies?.(settings) ?? true)));
 	const checkBox = option => {
 		const box = document.createElement('label');
-		box.className = 'settings-check mode-check';
+		box.className = 'settings-check';
 		const input = document.createElement('input');
 		input.type = 'checkbox';
 		input.checked = Boolean(settings[option.key]);
@@ -1624,8 +1624,13 @@ function renderOptions(rules, settings) {
 			renderGameStep();
 		});
 		box.append(input, ` ${option.label}`);
-		if (option.title) box.append(' ', infoButton(option.title, option.label));
-		return box;
+		// The ⓘ goes beside the label, not in it: pressed inside a label, it
+		// would flash the checkbox as if pressed too.
+		const line = document.createElement('span');
+		line.className = 'check-line mode-check';
+		line.append(box);
+		if (option.title) line.append(infoButton(option.title, option.label));
+		return line;
 	};
 	for (const box of $$('.mode-check', checksBox)) box.remove();
 	// The choice's line opens out and folds away. Folding, it keeps what it
