@@ -23,6 +23,7 @@ Darts X01 scoreboard web app (301/501/701), built for tablets in landscape (16:1
 - `js/storage.js`: localStorage save/load (game: `dartscore:v2`; per-device view prefs such as keypad and board look: `dartscore:prefs`). Undo steps are packed so turns are saved once (packSession).
 - `js/app.js`: DOM wiring only. Turns taps into game actions and state into DOM.
 - `js/version.js`: the version shown in Settings. `sw.js` names its cache after it: bump it when cached files change.
+- Versions: alpha, 0.2.x (the old repo counts as 0.1.x). Bump the last number with each change; go to 0.3.0 with the next big feature (accounts and sign-in), and so on. 1.0.0 is the launch. Keep `package.json` in step.
 - `sw.js`: offline cache (HTTPS only). Add new files to `APP_SHELL`.
 - `css/styles.css`: colours, borders (`--line`) and board colours (`--board-*`) are variables at the top. Themes should only need to change those. Sizes use `vmin` (never `vh`, except the portrait band's height), so landscape is sized by height and portrait by width; portrait overrides are in the PORTRAIT block at the end.
 

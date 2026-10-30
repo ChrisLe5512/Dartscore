@@ -1725,6 +1725,22 @@ function renderPlayersStep() {
 	draftAdd.hidden = ngForm.names.length >= MAX_PLAYERS;
 }
 
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+/** Move between the two steps: the new one slides in from the side it's on (players to the right), and the panel eases to its height. */
+function goToStep(step) {
+	const section = $('.new-game-section', newGameDialog);
+	const from = section.offsetHeight;
+	ngForm.step = step;
+	renderNewGame();
+	if (reducedMotion.matches) return;
+	const timing = { duration: 260, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
+	const side = step === 'players' ? 1 : -1;
+	section.animate([{ height: `${from}px` }, { height: `${section.offsetHeight}px` }], timing);
+	(step === 'players' ? playersStep : gameStep).animate(
+		[{ opacity: 0, transform: `translateX(${side * 6}vmin)` }, { opacity: 1, transform: 'none' }], timing);
+}
+
 function startNewGame() {
 	const { mode: id, settings } = readGameForm();
 	const names = ngForm.solo ? [soloName.value] : ngForm.names;
@@ -1798,12 +1814,10 @@ newGameDialog.addEventListener('click', event => {
 			startNewGame();
 			return;
 		}
-		ngForm.step = 'players';
-		renderNewGame();
+		goToStep('players');
 		(ngForm.solo ? soloName : ngNextBtn).focus();
 	} else if (action === 'back' && ngForm.step === 'players') {
-		ngForm.step = 'game';
-		renderNewGame();
+		goToStep('game');
 	} else if (action === 'back' || event.target === newGameDialog) {
 		closeDialog(newGameDialog);
 	}
