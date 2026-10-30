@@ -635,6 +635,7 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 
 /* ⓘ: a small circled i beside something that may need explaining (app.js). */
 .info {
+	position: relative;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -643,17 +644,26 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	padding: 0;
 	margin-left: 0.4vmin;
 	vertical-align: 0.15em;
-	font-family: Georgia, serif;
-	font-size: 1.7vmin;
-	font-style: italic;
-	font-weight: bold;
+	font-family: var(--font);
+	font-size: 1.6vmin;
+	font-weight: 600;
 	line-height: 1;
+	touch-action: manipulation;
 	color: var(--text-soft);
 	background: none;
 	border: 1px solid var(--text-muted);
 	border-radius: 50%;
 	cursor: help;
 	transition: color var(--fast), border-color var(--fast);
+}
+
+/* A finger-sized tap area round the small circle, so a tap just beside it
+   still opens the tip rather than ticking the checkbox it sits in. */
+.info::before {
+	content: '';
+	position: absolute;
+	inset: -1.6vmin;
+	border-radius: 50%;
 }
 
 .info:hover,
