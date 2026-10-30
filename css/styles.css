@@ -1245,12 +1245,17 @@ td.back-score {
 	max-width: 62%;
 }
   
-/* Drawn in js/dartboard.js. The SVG has a 1% margin for the outline, hence × 1.01. */
+/* Over a dart's marker (once they can be tapped): a pointer. */
+#dartboard.on-mark {
+	cursor: pointer;
+}
+
 /* Over the board: a white crosshair outlined in black, visible on any bed. */
 #dartboard.aiming {
 	cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cg stroke-linecap='round'%3E%3Cpath d='M12 2v7M12 15v7M2 12h7M15 12h7' stroke='black' stroke-width='4'/%3E%3Cpath d='M12 2v7M12 15v7M2 12h7M15 12h7' stroke='white' stroke-width='2'/%3E%3C/g%3E%3Ccircle cx='12' cy='12' r='1.6' fill='white' stroke='black'/%3E%3C/svg%3E") 12 12, crosshair;
 }
 
+/* Drawn in js/dartboard.js. The SVG has a 1% margin for the outline, hence × 1.01. */
 #dartboard {
 	display: block;
 	width: calc(min(99%, 99vmin) * 1.01);
@@ -1656,12 +1661,7 @@ td.calc-score:not(.disabled) {
 	}
 
 	/* Fits between the buttons on the left and the darts column on the right. */
-	/* Over the board: a white crosshair outlined in black, visible on any bed. */
-#dartboard.aiming {
-	cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cg stroke-linecap='round'%3E%3Cpath d='M12 2v7M12 15v7M2 12h7M15 12h7' stroke='black' stroke-width='4'/%3E%3Cpath d='M12 2v7M12 15v7M2 12h7M15 12h7' stroke='white' stroke-width='2'/%3E%3C/g%3E%3Ccircle cx='12' cy='12' r='1.6' fill='white' stroke='black'/%3E%3C/svg%3E") 12 12, crosshair;
-}
-
-#dartboard {
+	#dartboard {
 		width: calc(min(100cqw - 30vmin, 98cqh) * 1.01);
 		margin: 0;
 	}

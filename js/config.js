@@ -53,6 +53,10 @@ export const LEGACY_STORAGE_KEYS = ['dartGameData'];
 export const MAX_UNDO_STEPS = 200;
 
 // How long a status toast stays on screen.
+// How close (as a fraction of the board radius) a tap must be to a dart's
+// marker to pick that dart up. The marker itself is 0.036 across the middle.
+export const MARK_REACH = 0.05;
+
 export const TOAST_MS = 2200;
 
 // Player rows: heights in vmin at scale 1 (as in css/styles.css), and how far they may grow or shrink.

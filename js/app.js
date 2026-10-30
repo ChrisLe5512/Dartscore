@@ -3,7 +3,7 @@
 
 import {
 	BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_OUTLINE_LIMITS, BOARD_STYLE,
-	DARTS_PER_TURN, MAX_LEGS, MAX_NAME_LENGTH, MAX_SETS, MAX_TURN_SCORE, SCORES_LAYOUT, START_SCORES, TOAST_MS,
+	DARTS_PER_TURN, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_SETS, MAX_TURN_SCORE, SCORES_LAYOUT, START_SCORES, TOAST_MS,
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate } from './board.js';
 import { getCheckouts } from './checkout.js';
@@ -665,7 +665,9 @@ function boardOffset(event) {
 let hovered = null;
 board.addEventListener('mousemove', event => {
 	const { dx, dy, radius } = boardOffset(event);
-	board.classList.toggle('aiming', isOnBoard(dx, dy, radius));
+	const onMark = markAt(dx, dy, radius) >= 0;
+	board.classList.toggle('aiming', !onMark && isOnBoard(dx, dy, radius));
+	board.classList.toggle('on-mark', onMark);
 	const spot = locate(dx, dy, radius, rings);
 	const key = spot && segmentKey(spot.sector, spot.ring);
 	if (key === hovered) return;
@@ -684,6 +686,12 @@ board.addEventListener('click', event => {
 		const pct = Math.round(Math.hypot(dx, dy) / radius * 100);
 		debugSpan.textContent = `(${Math.round(dx)}, ${Math.round(dy)}) ${pct}% ${dart?.label ?? 'off'}`;
 	}
+	// A dart's marker works like its box in the darts column.
+	const mark = markAt(dx, dy, radius);
+	if (mark >= 0) {
+		dartSpans[mark].click();
+		return;
+	}
 	if (!dart) return;
 	// Keep where it landed (as a fraction of the radius) to mark it on the board.
 	const placed = { ...dart, x: dx / radius, y: dy / radius };
@@ -700,6 +708,21 @@ board.addEventListener('click', event => {
 	turn.darts.push(placed);
 	renderDarts([turn.darts.length - 1]);
 });
+
+/**
+ * The dart whose marker is under a board offset, or -1. Markers can be tapped
+ * once all three darts are down, or while one is picked up to move.
+ */
+function markAt(dx, dy, radius) {
+	if (turn.darts.length < DARTS_PER_TURN && turn.editing === null) return -1;
+	let closest = -1;
+	let best = MARK_REACH;
+	turn.darts.forEach((dart, index) => {
+		const distance = Math.hypot(dart.x - dx / radius, dart.y - dy / radius);
+		if (distance <= best) [closest, best] = [index, distance];
+	});
+	return closest;
+}
 
 // Tap a dart to pick it up (then tap the board to move it); tap it again to remove it.
 dartSpans.forEach((span, index) => {
