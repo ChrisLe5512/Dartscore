@@ -243,6 +243,7 @@ function renderScoreboard() {
 	});
 
 	for (const rows of rowsById.values()) rows.forEach(row => row.remove());
+	renderInputting();
 	// New players join from the scoreboard before the first throw, from Settings after.
 	addPlayerRow.classList.toggle('hidden', !Game.canAddPlayer(game) || matchStarted());
 	layoutScores();
@@ -600,7 +601,13 @@ scoreDisplay.addEventListener('click', event => {
 	stepKeypad(event.clientY < rect.top + rect.height / 2 ? 1 : -1);
 });
 
+/** Dim the other players while a score is being entered. */
+function renderInputting() {
+	scoresTable.classList.toggle('inputting', turn.keypad !== '' || turn.darts.length > 0);
+}
+
 function renderKeypad() {
+	renderInputting();
 	const score = turn.keypad;
 	const up = score === String(MAX_TURN_SCORE) ? 'b' : 'i'; // <b> = greyed arrow at the limit
 	const down = score === '0' ? 'b' : 'i';
