@@ -138,18 +138,24 @@ export function lightSegments(svg, lights) {
 	const id = ({ key, kind }) => `${key} ${kind}`;
 	const wanted = new Set(lights.map(id));
 	const shown = new Set();
+	const hovered = new Set(); // beds the pointer's light was on
 	// Lit beds fade out; the pointer's light just follows it.
 	for (const path of [...layer.children]) {
 		if (path.classList.contains('leaving')) continue;
 		if (wanted.has(path.dataset.light) && !shown.has(path.dataset.light)) shown.add(path.dataset.light);
-		else if (path.classList.contains('hover')) path.remove();
-		else fadeOut(path);
+		else if (path.classList.contains('hover')) {
+			hovered.add(path.dataset.key);
+			path.remove();
+		} else fadeOut(path);
 	}
 	for (const light of lights) {
 		const source = svg.querySelector(`.seg[data-key="${light.key}"]`);
 		if (shown.has(id(light)) || !source) continue;
 		shown.add(id(light));
-		el('path', { d: source.getAttribute('d'), class: `light ${light.kind}`, 'data-light': id(light) }, layer);
+		// A bed lit where the pointer was (it was clicked) starts from the
+		// pointer's light rather than fading in from nothing, which flickered.
+		const from = light.kind !== 'hover' && hovered.has(light.key) ? ' from-hover' : '';
+		el('path', { d: source.getAttribute('d'), class: `light ${light.kind}${from}`, 'data-light': id(light), 'data-key': light.key }, layer);
 	}
 }
 

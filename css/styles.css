@@ -2687,6 +2687,21 @@ td.calc-score:not(.disabled) {
 	animation: fade-in var(--medium) var(--ease-out);
 }
 
+/* Lit where the pointer was: from the pointer's light to its own (for the
+   number ring, the same look, so no flicker). */
+.light.from-hover {
+	animation: light-from-hover var(--medium) var(--ease-out);
+}
+
+@keyframes light-from-hover {
+	from {
+		fill: rgba(255, 255, 255, 0.14);
+		stroke: rgba(255, 255, 255, 0.45);
+		stroke-width: 0.4;
+		filter: none;
+	}
+}
+
 /* Centred on where the dart landed. */
 .mark circle {
 	fill: rgba(0, 0, 0, 0.8);
