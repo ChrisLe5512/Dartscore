@@ -64,8 +64,13 @@ export function hitsFrom(step, darts, ring, skip = false) {
 	return Math.min(hits, CLOCK_TARGETS.length - step);
 }
 
-/** Each game's own options, as checkboxes in Settings (applies: whether it means anything with these settings). */
+/**
+ * Each game's own options, shown on the New game screen: a checkbox, or with
+ * type 'choice' one of `choices` ([value, label]). applies: whether it means
+ * anything with these settings (hidden when not).
+ */
 export const OPTIONS = [
+	{ key: 'ring', label: 'Counts', type: 'choice', choices: [['any', 'Any bed'], ['double', 'Doubles'], ['treble', 'Trebles']] },
 	{ key: 'skip', label: 'Skip ahead', title: 'A double moves you on two targets, a treble three', applies: s => s.ring === 'any' },
 ];
 

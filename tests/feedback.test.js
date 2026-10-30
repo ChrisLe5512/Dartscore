@@ -123,3 +123,12 @@ test('the leg-winning visit is recorded as a checkout', () => {
 	s = throwTurn(s, 121);
 	assert.deepEqual(s.players[0].turns.map(t => t.checkout ?? false), [false, true]);
 });
+
+test('undoing a new game that changed both the game and the players says so', async () => {
+	const { newGame } = await import('../js/modes.js');
+	const before = newGame('x01', {}, ['Ann']);
+	const after = newGame('121', {}, ['Ann', 'Bob'], before);
+	assert.equal(undoWarning(after, before).title, 'Back to the last game?');
+	const samePlayers = newGame('121', {}, ['Ann'], before);
+	assert.equal(undoWarning(samePlayers, before).title, 'Back to the last settings?');
+});

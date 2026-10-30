@@ -74,12 +74,30 @@ export const wonLegs = (state, player) => modeOf(state).wonLegs?.(state, player)
 // settings it sets; note says in a few words what it is.
 export const GAME_CHOICES = Object.freeze([
 	...START_SCORES.map(score => ({ value: String(score), label: String(score), group: 'X01', mode: 'x01', settings: { startScore: score } })),
-	{ value: 'clock', label: 'Around the clock', note: '1 to 20, then the bull', group: 'Practice', mode: 'clock', settings: { ring: 'any' } },
-	{ value: 'clock-double', label: 'Around the clock', note: 'Doubles only', group: 'Practice', mode: 'clock', settings: { ring: 'double' } },
-	{ value: 'clock-treble', label: 'Around the clock', note: 'Trebles only', group: 'Practice', mode: 'clock', settings: { ring: 'treble' } },
+	{ value: 'clock', label: 'Around the clock', note: '1 to 20, then the bull', group: 'Practice', mode: 'clock', settings: {} },
 	{ value: 'doubles', label: 'Doubles practice', note: 'From 27, D1 to the bull', group: 'Practice', mode: 'doubles', settings: {} },
 	{ value: '121', label: '121 checkout', note: 'Nine darts each target', group: 'Practice', mode: '121', settings: {} },
 ]);
+
+/**
+ * A new game of `mode` with these players (names, in order), everything at
+ * the start. Players of `from` (the game it replaces) who play again keep
+ * their id, so an undo can tell who came and went.
+ */
+export function newGame(mode, settings, names, from = null) {
+	const rules = MODES[mode] ?? X01;
+	const earlier = [...(from?.players ?? [])];
+	let state = { ...rules.createGame(settings), nextId: from?.nextId ?? 1 };
+	for (const name of names) {
+		state = rules.addPlayer(state, name);
+		const added = state.players.at(-1);
+		const same = earlier.findIndex(p => p.name === added.name);
+		if (same < 0) continue;
+		const [{ id }] = earlier.splice(same, 1);
+		state = { ...state, players: state.players.map(p => (p === added ? { ...p, id } : p)) };
+	}
+	return state;
+}
 
 /** The New game choice for a game being played. */
 export function choiceOf(state) {

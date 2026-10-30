@@ -11,7 +11,7 @@ import { getCheckouts } from './checkout.js';
 import { boardRadius, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
 import { describeTravel, describeTurn, historyLegs, undoWarning } from './feedback.js';
 import * as History from './history.js';
-import { GAME_CHOICES, MODES, choiceOf, createGame, modeOf, startMatch, wonLegs } from './modes.js';
+import { GAME_CHOICES, MODES, choiceOf, createGame, modeOf, newGame, wonLegs } from './modes.js';
 import { loadPrefs, loadSession, savePrefs, saveSession } from './storage.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -1131,9 +1131,9 @@ function toggleFullscreen() {
 
 const settingsDialog = $('#settings');
 const settingsSummary = $('.settings-summary', settingsDialog);
-const playersScroll = $('.players-scroll');
-const playersList = $('.players-list');
-const playersAddBtn = $('.players-add');
+const playersScroll = $('.players-scroll', settingsDialog);
+const playersList = $('.players-list', settingsDialog);
+const playersAddBtn = $('.players-add', settingsDialog);
 
 $('.settings-version', settingsDialog).textContent = `v${self.DARTSCORE_VERSION ?? ''}`;
 
@@ -1153,7 +1153,7 @@ function gameSummary() {
 	if (practice) parts.push('practice');
 	else parts.push(`first to ${legs} leg${legs === 1 ? '' : 's'}${sets > 1 ? `, ${sets} sets` : ''}`);
 	if (doubleOut) parts.push('double out');
-	for (const option of mode().OPTIONS) if (game.settings[option.key]) parts.push(option.label.toLowerCase());
+	for (const option of mode().OPTIONS) if (option.type !== 'choice' && game.settings[option.key]) parts.push(option.label.toLowerCase());
 	return parts.join(' · ');
 }
 
@@ -1349,20 +1349,27 @@ settingsDialog.addEventListener('click', event => {
 
 // ---- New game -------------------------------------------------------------------
 
-// What to play: picked fresh each time and started with the same players
-// (names and order; everything else back to the start). Everything only a
-// new game can change lives here, so nothing is ever left half-changed.
+// A new game in two steps: what to play (a game, and only the options that
+// game has), then who plays (solo, or a list to add to and reorder). Nothing
+// changes until Start, so Cancel always leaves the game in play as it was.
+// It opens set to the last game and its players, so replaying is two taps.
 const newGameDialog = $('#new-game');
+const gameStep = $('[data-step="game"]', newGameDialog);
+const playersStep = $('[data-step="players"]', newGameDialog);
 const choicesBox = $('.game-choices', newGameDialog);
-const legsInput = $('#num-legs');
-const setsInput = $('#num-sets');
+const legsStepper = $('[data-field="legs"]', newGameDialog);
+const setsStepper = $('[data-field="sets"]', newGameDialog);
 const doubleOutInput = $('#double-out');
 const practiceInput = $('#practice');
-const optionsRow = $('.mode-options', newGameDialog);
-const playersLine = $('.new-game-players', newGameDialog);
-// The options as ticked, by key, kept while other games are picked.
-const optionChecks = new Map();
-let picked = GAME_CHOICES[0].value;
+const optionsBox = $('.mode-options', newGameDialog);
+const soloName = $('.solo-name', newGameDialog);
+const draftList = $('.draft-list', newGameDialog);
+const draftAdd = $('.draft-add', newGameDialog);
+const ngBackBtn = $('[data-action="back"]', newGameDialog);
+const ngNextBtn = $('[data-action="next"]', newGameDialog);
+
+// The form so far. Option values are kept by key while other games are picked.
+const ngForm = { step: 'game', picked: GAME_CHOICES[0].value, legs: 3, sets: 1, options: new Map(), solo: true, names: [] };
 
 // A tile per game, under its group's heading (X01, Practice).
 for (const group of new Set(GAME_CHOICES.map(choice => choice.group))) {
@@ -1391,105 +1398,222 @@ for (const group of new Set(GAME_CHOICES.map(choice => choice.group))) {
 	}));
 	choicesBox.append(heading, tiles);
 }
-legsInput.max = MAX_LEGS;
-setsInput.max = MAX_SETS;
 
-choicesBox.addEventListener('click', event => {
-	const tile = event.target.closest('.game-tile');
-	if (!tile) return;
-	picked = tile.dataset.value;
-	renderNewGame();
-});
-
-/** The form as { mode, settings }, the settings as that mode keeps them. */
+/** What the form would start: { mode, settings }, the settings as that mode keeps them. */
 function readGameForm() {
-	const choice = GAME_CHOICES.find(c => c.value === picked) ?? GAME_CHOICES[0];
+	const choice = GAME_CHOICES.find(c => c.value === ngForm.picked) ?? GAME_CHOICES[0];
 	return {
 		mode: choice.mode,
 		settings: MODES[choice.mode].normalizeSettings({
-			legs: legsInput.value,
-			sets: setsInput.value,
+			legs: ngForm.legs,
+			sets: ngForm.sets,
 			doubleOut: doubleOutInput.checked,
 			practice: practiceInput.checked,
-			...Object.fromEntries(optionChecks),
+			...Object.fromEntries(ngForm.options),
 			...choice.settings,
 		}),
 	};
 }
 
-/** Opens set to the game being played, so Start alone plays a fresh one of the same. */
 function openNewGame() {
 	const { legs, sets, doubleOut, practice } = game.settings;
-	picked = choiceOf(game).value;
-	legsInput.value = legs;
-	setsInput.value = sets;
+	Object.assign(ngForm, { step: 'game', picked: choiceOf(game).value, legs, sets });
 	doubleOutInput.checked = doubleOut ?? DEFAULT_SETTINGS.doubleOut; // for a game switched to that has it
 	practiceInput.checked = practice;
-	optionChecks.clear();
-	for (const { key } of mode().OPTIONS) optionChecks.set(key, Boolean(game.settings[key]));
+	ngForm.options.clear();
+	for (const { key } of mode().OPTIONS) ngForm.options.set(key, game.settings[key]);
+	ngForm.names = game.players.map(player => player.name);
+	ngForm.solo = ngForm.names.length <= 1;
+	soloName.value = ngForm.names[0] ?? '';
 	renderNewGame();
-	openDialog(newGameDialog, $('[data-action="start"]', newGameDialog));
+	openDialog(newGameDialog, ngNextBtn);
 }
 
 function renderNewGame() {
-	const form = readGameForm();
-	for (const tile of $$('.game-tile', choicesBox)) tile.setAttribute('aria-checked', String(tile.dataset.value === picked));
-	// Practice has no legs or sets to reach; only some games finish on a double.
-	legsInput.disabled = practiceInput.checked;
-	setsInput.disabled = practiceInput.checked;
-	doubleOutInput.disabled = !('doubleOut' in form.settings);
-	renderOptions(form);
-	const names = game.players.map(player => player.name);
-	playersLine.textContent = names.length
-		? `Players: ${names.join(', ')}`
-		: 'Add players on the scoreboard once it starts.';
+	const onGame = ngForm.step === 'game';
+	gameStep.hidden = !onGame;
+	playersStep.hidden = onGame;
+	ngBackBtn.textContent = onGame ? 'Cancel' : '‹ Back';
+	ngNextBtn.textContent = onGame ? 'Players ›' : 'Start';
+	if (onGame) renderGameStep();
+	else renderPlayersStep();
 }
 
-function startNewGame() {
+// Only what the picked game has: legs and sets (not in Practice, which has
+// no winner), Double out where a game finishes on a double, and its own options.
+function renderGameStep() {
 	const { mode: id, settings } = readGameForm();
-	clearTurn();
-	commit(startMatch(game, id, settings));
-	closeDialog(newGameDialog);
-	showToast({ kind: 'info', title: 'New game', detail: mode().title(game.settings) });
+	for (const tile of $$('.game-tile', choicesBox)) tile.setAttribute('aria-checked', String(tile.dataset.value === ngForm.picked));
+	for (const [stepper, value, max] of [[legsStepper, settings.legs, MAX_LEGS], [setsStepper, settings.sets, MAX_SETS]]) {
+		stepper.hidden = settings.practice;
+		$('output', stepper).textContent = value;
+		$('[data-by="-1"]', stepper).disabled = value <= 1;
+		$('[data-by="1"]', stepper).disabled = value >= max;
+	}
+	doubleOutInput.closest('label').hidden = !('doubleOut' in settings);
+	renderOptions(MODES[id], settings);
 }
 
-/** The picked game's own options as checkboxes; the line is hidden for games without any. */
-function renderOptions(form) {
-	const options = MODES[form.mode].OPTIONS.filter(option => option.applies?.(form.settings) ?? true);
-	const cell = optionsRow.firstElementChild;
-	const key = options.map(option => option.key).join();
-	optionsRow.hidden = !options.length;
-	if (cell.dataset.key === key) return; // rebuilt only when the options change, so a tick keeps its focus
-	cell.dataset.key = key;
-	cell.replaceChildren(...options.map(({ key: name, label, title }) => {
+/** The game's own options: a checkbox each, or a row of buttons for a choice. Hidden where they don't apply. */
+function renderOptions(rules, settings) {
+	const options = rules.OPTIONS.filter(option => option.applies?.(settings) ?? true);
+	optionsBox.hidden = !options.length;
+	optionsBox.replaceChildren(...options.map(option => {
+		if (option.type === 'choice') {
+			const group = document.createElement('div');
+			group.className = 'option-choice';
+			const label = document.createElement('span');
+			label.className = 'stepper-label';
+			label.textContent = option.label;
+			const buttons = document.createElement('div');
+			buttons.className = 'segmented';
+			buttons.setAttribute('role', 'radiogroup');
+			buttons.setAttribute('aria-label', option.label);
+			buttons.append(...option.choices.map(([value, text]) => {
+				const button = document.createElement('button');
+				button.type = 'button';
+				button.setAttribute('role', 'radio');
+				button.setAttribute('aria-checked', String(settings[option.key] === value));
+				button.textContent = text;
+				button.addEventListener('click', () => {
+					ngForm.options.set(option.key, value);
+					renderGameStep();
+				});
+				return button;
+			}));
+			group.append(label, buttons);
+			return group;
+		}
 		const box = document.createElement('label');
 		box.className = 'settings-check';
-		box.title = title;
+		box.title = option.title ?? '';
 		const input = document.createElement('input');
 		input.type = 'checkbox';
-		input.checked = optionChecks.get(name) ?? false;
+		input.checked = Boolean(settings[option.key]);
 		input.addEventListener('change', () => {
-			optionChecks.set(name, input.checked);
-			renderNewGame();
+			ngForm.options.set(option.key, input.checked);
+			renderGameStep();
 		});
-		box.append(input, ` ${label}`);
+		box.append(input, ` ${option.label}`);
 		return box;
 	}));
 }
 
+function renderPlayersStep() {
+	for (const button of $$('.who button', playersStep)) {
+		button.setAttribute('aria-checked', String((button.dataset.who === 'solo') === ngForm.solo));
+	}
+	$('.who-solo', playersStep).hidden = !ngForm.solo;
+	$('.who-group', playersStep).hidden = ngForm.solo;
+	ngNextBtn.disabled = !ngForm.solo && !ngForm.names.length;
+	if (ngForm.solo) return;
 
-[legsInput, setsInput, doubleOutInput, practiceInput].forEach(el => {
-	el.addEventListener('change', renderNewGame);
-	el.addEventListener('input', renderNewGame);
+	const items = ngForm.names.map((name, index) => {
+		const item = document.createElement('li');
+		item.className = 'player-item';
+		item.innerHTML = `
+			<div class="player-field">
+				<input type="text" autocomplete="off" spellcheck="false" aria-label="Player name">
+				<button type="button" class="field-btn move-up" aria-label="Move up">&#x25B2;</button>
+				<button type="button" class="field-btn move-down" aria-label="Move down">&#x25BC;</button>
+				<button type="button" class="field-btn delete-player" aria-label="Remove player">&#10006;</button>
+			</div>`;
+		const input = $('input', item);
+		input.value = name;
+		input.placeholder = `Player ${index + 1}`;
+		input.addEventListener('input', () => { ngForm.names[index] = input.value; });
+		input.addEventListener('keydown', event => {
+			if (event.key === 'Enter') input.blur();
+		});
+		const move = offset => {
+			const names = ngForm.names;
+			[names[index], names[index + offset]] = [names[index + offset], names[index]];
+			renderPlayersStep();
+		};
+		$('.move-up', item).disabled = index === 0;
+		$('.move-down', item).disabled = index === ngForm.names.length - 1;
+		$('.move-up', item).addEventListener('click', () => move(-1));
+		$('.move-down', item).addEventListener('click', () => move(1));
+		$('.delete-player', item).addEventListener('click', () => {
+			ngForm.names.splice(index, 1);
+			renderPlayersStep();
+		});
+		return item;
+	});
+	draftList.replaceChildren(...items);
+	draftAdd.hidden = ngForm.names.length >= MAX_PLAYERS;
+}
+
+function startNewGame() {
+	const { mode: id, settings } = readGameForm();
+	const names = ngForm.solo ? [soloName.value] : ngForm.names;
+	clearTurn();
+	commit(newGame(id, settings, names, game));
+	closeDialog(newGameDialog);
+	showToast({ kind: 'info', title: 'New game', detail: mode().title(game.settings) });
+}
+
+choicesBox.addEventListener('click', event => {
+	const tile = event.target.closest('.game-tile');
+	if (!tile) return;
+	ngForm.picked = tile.dataset.value;
+	renderGameStep();
 });
-legsInput.addEventListener('blur', () => { legsInput.value = readGameForm().settings.legs; });
-setsInput.addEventListener('blur', () => { setsInput.value = readGameForm().settings.sets; });
 
+for (const [stepper, key] of [[legsStepper, 'legs'], [setsStepper, 'sets']]) {
+	stepper.addEventListener('click', event => {
+		const by = Number(event.target.closest('[data-by]')?.dataset.by);
+		if (!by) return;
+		ngForm[key] = readGameForm().settings[key] + by;
+		renderGameStep();
+	});
+}
+[doubleOutInput, practiceInput].forEach(input => input.addEventListener('change', renderGameStep));
+
+playersStep.addEventListener('click', event => {
+	const who = event.target.closest('[data-who]')?.dataset.who;
+	if (!who || (who === 'solo') === ngForm.solo) return;
+	// The names carry across: the solo name heads the list (with room for a
+	// second player), and the list's first is the solo name.
+	if (who === 'solo') {
+		soloName.value = ngForm.names[0] ?? soloName.value;
+	} else {
+		ngForm.names[0] = soloName.value || (ngForm.names[0] ?? '');
+		while (ngForm.names.length < 2) ngForm.names.push('');
+	}
+	ngForm.solo = who === 'solo';
+	renderPlayersStep();
+	if (ngForm.solo) soloName.focus();
+});
+
+draftAdd.addEventListener('click', () => {
+	ngForm.names.push('');
+	renderPlayersStep();
+	const inputs = $$('input', draftList);
+	inputs.at(-1)?.focus();
+	inputs.at(-1)?.scrollIntoView({ block: 'nearest' });
+});
+
+soloName.addEventListener('keydown', event => {
+	if (event.key === 'Enter') startNewGame();
+});
 
 newGameDialog.addEventListener('click', event => {
 	const action = event.target.closest('[data-action]')?.dataset.action;
-	if (action === 'start') startNewGame();
-	else if (action === 'close' || event.target === newGameDialog) closeDialog(newGameDialog);
+	if (action === 'next') {
+		if (ngForm.step === 'players') {
+			startNewGame();
+			return;
+		}
+		ngForm.step = 'players';
+		renderNewGame();
+		(ngForm.solo ? soloName : ngNextBtn).focus();
+	} else if (action === 'back' && ngForm.step === 'players') {
+		ngForm.step = 'game';
+		renderNewGame();
+	} else if (action === 'back' || event.target === newGameDialog) {
+		closeDialog(newGameDialog);
+	}
 });
 
 // ---- Settings: board and visuals ----------------------------------------------

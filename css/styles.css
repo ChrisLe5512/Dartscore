@@ -175,7 +175,8 @@ aside.keypad-hidden .calc-section {
 	border-radius: var(--radius);
 }
 
-.settings-tbl .settings-check {
+.settings-tbl .settings-check,
+.new-game-section .settings-check {
 	display: flex;
 	align-items: center;
 	gap: 1vmin;
@@ -184,7 +185,8 @@ aside.keypad-hidden .calc-section {
 	cursor: pointer;
 }
 
-.settings-tbl .settings-check input {
+.settings-tbl .settings-check input,
+.new-game-section .settings-check input {
 	flex: none;
 	width: 3vmin;
 	height: 3vmin;
@@ -220,14 +222,6 @@ aside.keypad-hidden .calc-section {
 
 .game-tbl .settings-check {
 	height: 4vmin;
-}
-
-/* The picked game's own options (practice games), on a line under the row. */
-.game-tbl .mode-options td {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0 4vmin;
-	padding-top: 1.5vmin;
 }
 
 .settings-tbl input:disabled {
@@ -489,17 +483,155 @@ aside.keypad-hidden .calc-section {
 	background: linear-gradient(#2e8a22, #1a5212);
 }
 
-.new-game-section .game-tbl {
-	margin-top: 1.6vmin;
+/* Under the tiles, only what the picked game has: legs and sets as − n +
+   steppers, its checkboxes, and its own options. */
+.game-options,
+.mode-options {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 1.6vmin 4vmin;
+	margin: 2vmin 1vmin 0;
+	color: var(--text);
+	font-size: 3vmin;
 }
 
-.new-game-players {
-	margin: 1.4vmin 1vmin 0;
+.stepper,
+.option-choice {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75vmin;
+}
+
+.stepper-label {
 	font-family: var(--font-condensed);
-	font-size: 2.4vmin;
-	text-align: center;
 	color: var(--text-soft);
-	overflow-wrap: anywhere;
+}
+
+.stepper-row {
+	display: flex;
+	align-items: center;
+}
+
+.stepper-btn {
+	width: 5.5vmin;
+	height: 5.5vmin;
+	padding: 0;
+	font-family: var(--font);
+	font-size: 3.4vmin;
+	line-height: 1;
+	color: var(--text);
+	border: var(--border);
+	border-radius: var(--radius);
+	background: var(--button);
+	cursor: pointer;
+	transition: transform var(--fast) var(--ease-out), opacity var(--medium);
+}
+
+.stepper-btn:active {
+	transform: scale(0.92);
+}
+
+.stepper-btn:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+
+.stepper output {
+	min-width: 6vmin;
+	font-family: var(--font-condensed);
+	font-size: 3.6vmin;
+	font-weight: 500;
+	text-align: center;
+	font-variant-numeric: tabular-nums;
+}
+
+.game-checks {
+	display: flex;
+	flex-direction: column;
+	gap: 0.8vmin;
+}
+
+/* A row of buttons where one is picked (around the clock's beds, Solo or not). */
+.segmented {
+	display: inline-flex;
+	border: var(--border);
+	border-radius: var(--radius);
+	overflow: hidden;
+}
+
+.segmented button {
+	flex: 1;
+	padding: 1vmin 2.2vmin;
+	font-family: var(--font-condensed);
+	font-size: 2.6vmin;
+	white-space: nowrap;
+	color: var(--text);
+	text-shadow: 0 0 8px black;
+	border: none;
+	background: var(--button-disabled);
+	cursor: pointer;
+	transition: background var(--medium);
+}
+
+.segmented button + button {
+	border-left: 1px solid var(--text-muted);
+}
+
+.segmented button[aria-checked="true"] {
+	background: linear-gradient(#2e8a22, #1a5212);
+}
+
+/* Who's playing: Solo is one name; otherwise a list to add to and reorder. */
+.segmented.who {
+	display: flex;
+	margin: 2vmin 1vmin 0;
+}
+
+.segmented.who button {
+	padding: 1.4vmin;
+	font-size: 3vmin;
+}
+
+.who-solo,
+.who-group {
+	margin: 2vmin 1vmin 0;
+}
+
+.solo-name {
+	width: 100%;
+	height: 6.5vmin;
+	box-sizing: border-box;
+	padding: 0 1.5vmin;
+	font-family: var(--font);
+	font-size: 3.2vmin;
+	color: var(--text);
+	background: #242424;
+	border: 1px solid var(--text-muted);
+	border-radius: var(--radius);
+	outline: none;
+}
+
+.solo-name:focus {
+	border-color: var(--text);
+}
+
+.draft-list {
+	max-height: 42vmin;
+	margin: 0;
+	padding: 0;
+	overflow-y: auto;
+	list-style: none;
+	scrollbar-width: none;
+}
+
+.draft-list .player-field {
+	cursor: default;
+	touch-action: auto;
+}
+
+.draft-list .player-field input {
+	padding-left: 1.5vmin;
 }
 
 .settings-btn-action {

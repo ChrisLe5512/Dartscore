@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { GAME_CHOICES, MODES, choiceOf, createGame, modeOf, restoreGame, startMatch, wonLegs } from '../js/modes.js';
+import { GAME_CHOICES, MODES, choiceOf, createGame, modeOf, newGame, restoreGame, startMatch, wonLegs } from '../js/modes.js';
 import { describeTravel, describeTurn, historyLegs, undoWarning } from '../js/feedback.js';
 import * as Game from '../js/game.js';
 import { createHistory, record, undo } from '../js/history.js';
@@ -19,7 +19,10 @@ test('a game without a mode is X01, and every mode has the same parts', () => {
 		assert.equal(mode.id, key);
 		for (const part of parts) assert.equal(typeof mode[part], 'function', `${key}.${part}`);
 		assert.ok(mode.STAT_ROWS.length && Number.isInteger(mode.maxInput) && Array.isArray(mode.OPTIONS));
-		for (const { key } of mode.OPTIONS) assert.equal(mode.normalizeSettings({ [key]: true, ring: 'any' })[key], true, `${key} is kept`);
+		for (const option of mode.OPTIONS) {
+			const values = option.type === 'choice' ? option.choices.map(([value]) => value) : [true];
+			for (const value of values) assert.equal(mode.normalizeSettings({ ring: 'any', [option.key]: value })[option.key], value, `${option.key} keeps ${value}`);
+		}
 	}
 });
 
@@ -34,7 +37,7 @@ test('switching mode keeps the players and their order, nothing else', () => {
 	]);
 	assert.equal(clock.nextId, 3);
 	assert.deepEqual(clock.settings, { ring: 'double', skip: false, legs: 2, sets: 1, practice: false });
-	assert.equal(choiceOf(clock).value, 'clock-double');
+	assert.equal(choiceOf(clock).value, 'clock');
 
 	// And back: an X01 game as if it had never been anything else.
 	const x01 = startMatch(clock, 'x01', { startScore: 701 });
@@ -86,4 +89,24 @@ test('messages for the practice modes', () => {
 	assert.deepEqual(describeTurn(t, out.event, 121, out.state), { kind: 'win', title: 'Checkout', detail: 'Ann · 122 next' });
 	assert.deepEqual(describeTurn(t, 'draw', 0, t), { kind: 'info', title: 'Leg', detail: 'Drawn' });
 	assert.equal(describeTravel(startMatch(t, 'clock', {}), t, 'undo').detail, 'Settings changed');
+});
+
+test('a new game with chosen players, in order, all at the start', () => {
+	const s = newGame('121', { legs: 2 }, ['Ann', ' ', 'Cat']);
+	assert.equal(s.mode, '121');
+	assert.deepEqual(s.players.map(p => p.name), ['Ann', 'Player 2', 'Cat']);
+	assert.deepEqual(s.players.map(p => p.target), [121, 121, 121]);
+	assert.equal(s.settings.legs, 2);
+	const x01 = newGame('x01', { startScore: 301 }, ['Solo']);
+	assert.equal(x01.mode, undefined);
+	assert.equal(x01.players[0].score, 301);
+	assert.equal(newGame('x01', {}, []).players.length, 0);
+});
+
+test('players who play again keep their id; newcomers get new ones', () => {
+	const before = newGame('x01', {}, ['Ann', 'Bob', 'Cat']);
+	const after = newGame('clock', {}, ['Cat', 'Dan', 'Ann'], before);
+	const [cat, dan, ann] = after.players;
+	assert.deepEqual([cat.id, ann.id], [3, 1]);
+	assert.ok(dan.id > 3 && after.nextId > dan.id, 'Dan is new');
 });

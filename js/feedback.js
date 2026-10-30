@@ -106,6 +106,9 @@ export function undoWarning(from, to, label = t => t.score) {
 	const ids = state => state.players.map(p => p.id);
 	const added = from.players.filter(p => !ids(to).includes(p.id));
 	const removed = to.players.filter(p => !ids(from).includes(p.id));
+	if (ids(from).join() !== ids(to).join() && rules(from) !== rules(to)) {
+		return { title: 'Back to the last game?', detail: 'Undoes the new game: the game and players go back to how they were.' };
+	}
 	if (added.length === 1 && !removed.length) return { title: `Remove ${added[0].name}?`, detail: 'Undoes adding them to the game.' };
 	if (removed.length === 1 && !added.length) return { title: `Bring back ${removed[0].name}?`, detail: 'Undoes removing them, with their scores.' };
 	if (ids(from).join() !== ids(to).join()) return { title: 'Undo the player change?', detail: 'The players go back to how they were.' };
