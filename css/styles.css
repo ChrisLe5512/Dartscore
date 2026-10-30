@@ -507,7 +507,7 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 
 /* Under the tiles, only what the picked game has: legs and sets as − n +
    steppers, its checkboxes, and its own options. */
-.game-options,
+.match-row,
 .mode-options {
 	display: flex;
 	flex-wrap: wrap;
@@ -554,9 +554,36 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	height: var(--choice-height, 5.2vmin);
 }
 
-/* Greyed in Practice, which has no legs or sets to reach. */
-.stepper.off {
-	opacity: 0.4;
+/* First to: the legs and sets slide out beside the match picker; Endless
+   (no winner) folds them away. */
+.match-row {
+	align-items: flex-end;
+	gap: 0;
+}
+
+.counts-reveal {
+	display: grid;
+	grid-template-columns: 0fr;
+	opacity: 0;
+	transition: grid-template-columns var(--medium) var(--ease-out), opacity var(--medium) var(--ease-out);
+}
+
+.counts-reveal.open {
+	grid-template-columns: 1fr;
+	opacity: 1;
+}
+
+.counts-reveal.instant {
+	transition: none;
+}
+
+.counts {
+	display: flex;
+	gap: 2.5vmin;
+	min-width: 0;
+	overflow: hidden;
+	padding-left: 3vmin;
+	white-space: nowrap;
 }
 
 .stepper,
@@ -609,27 +636,23 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	font-variant-numeric: tabular-nums;
 }
 
-/* Legs, sets, then every checkbox in one column that starts at the same
-   place in every game, the first level with the steppers' labels. */
-.game-options {
-	display: grid;
-	grid-template-columns: auto auto 1fr;
-	column-gap: 2.5vmin;
-}
-
+/* Double out and the game's checkboxes, on one line. Every game but around
+   the clock (whose checkbox sits beside its Counts) has one here, so the
+   screen keeps its height between them; around the clock's empty line folds away. */
 .game-checks {
 	display: flex;
-	flex-direction: column;
-	gap: 0.8vmin;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.8vmin 4vmin;
+	margin: 2vmin 1vmin 0;
+	color: var(--text);
+	font-size: 3vmin;
 	white-space: nowrap;
 }
 
-/* For every game, so on a line of its own, with what it means. */
-.new-game-section .endless-check {
-	margin: 1.8vmin 1vmin 0;
-	font-size: 3vmin;
+.game-checks:not(:has(> :not([hidden]))) {
+	margin-top: 0;
 }
-
 
 
 /* ⓘ: a small circled i beside something that may need explaining (app.js). */

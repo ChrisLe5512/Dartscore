@@ -195,20 +195,30 @@
 					<h2 class="settings-heading" id="new-game-title">New game</h2>
 					<div class="game-choices"></div>
 					<div class="options-reveal"><div class="mode-options"></div></div>
-					<div class="game-options">
-						<div class="stepper" data-field="legs">
-							<span class="stepper-label">Legs to win <button type="button" class="info" aria-label="About legs to win" data-info="The first to win this many legs takes the set (or the match, with one set).">i</button></span>
-							<div class="stepper-row"><button type="button" class="stepper-btn" data-by="-1" aria-label="Fewer legs">&minus;</button><output></output><button type="button" class="stepper-btn" data-by="1" aria-label="More legs">+</button></div>
+					<div class="match-row">
+						<div class="option-choice">
+							<span class="stepper-label">Match <button type="button" class="info" aria-label="About the match" data-info="First to: the first to win the legs takes a set, and the first to win the sets takes the match (with one set, the legs decide it). Endless: no winner and no sets; play leg after leg for as long as you like, and each card counts the legs won.">i</button></span>
+							<div class="segmented match-format" role="radiogroup" aria-label="Match">
+								<button type="button" role="radio" data-format="first">First to</button>
+								<button type="button" role="radio" data-format="endless">Endless</button>
+							</div>
 						</div>
-						<div class="stepper" data-field="sets">
-							<span class="stepper-label">Sets to win <button type="button" class="info" aria-label="About sets to win" data-info="The first to win this many sets takes the match. With 1, the legs decide it.">i</button></span>
-							<div class="stepper-row"><button type="button" class="stepper-btn" data-by="-1" aria-label="Fewer sets">&minus;</button><output></output><button type="button" class="stepper-btn" data-by="1" aria-label="More sets">+</button></div>
-						</div>
-						<div class="game-checks">
-							<span class="check-line"><label class="settings-check"><input type="checkbox" id="double-out"> Double out</label><button type="button" class="info" aria-label="About Double out" data-info="The last dart must be a double or the bullseye. Leaving 1, or going below 0, is a bust.">i</button></span>
+						<div class="counts-reveal">
+							<div class="counts">
+								<div class="stepper" data-field="legs">
+									<span class="stepper-label">Legs</span>
+									<div class="stepper-row"><button type="button" class="stepper-btn" data-by="-1" aria-label="Fewer legs">&minus;</button><output></output><button type="button" class="stepper-btn" data-by="1" aria-label="More legs">+</button></div>
+								</div>
+								<div class="stepper" data-field="sets">
+									<span class="stepper-label">Sets</span>
+									<div class="stepper-row"><button type="button" class="stepper-btn" data-by="-1" aria-label="Fewer sets">&minus;</button><output></output><button type="button" class="stepper-btn" data-by="1" aria-label="More sets">+</button></div>
+								</div>
+							</div>
 						</div>
 					</div>
-					<span class="check-line endless-check"><label class="settings-check"><input type="checkbox" id="practice"> Endless</label><button type="button" class="info" aria-label="About Endless" data-info="No winner and no sets: play leg after leg for as long as you like. Each card counts the legs won.">i</button></span>
+					<div class="game-checks">
+						<span class="check-line"><label class="settings-check"><input type="checkbox" id="double-out"> Double out</label><button type="button" class="info" aria-label="About Double out" data-info="The last dart must be a double or the bullseye. Leaving 1, or going below 0, is a bust.">i</button></span>
+					</div>
 				</div>
 
 				<div class="ng-step" data-step="players" hidden>

@@ -1506,7 +1506,8 @@ const choicesBox = $('.game-choices', newGameDialog);
 const legsStepper = $('[data-field="legs"]', newGameDialog);
 const setsStepper = $('[data-field="sets"]', newGameDialog);
 const doubleOutInput = $('#double-out');
-const practiceInput = $('#practice');
+const formatButtons = $$('.match-format button', newGameDialog);
+const countsReveal = $('.counts-reveal', newGameDialog);
 const optionsBox = $('.mode-options', newGameDialog);
 const optionsReveal = optionsBox.parentElement;
 const checksBox = $('.game-checks', newGameDialog);
@@ -1517,7 +1518,7 @@ const ngBackBtn = $('[data-action="back"]', newGameDialog);
 const ngNextBtn = $('[data-action="next"]', newGameDialog);
 
 // The form so far. Option values are kept by key while other games are picked.
-const ngForm = { step: 'game', picked: GAME_CHOICES[0].value, legs: 3, sets: 1, options: new Map(), solo: true, names: [] };
+const ngForm = { step: 'game', picked: GAME_CHOICES[0].value, legs: 3, sets: 1, endless: false, options: new Map(), solo: true, names: [] };
 
 // A tile per game, under its group's heading (X01, Practice).
 for (const group of new Set(GAME_CHOICES.map(choice => choice.group))) {
@@ -1556,7 +1557,7 @@ function readGameForm() {
 			legs: ngForm.legs,
 			sets: ngForm.sets,
 			doubleOut: doubleOutInput.checked,
-			practice: practiceInput.checked,
+			practice: ngForm.endless,
 			...Object.fromEntries(ngForm.options),
 			...choice.settings,
 		}),
@@ -1568,17 +1569,17 @@ function openNewGame(from = null) {
 	const { legs, sets, doubleOut, practice } = game.settings;
 	Object.assign(ngForm, { step: 'game', picked: choiceOf(game).value, legs, sets });
 	doubleOutInput.checked = doubleOut ?? DEFAULT_SETTINGS.doubleOut; // for a game switched to that has it
-	practiceInput.checked = practice;
+	ngForm.endless = practice;
 	ngForm.options.clear();
 	for (const { key } of mode().OPTIONS) ngForm.options.set(key, game.settings[key]);
 	ngForm.names = game.players.map(player => player.name);
 	ngForm.solo = ngForm.names.length <= 1;
 	soloName.value = ngForm.names[0] ?? '';
 	// Opening, the choice's line is simply there (or not): no opening out.
-	optionsReveal.classList.add('instant');
+	for (const reveal of [optionsReveal, countsReveal]) reveal.classList.add('instant');
 	renderNewGame();
 	void optionsReveal.offsetHeight;
-	optionsReveal.classList.remove('instant');
+	for (const reveal of [optionsReveal, countsReveal]) reveal.classList.remove('instant');
 	if (from) switchDialog(from, newGameDialog, ngNextBtn);
 	else openDialog(newGameDialog, ngNextBtn);
 }
@@ -1594,18 +1595,20 @@ function renderNewGame() {
 }
 
 // Only what the picked game has: a choice of its own (around the clock's
-// beds) right under the tiles, then legs and sets with Double out and its
-// checkboxes beside them (room is kept for two, so the screen doesn't jump
-// between games), and Endless, for every game, underneath. Legs and sets
-// stay in place, greyed when Endless (no winner).
+// beds) right under the tiles; then the match, First to (with the legs and
+// sets sliding out beside it) or Endless; then Double out and the game's
+// checkboxes on a line of their own (kept even when empty, so the screen
+// doesn't jump between games).
 function renderGameStep() {
 	const { mode: id, settings } = readGameForm();
 	for (const tile of $$('.game-tile', choicesBox)) tile.setAttribute('aria-checked', String(tile.dataset.value === ngForm.picked));
+	for (const button of formatButtons) button.setAttribute('aria-checked', String((button.dataset.format === 'endless') === settings.practice));
+	countsReveal.classList.toggle('open', !settings.practice);
+	countsReveal.inert = settings.practice;
 	for (const [stepper, value, max] of [[legsStepper, settings.legs, MAX_LEGS], [setsStepper, settings.sets, MAX_SETS]]) {
-		stepper.classList.toggle('off', settings.practice);
 		$('output', stepper).textContent = value;
-		$('[data-by="-1"]', stepper).disabled = settings.practice || value <= 1;
-		$('[data-by="1"]', stepper).disabled = settings.practice || value >= max;
+		$('[data-by="-1"]', stepper).disabled = value <= 1;
+		$('[data-by="1"]', stepper).disabled = value >= max;
 	}
 	doubleOutInput.closest('.check-line').hidden = !('doubleOut' in settings);
 	renderOptions(MODES[id], settings);
@@ -1615,7 +1618,7 @@ function renderGameStep() {
  * The game's own options. A choice is a row of buttons under the tiles, and
  * the game's checkboxes sit beside it (greyed where they don't apply, e.g.
  * Skip ahead with doubles only). A game without a choice has its checkboxes
- * in the column beside the steppers, shown only where they apply.
+ * on the line with Double out, shown only where they apply.
  */
 function renderOptions(rules, settings) {
 	const choices = rules.OPTIONS.filter(option => option.type === 'choice');
@@ -1753,7 +1756,13 @@ for (const [stepper, key] of [[legsStepper, 'legs'], [setsStepper, 'sets']]) {
 		renderGameStep();
 	});
 }
-[doubleOutInput, practiceInput].forEach(input => input.addEventListener('change', renderGameStep));
+doubleOutInput.addEventListener('change', renderGameStep);
+for (const button of formatButtons) {
+	button.addEventListener('click', () => {
+		ngForm.endless = button.dataset.format === 'endless';
+		renderGameStep();
+	});
+}
 
 playersStep.addEventListener('click', event => {
 	const who = event.target.closest('[data-who]')?.dataset.who;
