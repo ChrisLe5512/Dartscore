@@ -14,6 +14,8 @@
 	--button-pressed: linear-gradient(#484848, #202020);
 	--row: #161616;
 	--checkout: #00c800;
+	--menu-row: linear-gradient(#6fb4ff, #2f6fb0); /* a player whose menu is open */
+	--menu-line: #173450; /* their history and stats lines */
 	--history-muted: #6e6e6e; /* zero and bust visits */
 	--ton-forty: #ffa64d; /* 140+ visits */
 	--max: #ff6a3c; /* 180s */
@@ -654,10 +656,15 @@ aside.keypad-hidden .calc-section {
 	text-overflow: ellipsis;
 }
 
-/* The player whose menu is open. On the rows, not their cells: a filter on
-   a cell would cut the row's background layer down to that cell. */
-.menu-open {
-	filter: brightness(1.2);
+/* The player whose menu is open is tinted blue. */
+.scores-tbl tr.player-row.menu-open {
+	--row-bg: var(--menu-row);
+}
+
+.scores-tbl tr.history-row.menu-open,
+.scores-tbl tr.stats-row.menu-open,
+.scores-tbl.big tr.stats-row.menu-open {
+	background: var(--menu-line);
 }
 
 .player-score {
@@ -1341,6 +1348,11 @@ td.back-score {
 	width: 3vmin;
 	font-size: 2.4vmin;
 	text-align: center;
+}
+
+/* The pencil points down to the left. */
+.player-menu button span.flip {
+	transform: scaleX(-1);
 }
 
 .player-menu button:active {
