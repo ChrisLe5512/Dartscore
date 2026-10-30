@@ -64,6 +64,13 @@ export function segments(rings) {
 
 export const segmentKey = (sector, ring) => `${sector}-${ring}`;
 
+/** Fade a node out (.leaving in the CSS), then remove it. */
+function fadeOut(node) {
+	if (node.classList.contains('leaving')) return;
+	node.classList.add('leaving');
+	Promise.allSettled(node.getAnimations().map(a => a.finished)).then(() => node.remove());
+}
+
 /**
  * Draw the board into `svg` (replacing what was there).
  * style: { outline, outlineColor, wires } as in BOARD_STYLE.
@@ -126,9 +133,12 @@ export function lightSegments(svg, lights) {
 	const id = ({ key, kind }) => `${key} ${kind}`;
 	const wanted = new Set(lights.map(id));
 	const shown = new Set();
+	// Lit beds fade out; the pointer's light just follows it.
 	for (const path of [...layer.children]) {
+		if (path.classList.contains('leaving')) continue;
 		if (wanted.has(path.dataset.light) && !shown.has(path.dataset.light)) shown.add(path.dataset.light);
-		else path.remove();
+		else if (path.classList.contains('hover')) path.remove();
+		else fadeOut(path);
 	}
 	for (const light of lights) {
 		const source = svg.querySelector(`.seg[data-key="${light.key}"]`);
@@ -146,6 +156,10 @@ export function lightSegments(svg, lights) {
 export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null } = {}) {
 	const layer = svg.querySelector('.marks');
 	if (!layer) return;
+	if (!hits.length) {
+		for (const place of [...layer.children]) fadeOut(place);
+		return;
+	}
 	layer.replaceChildren(...hits.map(({ x, y }, index) => {
 		const place = el('g', { transform: `translate(${round(x * 100)} ${round(y * 100)})` });
 		const classes = ['mark', kind, pop.includes(index) && 'pop', editing === index && 'editing'];

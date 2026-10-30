@@ -555,12 +555,20 @@ aside.keypad-hidden .calc-section {
 	background: none;
 }
 
-.player-wins::before {
+.player-wins::before,
+.player-wins::after {
 	content: '';
 	position: absolute;
 	inset: 0;
 	z-index: -1;
 	background: var(--row-bg);
+}
+
+/* The menu tint, over the row's own background so it can fade in and out. */
+.player-wins::after {
+	background: var(--menu-row);
+	opacity: 0;
+	transition: opacity var(--medium) var(--ease-out);
 }
 
 .player-wins {
@@ -651,7 +659,7 @@ aside.keypad-hidden .calc-section {
    lit) or a player's menu is open (that player stays lit). JS sets .inputting.
    On the rows, not their cells: see .player-row. */
 .scores-tbl tr {
-	transition: filter var(--medium) var(--ease-out);
+	transition: filter var(--medium) var(--ease-out), background-color var(--medium) var(--ease-out);
 }
 
 .scores-tbl.inputting:not(:has(tr.menu-open)) tr:not(.active),
@@ -687,8 +695,8 @@ body:is(.menu-focus, .review-focus) #dartboard {
 }
 
 /* The player whose menu is open is tinted amber, like the menu. */
-.scores-tbl tr.player-row.menu-open {
-	--row-bg: var(--menu-row);
+.scores-tbl tr.player-row.menu-open .player-wins::after {
+	opacity: 1;
 }
 
 .scores-tbl tr.history-row.menu-open,
@@ -770,6 +778,7 @@ body:is(.menu-focus, .review-focus) #dartboard {
 
 .history span b {
 	color: white;
+	transition: color var(--medium) var(--ease-out), background-color var(--medium) var(--ease-out), box-shadow var(--medium) var(--ease-out);
 }
 
 .checkout {
@@ -1354,6 +1363,11 @@ td.back-score {
 	animation: menu-in var(--medium) var(--ease-out);
 }
 
+.player-menu.closing {
+	pointer-events: none;
+	animation: menu-out var(--fast) ease-in forwards;
+}
+
 /* The player's name, with a pencil on the right to rename them. */
 .player-menu-head {
 	display: flex;
@@ -1441,9 +1455,17 @@ td.back-score {
 	from { opacity: 0; transform: translateX(-2vmin); }
 }
 
+@keyframes menu-out {
+	to { opacity: 0; transform: translateX(-1vmin); }
+}
+
 /* In portrait the menu opens above the scores, so it rises from them. */
 @keyframes menu-up {
 	from { opacity: 0; transform: translateY(2vmin); }
+}
+
+@keyframes menu-down {
+	to { opacity: 0; transform: translateY(1vmin); }
 }
 
 /* TOAST */
@@ -1762,6 +1784,10 @@ td.calc-score:not(.disabled) {
 		animation-name: menu-up;
 	}
 
+	.player-menu.closing {
+		animation-name: menu-down;
+	}
+
 	.toast {
 		left: 50%;
 		max-width: 80vw;
@@ -1855,6 +1881,11 @@ td.calc-score:not(.disabled) {
 
 .mark.review {
 	animation: fade-in var(--medium) var(--ease-out);
+}
+
+/* Lit beds and markers on their way out. */
+.dartboard .leaving {
+	animation: fade-out var(--medium) var(--ease-out) forwards;
 }
 
 @keyframes mark-pop {

@@ -429,6 +429,7 @@ function togglePlayerMenu(id) {
 	finishRename(true); // a rename in progress belongs to the player it started on
 	menuFor = id;
 	playerMenu.hidden = false;
+	playerMenu.classList.remove('closing');
 	replay(playerMenu, 'opening');
 	placePlayerMenu();
 }
@@ -436,7 +437,12 @@ function togglePlayerMenu(id) {
 function closePlayerMenu() {
 	finishRename(true);
 	menuFor = null;
-	playerMenu.hidden = true;
+	if (!playerMenu.hidden) {
+		playerMenu.classList.add('closing');
+		Promise.allSettled(playerMenu.getAnimations().map(a => a.finished)).then(() => {
+			if (playerMenu.classList.contains('closing')) playerMenu.hidden = true;
+		});
+	}
 	for (const row of $$('.menu-open', scoresBody)) row.classList.remove('menu-open');
 	renderFocus();
 }
