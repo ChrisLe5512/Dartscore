@@ -1057,16 +1057,14 @@ td.calc-score.tip-down:not(.disabled) .score-face {
 }
 
 /* Seen in perspective, a tipping box looks like it slides (both edges drift the
-   same way). The 1.9% shift cancels that, so it rocks in place. Its near edge
-   also looks about 4% wider; the 0.959 scale cancels that, so it never grows
-   past its width. Both hold while the perspective depth is about 1.5x the box
-   height (--tip-depth, set for portrait). */
+   same way). The 1.9% shift cancels that, so it rocks in place. It holds while the
+   perspective depth is about 1.5x the box height (--tip-depth, set for portrait). */
 @keyframes tip-up {
-	30% { transform: perspective(var(--tip-depth, 30vmin)) translateY(-1.9%) scale(0.959) rotateX(7deg); }
+	30% { transform: perspective(var(--tip-depth, 30vmin)) translateY(-1.9%) rotateX(7deg); }
 }
 
 @keyframes tip-down {
-	30% { transform: perspective(var(--tip-depth, 30vmin)) translateY(1.9%) scale(0.959) rotateX(-7deg); }
+	30% { transform: perspective(var(--tip-depth, 30vmin)) translateY(1.9%) rotateX(-7deg); }
 }
 
 /* Same box as the plate, so it tips exactly with it. The arrows sit one line
