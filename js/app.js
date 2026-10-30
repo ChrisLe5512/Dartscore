@@ -438,6 +438,7 @@ function closePlayerMenu() {
 	menuFor = null;
 	playerMenu.hidden = true;
 	for (const row of $$('.menu-open', scoresBody)) row.classList.remove('menu-open');
+	renderFocus();
 }
 
 /** Line the menu up with its player's rows and refresh which items apply. */
@@ -455,6 +456,7 @@ function placePlayerMenu() {
 
 	for (const row of $$('.menu-open', scoresBody)) row.classList.remove('menu-open');
 	rows.forEach(row => row.classList.add('menu-open'));
+	renderFocus();
 	const row = rows[0].getBoundingClientRect();
 	const room = innerHeight - playerMenu.offsetHeight - 8;
 	if (portrait.matches) {
@@ -817,10 +819,27 @@ function renderMarks(pop = []) {
 	renderLights();
 
 	for (const span of $$('.history span.reviewing', scoresBody)) span.classList.remove('reviewing');
+	for (const row of $$('.review-focus', scoresBody)) row.classList.remove('review-focus');
 	if (kind === 'review' && hits.length) {
 		$(`.history-row[data-id="${review.id}"] .history`, scoresBody)?.children[review.index]?.classList.add('reviewing');
+		for (const row of $$(`[data-id="${review.id}"]`, scoresBody)) row.classList.add('review-focus');
 	} else if (toastSticky) {
 		hideToast();
+	}
+	renderFocus();
+}
+
+/** Put the rest of the screen to sleep while the player menu or a past turn is open. */
+function renderFocus() {
+	const menu = menuFor !== null;
+	const reviewing = !menu && $('.review-focus', scoresBody) !== null;
+	document.body.classList.toggle('menu-focus', menu);
+	document.body.classList.toggle('review-focus', reviewing);
+	// The board stops hearing the pointer, so drop the light it left behind.
+	if ((menu || reviewing) && hovered !== null) {
+		hovered = null;
+		board.classList.remove('aiming', 'on-mark');
+		renderLights();
 	}
 }
 

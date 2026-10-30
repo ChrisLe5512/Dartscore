@@ -122,13 +122,18 @@ export function lightSegments(svg, lights) {
 	const layer = svg.querySelector('.lit');
 	if (!layer) return;
 	// Only add and remove what changed: re-adding a light replays its fade-in.
+	// Two darts in one bed light it once.
 	const id = ({ key, kind }) => `${key} ${kind}`;
 	const wanted = new Set(lights.map(id));
-	const shown = new Map([...layer.children].map(path => [path.dataset.light, path]));
-	for (const [light, path] of shown) if (!wanted.has(light)) path.remove();
+	const shown = new Set();
+	for (const path of [...layer.children]) {
+		if (wanted.has(path.dataset.light) && !shown.has(path.dataset.light)) shown.add(path.dataset.light);
+		else path.remove();
+	}
 	for (const light of lights) {
 		const source = svg.querySelector(`.seg[data-key="${light.key}"]`);
 		if (shown.has(id(light)) || !source) continue;
+		shown.add(id(light));
 		el('path', { d: source.getAttribute('d'), class: `light ${light.kind}`, 'data-light': id(light) }, layer);
 	}
 }

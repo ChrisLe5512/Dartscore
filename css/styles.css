@@ -659,6 +659,33 @@ aside.keypad-hidden .calc-section {
 	filter: var(--dim);
 }
 
+/* While a player's menu is open, or a past turn is on show, the rest of the
+   screen steps back and stops reacting to the pointer (no hover lights or
+   key presses); a tap anywhere just closes it. A past turn keeps the board,
+   which shows its darts. JS sets the body classes; the reviewed player's
+   rows get .review-focus. */
+.ctrl-section,
+.dartboard-section,
+.btn-section,
+.calc-section {
+	transition: opacity var(--medium) var(--ease-out);
+}
+
+body.menu-focus :is(.ctrl-section, .dartboard-section, .btn-section, .calc-section),
+body.review-focus :is(.ctrl-section, .btn-section, .calc-section) {
+	opacity: 0.4;
+}
+
+/* The sections themselves let taps through; their buttons and the board opt back in. */
+body:is(.menu-focus, .review-focus) :is(.ctrl-section, .dartboard-section, .btn-section, .calc-section) *,
+body:is(.menu-focus, .review-focus) #dartboard {
+	pointer-events: none;
+}
+
+.scores-tbl:has(tr.review-focus) tr:not(.review-focus) {
+	filter: var(--dim);
+}
+
 /* The player whose menu is open is tinted amber, like the menu. */
 .scores-tbl tr.player-row.menu-open {
 	--row-bg: var(--menu-row);
