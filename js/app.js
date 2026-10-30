@@ -979,7 +979,7 @@ function renderSettings() {
 		item.className = 'player-item';
 		item.innerHTML = `
 			<div class="player-field">
-				<span class="grip" role="button" aria-label="Drag to reorder">&#x2807;</span>
+				<span class="grip" role="button" aria-label="Drag to reorder"></span>
 				<input type="text" autocomplete="off" spellcheck="false" aria-label="Player name">
 				<button type="button" class="field-btn move-up" aria-label="Move up">&#x25B2;</button>
 				<button type="button" class="field-btn move-down" aria-label="Move down">&#x25BC;</button>
@@ -999,10 +999,10 @@ function renderSettings() {
 		const down = $('.move-down', item);
 		up.disabled = index === 0;
 		down.disabled = index === game.players.length - 1;
-		up.addEventListener('click', () => commit(Game.movePlayer(game, index, -1)));
-		down.addEventListener('click', () => commit(Game.movePlayer(game, index, 1)));
+		up.addEventListener('click', () => slidePlayer(index, -1));
+		down.addEventListener('click', () => slidePlayer(index, 1));
 		$('.delete-player', item).addEventListener('click', () => commit(Game.removePlayer(game, index)));
-		$('.grip', item).addEventListener('pointerdown', event => startDrag(event, item, index));
+		$('.player-field', item).addEventListener('pointerdown', event => pressPlayer(event, item, index));
 		return item;
 	});
 	playersList.replaceChildren(...items);
@@ -1010,19 +1010,67 @@ function renderSettings() {
 	updateListFades();
 }
 
-// Drag a player by the grip to reorder; saved as one undoable step on release.
-// The list keeps its order while dragging: the others slide aside to show
-// where the player will land, and on release the player settles into that slot.
-function startDrag(event, item, from) {
-	event.preventDefault();
-	if (playersList.classList.contains('sorting')) return; // the last drop is still settling
-	const grip = event.currentTarget;
+const DRAG_FROM = 6; // px the pointer moves before a press on a player becomes a drag
+
+/** Whether a move is still settling (the list is rebuilt when it ends). */
+const sorting = () => playersList.classList.contains('sorting');
+
+/** Run `done` once el's transitions have finished. */
+function afterTransitions(el, done) {
+	Promise.allSettled(el.getAnimations().map(a => a.finished)).then(done);
+}
+
+/** Move up or down with the buttons: the two players slide past each other. */
+function slidePlayer(index, offset) {
+	const items = [...playersList.children];
+	const item = items[index];
+	const other = items[index + offset];
+	if (!other || sorting()) return;
+	const step = other.offsetTop - item.offsetTop;
+	playersList.classList.add('sorting');
+	item.classList.add('moving');
+	item.style.transform = `translateY(${step}px)`;
+	other.style.transform = `translateY(${-step}px)`;
+	afterTransitions(item, () => {
+		playersList.classList.remove('sorting');
+		commit(Game.movePlayer(game, index, offset));
+	});
+}
+
+// A player can be dragged from anywhere on their field but the buttons. A
+// press that doesn't move is just a press, so tapping the name still edits it.
+function pressPlayer(event, item, from) {
+	if (event.button !== 0 || event.target.closest('.field-btn') || sorting()) return;
+	if (event.target.closest('.grip')) event.preventDefault();
+	const { pointerId, clientY } = event;
+	const field = event.currentTarget;
+	const move = moveEvent => {
+		if (moveEvent.pointerId !== pointerId || Math.abs(moveEvent.clientY - clientY) < DRAG_FROM) return;
+		stop();
+		startDrag(moveEvent, field, item, from, clientY);
+	};
+	const stop = () => {
+		removeEventListener('pointermove', move);
+		removeEventListener('pointerup', stop);
+		removeEventListener('pointercancel', stop);
+	};
+	addEventListener('pointermove', move);
+	addEventListener('pointerup', stop);
+	addEventListener('pointercancel', stop);
+}
+
+// Saved as one undoable step on release. The list keeps its order while
+// dragging: the others slide aside to show where the player will land, and on
+// release the player settles into that slot.
+function startDrag(event, field, item, from, startY) {
 	try {
-		grip.setPointerCapture(event.pointerId); // keep getting moves when the pointer leaves the grip
+		field.setPointerCapture(event.pointerId); // keep getting moves when the pointer leaves the field
 	} catch { /* pointer already gone */ }
+	// Dragging, not editing: drop the caret and any text the press selected.
+	if (item.contains(document.activeElement)) document.activeElement.blur();
+	getSelection()?.removeAllRanges();
 	const items = [...playersList.children];
 	const step = items.length > 1 ? items[1].offsetTop - items[0].offsetTop : item.offsetHeight;
-	const startY = event.clientY;
 	const startScroll = playersScroll.scrollTop;
 	let pointerY = startY;
 	let to = from;
@@ -1061,21 +1109,23 @@ function startDrag(event, item, from) {
 
 	const end = () => {
 		cancelAnimationFrame(frame);
-		grip.removeEventListener('pointermove', move);
-		grip.removeEventListener('pointerup', end);
-		grip.removeEventListener('pointercancel', end);
+		field.removeEventListener('pointermove', move);
+		field.removeEventListener('pointerup', end);
+		field.removeEventListener('pointercancel', end);
 		item.classList.replace('dragging', 'dropping');
 		item.style.transform = `translateY(${(to - from) * step}px)`;
-		Promise.allSettled(item.getAnimations().map(a => a.finished)).then(() => {
+		afterTransitions(item, () => {
 			playersList.classList.remove('sorting');
 			if (to !== from) commit(Game.movePlayerTo(game, from, to));
 			else renderSettings();
 		});
 	};
 
-	grip.addEventListener('pointermove', move);
-	grip.addEventListener('pointerup', end);
-	grip.addEventListener('pointercancel', end);
+	pointerY = event.clientY;
+	layout();
+	field.addEventListener('pointermove', move);
+	field.addEventListener('pointerup', end);
+	field.addEventListener('pointercancel', end);
 }
 
 /** Fade the list's top or bottom edge where more players are scrolled out of view. */

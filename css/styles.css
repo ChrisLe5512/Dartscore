@@ -243,8 +243,11 @@ aside.keypad-hidden .calc-section {
 .players-scroll {
 	flex: 1 1 auto;
 	min-height: 12vmin;
-	/* In line with the fields and buttons in the tables around it. */
-	margin: 1vmin 2vmin 0;
+	/* In line with the fields and buttons in the tables around it. The few px
+	   of padding keep the fields' side borders off the clipped edge, where
+	   they lost a sliver at fractional screen scaling. */
+	margin: 1vmin calc(2vmin - 3px) 0;
+	padding: 0 3px;
 	overflow-y: auto;
 	overscroll-behavior: contain;
 	scrollbar-width: none;
@@ -281,7 +284,7 @@ aside.keypad-hidden .calc-section {
 	transition: transform var(--medium) var(--ease-out);
 }
 
-.player-item:is(.dragging, .dropping) {
+.player-item:is(.dragging, .dropping, .moving) {
 	position: relative;
 	z-index: 1;
 }
@@ -295,7 +298,7 @@ aside.keypad-hidden .calc-section {
 	transition: transform var(--fast) var(--ease-out);
 }
 
-.player-item:is(.dragging, .dropping) .player-field {
+.player-item:is(.dragging, .dropping, .moving) .player-field {
 	border-color: var(--text);
 	box-shadow: 0 1vmin 2vmin rgba(0, 0, 0, 0.6);
 }
@@ -305,6 +308,9 @@ aside.keypad-hidden .calc-section {
 	display: flex;
 	align-items: center;
 	height: 5vmin;
+	/* The whole field drags (see pressPlayer), so touches don't scroll the page. */
+	touch-action: none;
+	cursor: grab;
 	background: #242424;
 	border: 1px solid var(--text-muted);
 	border-radius: var(--radius);
@@ -324,15 +330,21 @@ aside.keypad-hidden .calc-section {
 	outline: none;
 }
 
+/* Three lines: the field can be dragged. */
 .grip {
-	padding: 0 1vmin;
-	font-size: 3vmin;
+	align-self: stretch;
+	width: 2.2vmin;
+	padding: 0 1.2vmin;
 	color: var(--text-muted);
-	cursor: grab;
-	touch-action: none;
+	--bar: linear-gradient(currentColor 0 0);
+	background:
+		var(--bar) center calc(50% - 0.7vmin) / 2.2vmin 0.3vmin no-repeat content-box,
+		var(--bar) center / 2.2vmin 0.3vmin no-repeat content-box,
+		var(--bar) center calc(50% + 0.7vmin) / 2.2vmin 0.3vmin no-repeat content-box;
 }
 
-.dragging .grip {
+.dragging .player-field,
+.dragging .player-field * {
 	cursor: grabbing;
 }
 
