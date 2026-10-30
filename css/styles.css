@@ -489,11 +489,16 @@ aside.keypad-hidden .calc-section {
 .mode-options {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: flex-end;
+	align-items: flex-start;
 	gap: 1.6vmin 4vmin;
 	margin: 2vmin 1vmin 0;
 	color: var(--text);
 	font-size: 3vmin;
+}
+
+/* Greyed in Practice, which has no legs or sets to reach. */
+.stepper.off {
+	opacity: 0.4;
 }
 
 .stepper,
@@ -546,10 +551,28 @@ aside.keypad-hidden .calc-section {
 	font-variant-numeric: tabular-nums;
 }
 
+/* Legs, sets, then every checkbox in one column that starts at the same
+   place in every game, the first level with the steppers' labels. */
+.game-options {
+	display: grid;
+	grid-template-columns: auto auto 1fr;
+	column-gap: 3vmin;
+}
+
 .game-checks {
 	display: flex;
 	flex-direction: column;
 	gap: 0.8vmin;
+	padding-left: 1vmin;
+	white-space: nowrap;
+}
+
+/* Cancel and the next step, edge to edge with the tiles above. */
+.dialog-actions {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1.4vmin;
+	margin: 2.4vmin 1vmin 0;
 }
 
 /* A row of buttons where one is picked (around the clock's beds, Solo or not). */

@@ -3,7 +3,7 @@
 These are judgement calls made while adding the practice games. All of them work and are tested. Each one is easy to change if you'd rather have it another way.
 
 **Reviewed (v2.7.0):** all kept. Added as options, a checkbox under the Game row in Settings that shows only for that game:
-- 121: "Miss: back to last checkout"
+- 121: "Drop back on a miss"
 - Doubles practice: "Play on below 0"
 - Around the clock: "Skip ahead"
 

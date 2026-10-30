@@ -163,9 +163,14 @@ function addPlayer() {
 	return game.players.length - 1;
 }
 
+/** Scroll a list to its end, where a player was just added, so they're in view. */
+const showLast = list => list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
+
 addPlayerRow.addEventListener('click', () => {
 	const index = addPlayer();
-	if (index !== undefined) startRename(game.players[index].id);
+	if (index === undefined) return;
+	showLast(scoresSection);
+	startRename(game.players[index].id);
 });
 
 function createPlayerRows(player) {
@@ -1330,8 +1335,8 @@ playersAddBtn.addEventListener('click', () => {
 	const index = addPlayer();
 	if (index === undefined) return;
 	const input = $$('input', playersList)[index];
-	input.scrollIntoView({ block: 'nearest' });
-	input.focus();
+	input.focus({ preventScroll: true });
+	showLast(playersScroll);
 	input.select();
 });
 
@@ -1362,6 +1367,7 @@ const setsStepper = $('[data-field="sets"]', newGameDialog);
 const doubleOutInput = $('#double-out');
 const practiceInput = $('#practice');
 const optionsBox = $('.mode-options', newGameDialog);
+const checksBox = $('.game-checks', newGameDialog);
 const soloName = $('.solo-name', newGameDialog);
 const draftList = $('.draft-list', newGameDialog);
 const draftAdd = $('.draft-add', newGameDialog);
@@ -1439,53 +1445,59 @@ function renderNewGame() {
 	else renderPlayersStep();
 }
 
-// Only what the picked game has: legs and sets (not in Practice, which has
-// no winner), Double out where a game finishes on a double, and its own options.
+// Only what the picked game has: Double out where a game finishes on a
+// double, and its own options. Every checkbox sits in one column, Practice
+// always first; legs and sets stay in place, greyed in Practice (no winner).
 function renderGameStep() {
 	const { mode: id, settings } = readGameForm();
 	for (const tile of $$('.game-tile', choicesBox)) tile.setAttribute('aria-checked', String(tile.dataset.value === ngForm.picked));
 	for (const [stepper, value, max] of [[legsStepper, settings.legs, MAX_LEGS], [setsStepper, settings.sets, MAX_SETS]]) {
-		stepper.hidden = settings.practice;
+		stepper.classList.toggle('off', settings.practice);
 		$('output', stepper).textContent = value;
-		$('[data-by="-1"]', stepper).disabled = value <= 1;
-		$('[data-by="1"]', stepper).disabled = value >= max;
+		$('[data-by="-1"]', stepper).disabled = settings.practice || value <= 1;
+		$('[data-by="1"]', stepper).disabled = settings.practice || value >= max;
 	}
 	doubleOutInput.closest('label').hidden = !('doubleOut' in settings);
 	renderOptions(MODES[id], settings);
 }
 
-/** The game's own options: a checkbox each, or a row of buttons for a choice. Hidden where they don't apply. */
+/**
+ * The game's own options, where they apply: checkboxes join the column under
+ * Practice and Double out; a choice is a row of buttons on the line below.
+ */
 function renderOptions(rules, settings) {
 	const options = rules.OPTIONS.filter(option => option.applies?.(settings) ?? true);
-	optionsBox.hidden = !options.length;
-	optionsBox.replaceChildren(...options.map(option => {
-		if (option.type === 'choice') {
-			const group = document.createElement('div');
-			group.className = 'option-choice';
-			const label = document.createElement('span');
-			label.className = 'stepper-label';
-			label.textContent = option.label;
-			const buttons = document.createElement('div');
-			buttons.className = 'segmented';
-			buttons.setAttribute('role', 'radiogroup');
-			buttons.setAttribute('aria-label', option.label);
-			buttons.append(...option.choices.map(([value, text]) => {
-				const button = document.createElement('button');
-				button.type = 'button';
-				button.setAttribute('role', 'radio');
-				button.setAttribute('aria-checked', String(settings[option.key] === value));
-				button.textContent = text;
-				button.addEventListener('click', () => {
-					ngForm.options.set(option.key, value);
-					renderGameStep();
-				});
-				return button;
-			}));
-			group.append(label, buttons);
-			return group;
-		}
+	const choices = options.filter(option => option.type === 'choice');
+	optionsBox.hidden = !choices.length;
+	optionsBox.replaceChildren(...choices.map(option => {
+		const group = document.createElement('div');
+		group.className = 'option-choice';
+		const label = document.createElement('span');
+		label.className = 'stepper-label';
+		label.textContent = option.label;
+		const buttons = document.createElement('div');
+		buttons.className = 'segmented';
+		buttons.setAttribute('role', 'radiogroup');
+		buttons.setAttribute('aria-label', option.label);
+		buttons.append(...option.choices.map(([value, text]) => {
+			const button = document.createElement('button');
+			button.type = 'button';
+			button.setAttribute('role', 'radio');
+			button.setAttribute('aria-checked', String(settings[option.key] === value));
+			button.textContent = text;
+			button.addEventListener('click', () => {
+				ngForm.options.set(option.key, value);
+				renderGameStep();
+			});
+			return button;
+		}));
+		group.append(label, buttons);
+		return group;
+	}));
+	for (const box of $$('.mode-check', checksBox)) box.remove();
+	checksBox.append(...options.filter(option => option.type !== 'choice').map(option => {
 		const box = document.createElement('label');
-		box.className = 'settings-check';
+		box.className = 'settings-check mode-check';
 		box.title = option.title ?? '';
 		const input = document.createElement('input');
 		input.type = 'checkbox';
@@ -1589,9 +1601,8 @@ playersStep.addEventListener('click', event => {
 draftAdd.addEventListener('click', () => {
 	ngForm.names.push('');
 	renderPlayersStep();
-	const inputs = $$('input', draftList);
-	inputs.at(-1)?.focus();
-	inputs.at(-1)?.scrollIntoView({ block: 'nearest' });
+	$$('input', draftList).at(-1)?.focus({ preventScroll: true });
+	showLast(draftList);
 });
 
 soloName.addEventListener('keydown', event => {
