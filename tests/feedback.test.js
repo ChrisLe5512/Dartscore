@@ -76,8 +76,9 @@ test('history marks: busts, zeros, tons, 180s, checkouts, bulls and the best vis
 	assert.deepEqual(marks, [
 		['bust'], ['zero'], ['ton'], ['ton-forty'], ['max', 'best'], ['bull'], ['checkout'], [],
 	]);
-	// No best until there are a few visits to compare.
-	assert.deepEqual(historyMarks([{ score: 60 }, { score: 45 }]), [[], []]);
+	// No best until there is another visit to compare it with.
+	assert.deepEqual(historyMarks([{ score: 60 }]), [[]]);
+	assert.deepEqual(historyMarks([{ score: 60 }, { score: 45 }]), [['best'], []]);
 });
 
 test('the leg-winning visit is recorded as a checkout', () => {

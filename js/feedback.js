@@ -50,7 +50,7 @@ export function describeTravel(from, to, direction) {
 
 // Visits worth picking out in a player's history line.
 const TIERS = [[180, 'max'], [140, 'ton-forty'], [100, 'ton']];
-const BEST_FROM = 3; // visits before the best one is marked
+const BEST_FROM = 2; // visits before the best one is marked
 
 /**
  * Class names for each turn in a history line: 'bust', 'zero', 'checkout',

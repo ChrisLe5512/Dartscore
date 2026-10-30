@@ -2069,7 +2069,7 @@ td.calc-score:not(.disabled) {
 .history span.best b::before {
 	content: '\2605';
 	position: absolute;
-	top: -0.3em;
+	top: -0.22em;
 	right: -0.35em;
 	font-size: 0.55em;
 	font-weight: normal;
