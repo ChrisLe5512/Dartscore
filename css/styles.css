@@ -641,8 +641,7 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	width: 2.4vmin;
 	height: 2.4vmin;
 	padding: 0;
-	margin-left: 0.4vmin;
-	vertical-align: 0.15em;
+	margin-left: 0.8vmin;
 	font-family: var(--font);
 	font-size: 1.6vmin;
 	font-weight: 600;
@@ -671,15 +670,14 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	border-color: var(--text);
 }
 
-/* A checkbox with its ⓘ: beside the label rather than in it, so pressing the
-   ⓘ doesn't flash the checkbox. */
-.check-line {
+/* Anything with an ⓘ lines it up the same way: centred on the text, the same
+   gap after it. A checkbox's ⓘ sits beside its label rather than in it, so
+   pressing the ⓘ doesn't flash the checkbox. */
+.check-line,
+.stepper-label,
+.range-name {
 	display: flex;
 	align-items: center;
-}
-
-.check-line .info {
-	margin-left: 0.6vmin;
 }
 
 /* The bubble it opens, over everything. */
