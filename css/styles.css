@@ -1108,6 +1108,18 @@ body.visuals-open #dartboard {
 	--fade-bottom: 8vmin;
 }
 
+/* The cards' scale (layoutScores), as a number so it can ease: the cards grow
+   with the room as the keypad folds away. */
+@property --s {
+	syntax: "<number>";
+	inherits: true;
+	initial-value: 1;
+}
+
+.scores-tbl.growing {
+	transition: --s var(--medium) var(--ease-out);
+}
+
 .scores-tbl {
 	--s: 1;
 	/* The player rows' background layers (z-index -1, see .player-row) sit

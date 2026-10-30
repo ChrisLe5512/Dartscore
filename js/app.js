@@ -473,9 +473,9 @@ function updateScoreFades() {
 	scoresSection.classList.toggle('fade-bottom', scrollTop + clientHeight < scrollHeight - 1);
 }
 
-// While the keypad folds away or comes back, the list is laid out once, before
-// or after (see setKeypadHidden), and nothing in it is redone on the way:
-// re-laying the rows and names out on every frame made it stutter.
+// While the keypad folds away or comes back, the list is already laid out for
+// where it's going (see setKeypadHidden), so nothing in it is redone on the
+// way: re-laying the rows and names out on every frame made it stutter.
 let keypadMoving = false;
 
 new ResizeObserver(() => {
@@ -1233,6 +1233,7 @@ function keypadStill() {
 	clearTimeout(keypadSettled);
 	if (!keypadMoving) return;
 	keypadMoving = false;
+	scoresTable.classList.remove('growing');
 	layoutScores();
 	fitNames();
 }
@@ -1243,18 +1244,25 @@ calcSection.addEventListener('transitionend', event => {
 
 function setKeypadHidden(hidden) {
 	if (sidebar.classList.contains('keypad-hidden') !== hidden) {
-		// The list's rows and names change once, never on the way: coming
-		// back, the keypad finds the list already laid out for less room (the
-		// cards then shrink with it); folding away, the cards stretch into the
-		// room it leaves and are laid out for it once it's gone (keypadStill).
-		if (!hidden) {
-			sidebar.classList.add('keypad-instant');
-			sidebar.classList.toggle('keypad-hidden', hidden);
-			layoutScores();
-			fitNames();
-			sidebar.classList.toggle('keypad-hidden', !hidden);
-			void sidebar.offsetHeight; // start from here
-			sidebar.classList.remove('keypad-instant');
+		// Lay the list out for where it ends up (rows and names change once,
+		// now), then put the panels back and let them slide there. Coming back,
+		// the cards shrink with the room; folding away, they start at the size
+		// that fits the room there is now and grow with it.
+		const from = scoresSection.clientHeight;
+		sidebar.classList.add('keypad-instant');
+		sidebar.classList.toggle('keypad-hidden', hidden);
+		layoutScores();
+		fitNames();
+		const to = scoresSection.clientHeight;
+		const scale = scoresTable.style.getPropertyValue('--s');
+		const grow = hidden && to > from && !scoresSection.classList.contains('overflowing');
+		if (grow) scoresTable.style.setProperty('--s', Math.floor(scale * from / to * 1000) / 1000);
+		sidebar.classList.toggle('keypad-hidden', !hidden);
+		void sidebar.offsetHeight; // start from here
+		sidebar.classList.remove('keypad-instant');
+		if (grow) {
+			scoresTable.classList.add('growing');
+			scoresTable.style.setProperty('--s', scale);
 		}
 		keypadMoving = true;
 		clearTimeout(keypadSettled);
