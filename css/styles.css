@@ -1323,15 +1323,31 @@ td.back-score {
 	animation: menu-in var(--medium) var(--ease-out);
 }
 
-.player-menu-name {
+/* The player's name, with a pencil on the right to rename them. */
+.player-menu-head {
+	display: flex;
+	align-items: center;
+	gap: 1vmin;
 	max-width: 30vmin;
-	padding: 0.4vmin 1vmin 0.8vmin;
+	padding-left: 1vmin;
 	border-bottom: 1px solid color-mix(in srgb, var(--edit) 50%, transparent);
+}
+
+.player-menu-name {
+	flex: 1;
+	min-width: 0;
 	font-size: 2.6vmin;
 	color: var(--edit);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+.player-menu .player-menu-rename {
+	flex: none;
+	margin: 0.2vmin 0 0.4vmin;
+	padding: 0.6vmin 0.8vmin;
+	color: var(--edit);
 }
 
 .player-menu button {
