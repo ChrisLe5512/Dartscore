@@ -61,4 +61,5 @@ Darts X01 scoreboard web app (301/501/701), built for tablets in landscape (16:1
 - Entitlements: one place that answers "is this extra unlocked?" (free, unlocked by playing, or paid), checked by the UI only. Never by game rules.
 - Ads: a single banner slot and a post-match slot, off by default in development, removed for paying users.
 - More game modes: cricket next, as a rule module registered in `modes.js` (around the clock, doubles practice and 121 are done).
+- Owner to review: choices made for the practice games (picker, 121 and doubles rules, display). See `docs/review/game-modes.md`.
 - Parked: automatic scoring hardware add-on. See `docs/ideas/auto-scoring.md` before starting.
