@@ -16,6 +16,13 @@ export const DEFAULT_SETTINGS = Object.freeze({
 	practice: false, // legs go on and on: no sets, no winner
 });
 
+// Practice games. Around the clock and doubles practice go 1 to 20, then the bull.
+export const CLOCK_TARGETS = Object.freeze([...Array.from({ length: 20 }, (_, i) => i + 1), 25]);
+export const CLOCK_RINGS = Object.freeze(['any', 'double', 'treble']); // which beds count in around the clock
+export const DOUBLES_START = 27; // doubles practice: the score everyone starts on
+// 121: the first target, visits to check out each target in, targets per leg.
+export const ONE21 = Object.freeze({ start: 121, visits: 3, rounds: 10 });
+
 // Totals between 0 and 180 that three darts cannot make.
 export const IMPOSSIBLE_TURN_SCORES = new Set([163, 166, 169, 172, 173, 175, 176, 178, 179]);
 
