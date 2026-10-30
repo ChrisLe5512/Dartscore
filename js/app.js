@@ -1758,8 +1758,14 @@ choicesBox.addEventListener('click', event => {
 		ngForm.legs = DEFAULT_SETTINGS.legs;
 		ngForm.sets = DEFAULT_SETTINGS.sets;
 	}
+	const before = readGameForm().mode;
 	ngForm.picked = tile.dataset.value;
 	renderGameStep();
+	// Another game's options fade in where the last one's were (not between
+	// 301, 501 and 701, which have the same).
+	if (readGameForm().mode !== before && !reducedMotion.matches) {
+		checksBox.animate([{ opacity: 0, transform: 'translateY(0.8vmin)' }, { opacity: 1, transform: 'none' }], stepTiming);
+	}
 });
 
 for (const [stepper, key] of [[legsStepper, 'legs'], [setsStepper, 'sets']]) {
