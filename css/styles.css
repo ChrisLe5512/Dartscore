@@ -874,6 +874,30 @@ body.dismissing * {
 	background: var(--active-line);
 }
 
+/* With the score beside the name, the stats line is part of the player's
+   field: the name row's layer (and menu tint) reaches down behind it. The line
+   is positioned so it still paints over that layer when its row is dimmed. */
+.stats-row {
+	position: relative;
+}
+
+.scores-tbl.roomy:not(.big) .player-wins::before,
+.scores-tbl.roomy:not(.big) .player-wins::after {
+	bottom: calc(-5vmin * var(--s) - 1px);
+}
+
+.scores-tbl.roomy:not(.big) .stats-row,
+.scores-tbl.roomy:not(.big) .stats-row.active,
+.scores-tbl.roomy:not(.big) tr.stats-row.menu-open {
+	background: none;
+}
+
+/* On the thrower's bright field the labels need the lighter grey, as in .big. */
+.scores-tbl.roomy:not(.big) .stats-row.active .stats {
+	color: var(--text-soft);
+	text-shadow: 0 0 0.5vmin black;
+}
+
 .stats-cell {
 	padding: 0 1.4vmin 0 1vw;
 }
