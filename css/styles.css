@@ -641,22 +641,29 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	font-variant-numeric: tabular-nums;
 }
 
-/* Double out and the game's checkboxes, on one line. Every game but around
-   the clock (whose checkbox sits beside its Counts) has one here, so the
-   screen keeps its height between them; around the clock's empty line folds away. */
+/* Options: Double out and the game's checkboxes, labelled like Match and
+   Counts. Every game but around the clock (whose checkbox sits beside its
+   Counts) has one here, so the screen keeps its height between them; around
+   the clock has none and the section folds away. */
+.game-options-group {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75vmin;
+	margin: 2vmin 1vmin 0;
+	font-size: 3vmin;
+}
+
+.game-options-group:not(:has(.check-line:not([hidden]))) {
+	display: none;
+}
+
 .game-checks {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 0.8vmin 4vmin;
-	margin: 2vmin 1vmin 0;
 	color: var(--text);
-	font-size: 3vmin;
 	white-space: nowrap;
-}
-
-.game-checks:not(:has(> :not([hidden]))) {
-	margin-top: 0;
 }
 
 
