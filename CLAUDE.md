@@ -25,6 +25,7 @@ Darts X01 scoreboard web app (301/501/701), built for tablets in landscape (16:1
 - `js/version.js`: the version shown in Settings. `sw.js` names its cache after it: bump it when cached files change.
 - Versions: alpha 0.x.y. The old repo counts as 0.1.x, the X01-only app as 0.2.x, and 0.3.x began with the practice game modes (dc7669f was 0.3.0). Bump the last number with each change; go to 0.4.0 with the next big feature (accounts and sign-in), and so on. 1.0.0 is the launch. Keep `package.json` in step.
 - `sw.js`: offline cache (HTTPS only). Add new files to `APP_SHELL`.
+- `fonts/`, `css/fonts.css`: Roboto Flex and Roboto Condensed (SIL OFL 1.1, licences beside them), served from the app, not Google's servers (privacy: no visitor IPs sent to Google). Keep it that way: no third-party font or script hosts.
 - `css/styles.css`: colours, borders (`--line`) and board colours (`--board-*`) are variables at the top. Themes should only need to change those. Sizes use `vmin` (never `vh`, except the portrait band's height), so landscape is sized by height and portrait by width; portrait overrides are in the PORTRAIT block at the end.
 
 ## Environment

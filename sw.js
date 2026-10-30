@@ -1,6 +1,7 @@
-// Offline support: the app shell is cached on install, fonts are cached the
-// first time they load. The cache is named after the version in js/version.js:
-// bump that when shipping changes to cached files.
+// Offline support: the app shell is cached on install, with the fonts' Latin
+// letters; other scripts' letters (Greek, Cyrillic...) the first time a name
+// needs them. The cache is named after the version in js/version.js: bump that
+// when shipping changes to cached files.
 
 importScripts('js/version.js');
 const CACHE = `dartscore-v${self.DARTSCORE_VERSION}`;
@@ -10,6 +11,11 @@ const APP_SHELL = [
 	'index.html',
 	'manifest.json',
 	'css/styles.css',
+	'css/fonts.css',
+	'fonts/RobotoFlex-latin.woff2',
+	'fonts/RobotoFlex-latin-ext.woff2',
+	'fonts/RobotoCondensed-latin.woff2',
+	'fonts/RobotoCondensed-latin-ext.woff2',
 	'js/app.js',
 	'js/board.js',
 	'js/checkout.js',
@@ -30,8 +36,6 @@ const APP_SHELL = [
 	'images/icons/icon-512.png',
 ];
 
-const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
-
 self.addEventListener('install', event => {
 	event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
 });
@@ -48,16 +52,15 @@ self.addEventListener('fetch', event => {
 	const { request } = event;
 	if (request.method !== 'GET') return;
 	const url = new URL(request.url);
-	const sameOrigin = url.origin === self.location.origin;
-	if (!sameOrigin && !FONT_HOSTS.includes(url.hostname)) return;
+	if (url.origin !== self.location.origin) return;
 
 	// Serve from cache straight away, refresh it in the background.
 	event.respondWith(
 		caches.open(CACHE).then(async cache => {
-			const cached = await cache.match(request, { ignoreSearch: sameOrigin });
+			const cached = await cache.match(request, { ignoreSearch: true });
 			const network = fetch(request)
 				.then(response => {
-					if (response.ok || response.type === 'opaque') cache.put(request, response.clone());
+					if (response.ok) cache.put(request, response.clone());
 					return response;
 				})
 				.catch(() => cached);
