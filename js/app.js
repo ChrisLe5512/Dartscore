@@ -361,7 +361,8 @@ function toggleLeg(id, leg) {
 function turnSpan(t, index, marks) {
 	const span = document.createElement('span');
 	const bold = document.createElement('b');
-	bold.textContent = t.score;
+	// A bust shows what it would have scored, struck through (it counts as 0).
+	bold.textContent = t.bust ? t.attempted ?? 0 : t.score;
 	span.append(bold);
 	span.classList.add(...marks);
 	span.dataset.index = index;

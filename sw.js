@@ -1,7 +1,7 @@
 // Offline support: the app shell is cached on install, fonts are cached the
 // first time they load. Bump CACHE when shipping changes to cached files.
 
-const CACHE = 'dartscore-v2.4.42';
+const CACHE = 'dartscore-v2.4.43';
 
 const APP_SHELL = [
 	'./',
