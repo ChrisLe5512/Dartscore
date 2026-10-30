@@ -609,9 +609,8 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	font-variant-numeric: tabular-nums;
 }
 
-/* Options: Double out, or the game's own choice (around the clock's Counts,
-   named beside its buttons) and checkboxes, labelled like Match. A game with
-   none has no section. */
+/* Options: Double out, or the game's own choice (around the clock's beds)
+   and checkboxes, labelled like Match. A game with none has no section. */
 .game-options-group {
 	display: flex;
 	flex-direction: column;
@@ -631,12 +630,6 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	gap: 0.8vmin 4vmin;
 	color: var(--text);
 	white-space: nowrap;
-}
-
-.mode-choice {
-	display: flex;
-	align-items: center;
-	gap: 1.6vmin;
 }
 
 

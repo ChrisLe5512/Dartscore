@@ -1615,7 +1615,7 @@ function renderGameStep() {
 
 /**
  * The game's own options, on the Options line. A choice is a row of buttons
- * named beside it, with the game's checkboxes after it, greyed where they
+ * (no name of its own: its buttons say it), with the game's checkboxes after it, greyed where they
  * don't apply (e.g. Skip ahead with doubles only, so the line doesn't shift).
  * A game without a choice shows its checkboxes only where they apply.
  */
@@ -1644,14 +1644,8 @@ function renderOptions(rules, settings) {
 	};
 	for (const box of $$('.mode-check', checksBox)) box.remove();
 	checksBox.append(...choices.map(option => {
-		const group = document.createElement('div');
-		group.className = 'mode-check mode-choice';
-		const label = document.createElement('span');
-		label.className = 'check-line';
-		label.textContent = `${option.label} `;
-		if (option.title) label.append(infoButton(option.title, option.label));
 		const buttons = document.createElement('div');
-		buttons.className = 'segmented';
+		buttons.className = 'segmented mode-check';
 		buttons.setAttribute('role', 'radiogroup');
 		buttons.setAttribute('aria-label', option.label);
 		buttons.append(...option.choices.map(([value, text]) => {
@@ -1666,8 +1660,7 @@ function renderOptions(rules, settings) {
 			});
 			return button;
 		}));
-		group.append(label, buttons);
-		return group;
+		return buttons;
 	}), ...checks.map(checkBox));
 }
 
