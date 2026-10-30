@@ -543,12 +543,32 @@ playerMenu.addEventListener('click', event => {
 	}
 });
 
-// Tapping anywhere else closes the menu.
+// While the menu or a past turn is open, a tap anywhere else only closes it:
+// the tap doesn't also press, type or throw on whatever is underneath.
 document.addEventListener('pointerdown', event => {
-	if (menuFor === null || playerMenu.contains(event.target)) return;
-	if (event.target.closest(`[data-id="${menuFor}"]`)) return; // the player's own rows toggle it
-	closePlayerMenu();
-});
+	if (menuFor !== null) {
+		if (playerMenu.contains(event.target)) return;
+		closePlayerMenu();
+	} else if (review !== null) {
+		review = null;
+		renderMarks();
+	} else {
+		return;
+	}
+	swallowNextClick();
+}, true);
+
+function swallowNextClick() {
+	const swallow = event => {
+		event.stopPropagation();
+		event.preventDefault();
+	};
+	addEventListener('click', swallow, { capture: true, once: true });
+	// A drag or cancelled tap brings no click: stop waiting once this one ends.
+	const stop = () => setTimeout(() => removeEventListener('click', swallow, true));
+	addEventListener('pointerup', stop, { capture: true, once: true });
+	addEventListener('pointercancel', stop, { capture: true, once: true });
+}
 scoresSection.addEventListener('scroll', () => menuFor !== null && placePlayerMenu(), { passive: true });
 
 // ---- Keypad -----------------------------------------------------------------
