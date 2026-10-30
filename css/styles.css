@@ -1861,13 +1861,15 @@ td.back-score {
 /* The board's shadow, on a plain circle behind it (the board's edge, inside
    the 1% margin). A drop-shadow filter on the board itself blurred the whole
    board again every time anything on it changed, the pointer's light
-   included, which was slow on integrated graphics. This is drawn once. */
+   included, which was slow on integrated graphics. This is drawn once.
+   A faint light rim on top of it keeps the edge from melting into the dark
+   background when the outline is set to black. */
 .board-frame::before {
 	content: '';
 	position: absolute;
 	inset: 0.495%;
 	border-radius: 50%;
-	box-shadow: 0 0 4vmin black;
+	box-shadow: 0 0 0.8vmin rgba(255, 255, 255, 0.09), 0 0 4vmin black;
 	pointer-events: none;
 }
 
