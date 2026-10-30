@@ -862,13 +862,16 @@ function renderFocus() {
 	}
 }
 
+// The number ring is a miss all round: it never lights up (a dart there still gets its marker).
+const NUMBER_RING = segmentKey(0, 'numberRing');
+
 function renderLights() {
 	const { hits, kind } = shownHits();
 	const lights = hits.map(({ x, y }) => locate(x, y, 1, rings))
 		.filter(Boolean)
 		.map(spot => ({ key: segmentKey(spot.sector, spot.ring), kind: kind === 'live' ? 'hit' : 'review' }));
 	if (hovered && !lights.some(light => light.key === hovered)) lights.push({ key: hovered, kind: 'hover' });
-	lightSegments(board, lights);
+	lightSegments(board, lights.filter(light => light.key !== NUMBER_RING));
 }
 
 function reviewedTurn() {
