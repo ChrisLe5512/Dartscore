@@ -281,7 +281,7 @@ function createPlayerRows(player) {
 	playerRow.innerHTML = `
 		<td class="player-wins"><u></u><br><span class="player-sets"></span></td>
 		<td class="target-wins"></td>
-		<td colspan="4" class="player-name"><div class="name-text"><span></span></div></td>
+		<td colspan="4" class="player-name"><i class="throw-first" title="Threw first this leg"></i><div class="name-text"><span></span></div></td>
 		<td class="player-score"></td>`;
 
 	// History and checkout share one line; the checkout takes what it needs.
@@ -385,6 +385,8 @@ function renderScoreboard() {
 		playerRow.classList.toggle('active', isActive);
 		statsRow.classList.toggle('active', isActive);
 		historyRow.classList.toggle('active', isActive);
+		// A dot by the name of whoever threw first this leg (with someone to throw after).
+		playerRow.classList.toggle('starts', index === game.starter && game.players.length > 1);
 		// Legs won over sets won, each beside what it takes. A one-set match
 		// shows legs alone (its sets line would never say anything); Endless
 		// (practice) just counts legs, with "legs" under the count.

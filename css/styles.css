@@ -534,7 +534,11 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	gap: 0;
 }
 
+/* It takes the rest of the row, so 0fr really is nothing: sized to its
+   content, the column never folded and only the fade showed. */
 .counts-reveal {
+	flex: 1 1 0;
+	min-width: 0;
 	display: grid;
 	grid-template-columns: 0fr;
 	opacity: 0;
@@ -1206,12 +1210,41 @@ body.visuals-open #dartboard {
 	cursor: pointer;
 }
 
+/* Who threw first this leg: a small dot just before the name, in room every
+   name keeps for it (so names don't move when the dot does). */
+.player-name {
+	position: relative;
+}
+
+.throw-first {
+	position: absolute;
+	top: calc(50% - 0.75vmin * var(--s));
+	left: calc(0.5vmin * var(--s));
+	width: calc(1.5vmin * var(--s));
+	height: calc(1.5vmin * var(--s));
+	border-radius: 50%;
+	background: var(--text-soft);
+	box-shadow: 0 0 0.5vmin black;
+	opacity: 0;
+	transform: scale(0.4);
+	transition: opacity var(--medium) var(--ease-out), transform var(--medium) var(--ease-out);
+}
+
+.starts .throw-first {
+	opacity: 1;
+	transform: none;
+}
+
+.active .throw-first {
+	background: white;
+}
+
 /* The name as shown; fitName in js/app.js narrows, wraps or shrinks it to fit. */
 .name-text {
 	display: flex;
 	align-items: center;
 	height: calc(9vmin * var(--s));
-	padding: 0 1vmin 0 0.5vmin;
+	padding: 0 1vmin 0 calc(2.6vmin * var(--s)); /* room for the throw-first dot */
 	/* Cut off what doesn't fit, but leave room for the text shadow. */
 	overflow: clip;
 	overflow-clip-margin: 1vmin;
