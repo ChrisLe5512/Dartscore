@@ -12,7 +12,8 @@ import { canCheckout } from './checkout.js';
  * State shape:
  * {
  *   settings: { startScore, legs, sets, doubleOut },
- *   players: [{ id, name, score, legs, sets, turns: [{ score, bust?, checkout?, darts?, hits? }] }],
+ *   players: [{ id, name, score, legs, sets, turns: [{ score, leg, bust?, checkout?, darts?, hits? }] }],
+ *     leg: which leg of the match the turn was thrown in, counting from 0 (see currentLeg)
  *   active: index of the player throwing,
  *   starter: index of the player who started the current leg,
  *   winner: index of the match winner, or null,
@@ -169,6 +170,7 @@ export function submitTurn(state, score, darts = null) {
 	const player = { ...players[state.active] };
 	players[state.active] = player;
 	const turn = darts?.length ? { score, darts: darts.map(d => d.label) } : { score };
+	turn.leg = currentLeg(state);
 	// Where each dart landed, when every dart was tapped on the board.
 	if (darts?.length && darts.every(isHit)) turn.hits = darts.map(d => [round3(d.x), round3(d.y)]);
 
@@ -206,6 +208,11 @@ export function submitTurn(state, score, darts = null) {
 		players[i] = { ...players[i], score: state.settings.startScore };
 	}
 	return { state: { ...state, players, starter, active: starter }, event };
+}
+
+/** The leg being played, counting from 0 across the whole match (every set). */
+export function currentLeg(state) {
+	return state.players.reduce((sum, p) => sum + p.turns.filter(t => t.checkout).length, 0);
 }
 
 function nextIndex(i, length) {
@@ -274,5 +281,6 @@ function restoreTurn(raw) {
 		&& turn.hits.every(h => Array.isArray(h) && isHit({ x: h[0], y: h[1] }));
 	if (valid) turn.hits = turn.hits.map(([x, y]) => [x, y]);
 	else delete turn.hits;
+	if (!Number.isInteger(turn.leg) || turn.leg < 0) delete turn.leg; // saved before legs were recorded
 	return turn;
 }

@@ -8,7 +8,7 @@ import {
 import { boardRings, hitTest, isOnBoard, locate } from './board.js';
 import { getCheckouts } from './checkout.js';
 import { boardRadius, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
-import { describeTravel, describeTurn, historyMarks, undoWarning } from './feedback.js';
+import { describeTravel, describeTurn, historyLegs, historyMarks, undoWarning } from './feedback.js';
 import * as Game from './game.js';
 import * as History from './history.js';
 import { loadPrefs, loadSession, savePrefs, saveSession } from './storage.js';
@@ -195,17 +195,30 @@ function createPlayerRows(player) {
 		updateFades(history);
 	}, { passive: true });
 	historyResize.observe(history);
-	// Tap a turn entered on the board to see where its darts landed.
+	// Tap a turn entered on the board to see where its darts landed, or a
+	// finished leg's dot to open or fold it.
 	history.addEventListener('click', event => {
-		const span = event.target.closest('span');
+		const dot = event.target.closest('.leg-dot');
+		if (dot) {
+			toggleLeg(player.id, Number(dot.dataset.leg));
+			return;
+		}
+		const span = event.target.closest('span[data-index]');
 		const current = game.players.find(p => p.id === player.id);
-		if (span && current) toggleReview(current, [...history.children].indexOf(span));
+		if (span && current) toggleReview(current, Number(span.dataset.index));
 	});
 
 	return [playerRow, statsRow, historyRow];
 }
 
 function renderScoreboard() {
+	// A new leg (or game) folds every finished leg away again.
+	const leg = historyLeg();
+	if (leg !== foldedAt) {
+		openLegs.clear();
+		foldedAt = leg;
+	}
+
 	const rowsById = new Map();
 	for (const row of $$('.player-row, .history-row, .stats-row', scoresBody)) {
 		const id = Number(row.dataset.id);
@@ -320,23 +333,70 @@ function stickToEnd(el, behavior = 'instant') {
 // The history narrows when a checkout appears or the rows resize.
 const historyResize = new ResizeObserver(entries => entries.forEach(entry => stickToEnd(entry.target)));
 
+// Finished legs fold into a dot: filled green if the player won the leg, a
+// grey ring if not. Tapped, a leg opens out, its dot then marking where it
+// ends and the next begins.
+const openLegs = new Map(); // player id → the legs shown open
+let foldedAt = null; // the leg being played when they were last all folded
+
+/** The leg being played, or the last one once the match is won (left open to see). */
+const historyLeg = () => Game.currentLeg(game) - (game.winner === null ? 0 : 1);
+
+function toggleLeg(id, leg) {
+	const cell = $(`.history-row[data-id="${id}"] .history`, scoresBody);
+	const dotLeft = () => cell.querySelector(`.leg-dot[data-leg="${leg}"]`).getBoundingClientRect().left;
+	const before = dotLeft();
+	const open = openLegs.get(id) ?? new Set();
+	if (open.has(leg)) open.delete(leg);
+	else open.add(leg);
+	openLegs.set(id, open);
+	// Keep the tapped dot where it was, the leg opening out to its left.
+	cell.dataset.pinned = false;
+	renderScoreboard();
+	cell.scrollLeft += dotLeft() - before;
+	cell.dataset.pinned = atEnd(cell);
+	updateFades(cell);
+}
+
+function turnSpan(t, index, marks) {
+	const span = document.createElement('span');
+	const bold = document.createElement('b');
+	bold.textContent = t.score;
+	span.append(bold);
+	span.classList.add(...marks);
+	span.dataset.index = index;
+	if (t.bust) span.title = `Bust (${t.attempted})`;
+	if (t.hits) span.classList.add('has-hits');
+	return span;
+}
+
+function legDot(leg, won, open, visits) {
+	const dot = document.createElement('i');
+	dot.className = `leg-dot ${won ? 'won' : 'lost'}`;
+	dot.classList.toggle('open', open);
+	dot.dataset.leg = leg;
+	dot.setAttribute('role', 'button');
+	dot.title = `Leg ${leg + 1}: ${won ? 'won' : 'lost'}, ${visits} visit${visits === 1 ? '' : 's'}`;
+	dot.setAttribute('aria-expanded', String(open));
+	return dot;
+}
+
 function renderHistory(cell, player) {
-	const key = player.turns.length;
-	if (cell.dataset.turns === String(key)) return;
-	const added = cell.dataset.turns !== undefined && key > Number(cell.dataset.turns);
-	cell.dataset.turns = key;
+	const leg = historyLeg();
+	const open = openLegs.get(player.id) ?? new Set();
+	const key = `${player.turns.length} ${leg} ${[...open]}`;
+	if (cell.dataset.key === key) return;
+	const added = cell.dataset.turns !== undefined && player.turns.length > Number(cell.dataset.turns);
+	cell.dataset.key = key;
+	cell.dataset.turns = player.turns.length;
 	// Oldest on the left, so the line reads in the order the turns were thrown.
 	const marks = historyMarks(player.turns);
-	cell.replaceChildren(...player.turns.map((t, i) => {
-		const span = document.createElement('span');
-		const bold = document.createElement('b');
-		bold.textContent = t.score;
-		span.append(bold);
-		span.classList.add(...marks[i]);
-		if (t.bust) span.title = `Bust (${t.attempted})`;
-		if (t.hits) span.classList.add('has-hits');
-		return span;
-	}));
+	const items = [];
+	for (const { leg: n, turns, done, won } of historyLegs(player.turns, leg)) {
+		if (!done || open.has(n)) items.push(...turns.map(i => turnSpan(player.turns[i], i, marks[i])));
+		if (done) items.push(legDot(n, won, open.has(n), turns.length));
+	}
+	cell.replaceChildren(...items);
 	if (added) {
 		cell.lastElementChild?.classList.add('enter');
 		cell.dataset.pinned = true;
@@ -569,6 +629,8 @@ document.addEventListener('pointerdown', event => {
 		if (playerMenu.contains(event.target)) return;
 		closePlayerMenu();
 	} else if (review !== null) {
+		// Another of the same player's board turns: the tap just switches to it.
+		if (event.target.closest(`.history-row[data-id="${review.id}"] .history span.has-hits`)) return;
 		review = null;
 		renderMarks();
 	} else {
@@ -846,7 +908,7 @@ function renderMarks(pop = []) {
 	for (const span of $$('.history span.reviewing', scoresBody)) span.classList.remove('reviewing');
 	for (const row of $$('.review-focus', scoresBody)) row.classList.remove('review-focus');
 	if (kind === 'review' && hits.length) {
-		$(`.history-row[data-id="${review.id}"] .history`, scoresBody)?.children[review.index]?.classList.add('reviewing');
+		$(`.history-row[data-id="${review.id}"] .history span[data-index="${review.index}"]`, scoresBody)?.classList.add('reviewing');
 		for (const row of $$(`[data-id="${review.id}"]`, scoresBody)) row.classList.add('review-focus');
 	} else if (toastSticky) {
 		hideToast();

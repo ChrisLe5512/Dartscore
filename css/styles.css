@@ -978,6 +978,22 @@ body.dismissing * {
 	background: var(--active-stats-big);
 }
 
+/* A thin line between the name and the big score, short of the sides so it
+   separates the two without splitting the player's field. */
+.big .stats-cell {
+	position: relative;
+}
+
+.big .stats-cell::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 1.5vmin;
+	right: 1.5vmin;
+	height: 1px;
+	background: rgba(255, 255, 255, 0.28);
+}
+
 .big .stats {
 	flex-direction: column;
 	gap: 0.6vmin;
@@ -1720,9 +1736,13 @@ td.back-score {
 	animation: dart-pop var(--medium) var(--ease-back);
 }
 
+.history span.enter,
+.history .leg-dot.enter {
+	animation: history-enter var(--medium) var(--ease-out);
+}
+
 .history span.enter {
 	display: inline-block;
-	animation: history-enter var(--medium) var(--ease-out);
 }
 
 .checkout,
@@ -2128,6 +2148,40 @@ td.calc-score:not(.disabled) {
 .history span.finish b {
 	color: var(--checkout);
 	font-weight: 700;
+}
+
+/* A finished leg, folded into a dot: filled green if this player won it, a
+   grey ring if not. Open, the leg's visits sit before it. The dot is drawn
+   inside a wider tap area. */
+.history .leg-dot {
+	flex: none;
+	align-self: stretch;
+	display: flex;
+	align-items: center;
+	padding: 0 calc(0.9vmin * var(--s)) 0 calc(0.4vmin * var(--s));
+	cursor: pointer;
+}
+
+.history .leg-dot::before {
+	content: '';
+	box-sizing: border-box;
+	width: calc(1.5vmin * var(--s));
+	height: calc(1.5vmin * var(--s));
+	border-radius: 50%;
+	transition: box-shadow var(--medium) var(--ease-out);
+}
+
+.history .leg-dot.won::before {
+	background: var(--checkout);
+}
+
+.history .leg-dot.lost::before {
+	border: calc(0.25vmin * var(--s)) solid var(--history-muted);
+}
+
+/* Open: a soft ring, so it reads as the end of the visits before it. */
+.history .leg-dot.open::before {
+	box-shadow: 0 0 0 calc(0.3vmin * var(--s)) color-mix(in srgb, var(--text-soft) 45%, transparent);
 }
 
 /* A bullseye was in the visit: a small red dot. */

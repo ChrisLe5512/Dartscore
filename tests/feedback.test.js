@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { describeTravel, describeTurn, historyMarks, undoWarning } from '../js/feedback.js';
+import { describeTravel, describeTurn, historyLegs, historyMarks, undoWarning } from '../js/feedback.js';
 import { addPlayer, createGame, movePlayer, newMatch, removePlayer, submitTurn } from '../js/game.js';
 
 const twoPlayers = () =>
@@ -81,6 +81,21 @@ test('undo asks first only when it takes back more than a turn', () => {
 	assert.equal(undoWarning(removePlayer(s, 1), s).title, 'Bring back Bob?');
 	assert.equal(undoWarning(movePlayer(s, 0, 1), s).title, 'Undo the player change?');
 	assert.equal(undoWarning(newMatch(s, { ...s.settings, startScore: 501 }), s).title, 'Back to the last settings?');
+});
+
+test('history in legs: earlier legs are done, won where the player checked out', () => {
+	const turns = [
+		{ score: 100, leg: 0 }, { score: 41, leg: 0, checkout: true },
+		{ score: 60, leg: 1 },
+		{ score: 26, leg: 2 }, { score: 45, leg: 2 },
+	];
+	assert.deepEqual(historyLegs(turns, 2), [
+		{ leg: 0, turns: [0, 1], done: true, won: true },
+		{ leg: 1, turns: [2], done: true, won: false },
+		{ leg: 2, turns: [3, 4], done: false, won: false },
+	]);
+	// Saved before legs were recorded: all in the current leg.
+	assert.deepEqual(historyLegs([{ score: 60 }, { score: 45 }], 3), [{ leg: 3, turns: [0, 1], done: false, won: false }]);
 });
 
 test('history marks: busts, zeros, tons, 180s, checkouts, bulls and the best visit', () => {

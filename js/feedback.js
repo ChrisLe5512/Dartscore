@@ -81,6 +81,25 @@ export function undoWarning(from, to) {
 	return null;
 }
 
+/**
+ * A player's history in legs, oldest first: [{ leg, turns, done, won }], where
+ * turns are indexes into `turns`. `current` is the leg being played (or the
+ * last one, once the match is won); earlier legs are done, and won if the
+ * player checked out in them. Turns saved before legs were recorded go with
+ * the current leg.
+ */
+export function historyLegs(turns, current) {
+	const legs = [];
+	turns.forEach((t, i) => {
+		const leg = t.leg ?? current;
+		let group = legs.at(-1);
+		if (group?.leg !== leg) legs.push(group = { leg, turns: [], done: leg < current, won: false });
+		group.turns.push(i);
+		if (t.checkout) group.won = true;
+	});
+	return legs;
+}
+
 // Visits worth picking out in a player's history line.
 const TIERS = [[180, 'max'], [140, 'ton-forty'], [100, 'ton']];
 const BEST_FROM = 2; // visits before the best one is marked

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
 	addPlayer, createGame, isValidTurnScore, movePlayer, movePlayerTo, newMatch, removePlayer,
-	playerStats, renamePlayer, restoreGame, setActive, submitTurn,
+	currentLeg, playerStats, renamePlayer, restoreGame, setActive, submitTurn,
 } from '../js/game.js';
 import { makeDart } from '../js/board.js';
 
@@ -52,7 +52,7 @@ test('going below zero is a bust and is recorded as 0', () => {
 	const result = submitTurn(state, 0);
 	({ state } = submitTurn(result.state, 40));
 	assert.equal(state.players[0].score, 21);
-	assert.deepEqual(state.players[0].turns.at(-1), { score: 0, bust: true, attempted: 40 });
+	assert.deepEqual(state.players[0].turns.at(-1), { score: 0, leg: 0, bust: true, attempted: 40 });
 	assert.equal(state.active, 1);
 });
 
@@ -71,6 +71,13 @@ test('winning a leg resets scores and rotates the starting player', () => {
 	assert.deepEqual(state.players.map(p => p.score), [301, 301]);
 	assert.equal(state.starter, 1);
 	assert.equal(state.active, 1, 'Bob starts leg 2');
+});
+
+test('each turn records the leg it was thrown in, counting on across sets', () => {
+	const { state } = play(twoPlayers({ legs: 1, sets: 3 }), 180, 0, 121, 60, 100);
+	assert.deepEqual(state.players[0].turns.map(t => t.leg), [0, 0, 1]);
+	assert.deepEqual(state.players[1].turns.map(t => t.leg), [0, 1]);
+	assert.equal(currentLeg(state), 1);
 });
 
 test('winning a set resets everyone\'s legs, not just the winner\'s', () => {
