@@ -118,6 +118,11 @@ aside.keypad-hidden .calc-section {
 	visibility: hidden;
 }
 
+/* Set for a moment while the list is laid out for where the keypad is going. */
+aside.keypad-instant :is(.scores-section, .calc-section) {
+	transition: none !important;
+}
+
 
 /* SETTINGS */
 
@@ -713,7 +718,7 @@ aside.keypad-hidden .calc-section {
 	background: var(--button-disabled);
 }
 
-/* Settings > Board & visuals: the controls take the place of the scores and
+/* Settings > Board layout: the controls take the place of the scores and
    keypad, and the board beside them is the preview. The rest of the screen
    sleeps until Done. */
 body.visuals-open :is(.scores-section, .calc-section) {
@@ -1869,7 +1874,7 @@ td.back-score {
 	position: absolute;
 	inset: 0.495%;
 	border-radius: 50%;
-	box-shadow: 0 0 0.8vmin rgba(255, 255, 255, 0.09), 0 0 4vmin black;
+	box-shadow: 0 0 0 0.15vmin rgba(255, 255, 255, 0.15), 0 0 1.2vmin rgba(255, 255, 255, 0.22), 0 0 4vmin black;
 	pointer-events: none;
 }
 
@@ -2424,7 +2429,7 @@ td.calc-score:not(.disabled) {
 		height: auto;
 	}
 
-	/* Board & visuals fill the band along the bottom: the controls go into
+	/* Board layout fills the band along the bottom: the controls go into
 	   columns, with Reset and Done down the right. */
 	.visuals-panel {
 		display: grid;

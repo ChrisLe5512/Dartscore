@@ -21,7 +21,7 @@ VS Code's Live Server or `python -m http.server` work too.
 - **Dartboard:** tap where each dart landed, then **DONE**. Each dart is marked on the board with a number that matches its slot in the darts column. The outer number ring counts as a miss (0). Tap a dart in the column to pick it up, then tap the board to move it (it keeps its number); tap it again to remove it. **Clear** starts the turn over.
 - **History:** each player's turns run left to right under their name: 100+, 140+ and 180 in colour, the leg-winning visit in green, a bust as the score it would have been, struck through. Tap a turn entered on the dartboard to see where its darts landed (the message names the visit, and the leg if it was an earlier one). Finished legs fold into a dot (green: won, grey ring: lost); tap one to open the leg out.
 - **▾** (above ⚙ beside the board) folds the keypad away to give the players more room; tap again to bring it back.
-- **Board & visuals** (in ⚙ Settings): the controls take the place of the scores and keypad, and the board itself shows each change. Resize the bull, treble, double and number rings, change the outline thickness and colour, or add wires round every bed. Tapping follows your layout, and the bed each dart hits lights up (a dart in the number ring lights it faintly, as the pointer does).
+- **Board layout** (in ⚙ Settings): the controls take the place of the scores and keypad, and the board itself shows each change. Resize the bull, treble, double and number rings, change the outline thickness and colour, or add wires round every bed. Tapping follows your layout, and the bed each dart hits lights up (a dart in the number ring lights it faintly, as the pointer does).
 - **BUST** is a quick turn of 0 (three misses, or a bust you didn't enter dart by dart). Entering a score that goes too far is a bust by itself.
 - **Checkout** suggestions appear in green once a finish is possible and update as you tap darts on the board. Tap the suggestion to see other routes. They follow the Double out setting.
 - **↶ / ↷** undo and redo whole turns, players added or removed, and new games. Undoing a leg, set or match win, a new game, or a player or settings change asks first.
@@ -30,7 +30,7 @@ VS Code's Live Server or `python -m http.server` work too.
   2. **Who's playing:** **Solo** (one name) or **Two or more** (a list to add to, reorder and remove from, up to 8), then **Start**.
 
   It opens set to the last game and its players, so replaying is two taps. **Cancel** (or Back) changes nothing until Start.
-- **Settings:** the game being played in a line, the players, Board & visuals, and New game.
+- **Settings:** the game being played in a line, the players, Board layout, and New game.
 - **Match stats** (player menu, and under the winner): legs won, 3-dart and first-9 averages, checkout % (legs won from visits that started on a finish), best leg, high finish, and 100+/140+/180 counts. Visits are three darts, except a leg-winning one entered on the board.
 - The game is saved on the device, so a refresh or closing the app doesn't lose it.
 - Keyboard: digits, Enter, Backspace, Esc, ↑/↓, Ctrl+Z / Ctrl+Y, F11 for full screen.

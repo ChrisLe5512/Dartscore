@@ -376,15 +376,15 @@ function updateScoreFades() {
 	scoresSection.classList.toggle('fade-bottom', scrollTop + clientHeight < scrollHeight - 1);
 }
 
-// While the keypad folds away or comes back, the list resizes on every frame
-// of the animation. The rows keep scaling with it, but the names (which take
-// several layouts each to fit) wait until it settles: fitting them on every
-// frame is what made the animation stutter.
+// While the keypad folds away or comes back, the list is already laid out for
+// where it's going (see setKeypadHidden), so nothing in it is redone on the
+// way: re-laying the rows and names out on every frame made it stutter.
 let keypadMoving = false;
 
 new ResizeObserver(() => {
+	if (keypadMoving) return;
 	layoutScores();
-	if (!keypadMoving) fitNames();
+	fitNames();
 }).observe(scoresSection);
 scoresSection.addEventListener('scroll', updateScoreFades, { passive: true });
 
@@ -1130,11 +1130,12 @@ const keypadToggle = $('.ctrl-tbl .keypad-btn');
 const calcSection = $('.calc-section');
 let keypadSettled = 0;
 
-/** The keypad's animation has ended (or never ran): fit the names to where the list ended up. */
+/** The keypad's animation has ended (or never ran): settle the list where it ended up. */
 function keypadStill() {
 	clearTimeout(keypadSettled);
 	if (!keypadMoving) return;
 	keypadMoving = false;
+	layoutScores();
 	fitNames();
 }
 
@@ -1144,6 +1145,15 @@ calcSection.addEventListener('transitionend', event => {
 
 function setKeypadHidden(hidden) {
 	if (sidebar.classList.contains('keypad-hidden') !== hidden) {
+		// Lay the list out for where it ends up (rows and names change once,
+		// now), then put the panels back and let them slide there.
+		sidebar.classList.add('keypad-instant');
+		sidebar.classList.toggle('keypad-hidden', hidden);
+		layoutScores();
+		fitNames();
+		sidebar.classList.toggle('keypad-hidden', !hidden);
+		void sidebar.offsetHeight; // start from here
+		sidebar.classList.remove('keypad-instant');
 		keypadMoving = true;
 		clearTimeout(keypadSettled);
 		keypadSettled = setTimeout(keypadStill, 600); // in case no transition runs (hidden tab, say)
@@ -1687,7 +1697,7 @@ newGameDialog.addEventListener('click', event => {
 	}
 });
 
-// ---- Settings: board and visuals ----------------------------------------------
+// ---- Settings: board layout -------------------------------------------------------
 
 // Per device. Settings steps aside and the controls take the place of the
 // scores and keypad, so the board itself shows each change as it is made.
@@ -1893,7 +1903,7 @@ document.addEventListener('keydown', event => {
 		return;
 	}
 
-	// Board & visuals: only its own controls, and Esc is Done.
+	// Board layout: only its own controls, and Esc is Done.
 	if (!visualsPanel.hidden) {
 		if (event.key === 'Escape') closeVisuals();
 		return;

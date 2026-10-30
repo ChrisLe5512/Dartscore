@@ -56,7 +56,7 @@ Darts X01 scoreboard web app (301/501/701), built for tablets in landscape (16:1
 
 ### To do
 
-- Themes: a theme is a set of the CSS variables above (plus a board style). Add a theme picker in Settings > Board & visuals; some themes free, some unlockable.
+- Themes: a theme is a set of the CSS variables above (plus a board style). Add a theme picker in Settings (its own screen, next to Board layout); some themes free, some unlockable.
 - Accounts and database: sign-in, match history and stats synced across devices. The game state is already plain JSON (`game.js`), so matches can be saved as-is. Pick a hosted backend that suits Cloudflare Pages or Vercel.
 - Entitlements: one place that answers "is this extra unlocked?" (free, unlocked by playing, or paid), checked by the UI only. Never by game rules.
 - Ads: a single banner slot and a post-match slot, off by default in development, removed for paying users.
