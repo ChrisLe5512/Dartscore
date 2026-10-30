@@ -1466,15 +1466,15 @@ function startDrag(event, field, item, from, startY) {
 	field.addEventListener('pointercancel', end);
 }
 
-/** Fade the list's top or bottom edge where more players are scrolled out of view. */
-function updateListFades() {
-	const { scrollTop, scrollHeight, clientHeight } = playersScroll;
-	playersScroll.classList.toggle('fade-top', scrollTop > 1);
-	playersScroll.classList.toggle('fade-bottom', scrollTop + clientHeight < scrollHeight - 1);
+/** Fade a list's top or bottom edge where more players are scrolled out of view. */
+function updateListFades(list = playersScroll) {
+	const { scrollTop, scrollHeight, clientHeight } = list;
+	list.classList.toggle('fade-top', scrollTop > 1);
+	list.classList.toggle('fade-bottom', scrollTop + clientHeight < scrollHeight - 1);
 }
 
-playersScroll.addEventListener('scroll', updateListFades, { passive: true });
-new ResizeObserver(updateListFades).observe(playersScroll);
+playersScroll.addEventListener('scroll', () => updateListFades(), { passive: true });
+new ResizeObserver(() => updateListFades()).observe(playersScroll);
 
 playersAddBtn.addEventListener('click', () => {
 	const index = addPlayer();
@@ -1707,25 +1707,36 @@ function renderPlayersStep() {
 	});
 	draftList.replaceChildren(...items);
 	draftAdd.hidden = ngForm.names.length >= MAX_PLAYERS;
+	updateListFades(draftList);
 }
 
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
+const ngSection = $('.new-game-section', newGameDialog);
+const stepTiming = { duration: 260, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
+
+/** Change what the New game panel shows with render(), the panel easing from its old height to its new one. */
+function easePanel(render) {
+	const from = ngSection.offsetHeight;
+	render();
+	const to = ngSection.offsetHeight;
+	if (reducedMotion.matches || from === to) return;
+	// No scrollbar while the panel eases.
+	ngSection.classList.add('sliding');
+	ngSection.animate([{ height: `${from}px` }, { height: `${to}px` }], stepTiming)
+		.finished.catch(() => {}).finally(() => ngSection.classList.remove('sliding'));
+}
+
 /** Move between the two steps: the new one slides in from the side it's on (players to the right), and the panel eases to its height. */
 function goToStep(step) {
-	const section = $('.new-game-section', newGameDialog);
-	const from = section.offsetHeight;
-	ngForm.step = step;
-	renderNewGame();
+	easePanel(() => {
+		ngForm.step = step;
+		renderNewGame();
+	});
 	if (reducedMotion.matches) return;
-	const timing = { duration: 260, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
 	const side = step === 'players' ? 1 : -1;
-	// No scrollbar while the step slides in and the panel eases.
-	section.classList.add('sliding');
-	section.animate([{ height: `${from}px` }, { height: `${section.offsetHeight}px` }], timing)
-		.finished.catch(() => {}).finally(() => section.classList.remove('sliding'));
 	(step === 'players' ? playersStep : gameStep).animate(
-		[{ opacity: 0, transform: `translateX(${side * 6}vmin)` }, { opacity: 1, transform: 'none' }], timing);
+		[{ opacity: 0, transform: `translateX(${side * 6}vmin)` }, { opacity: 1, transform: 'none' }], stepTiming);
 }
 
 function startNewGame() {
@@ -1778,17 +1789,23 @@ playersStep.addEventListener('click', event => {
 		ngForm.names[0] = soloName.value || (ngForm.names[0] ?? '');
 		while (ngForm.names.length < 2) ngForm.names.push('');
 	}
-	ngForm.solo = who === 'solo';
-	renderPlayersStep();
+	easePanel(() => {
+		ngForm.solo = who === 'solo';
+		renderPlayersStep();
+	});
 	if (ngForm.solo) soloName.focus();
 });
 
 draftAdd.addEventListener('click', () => {
-	ngForm.names.push('');
-	renderPlayersStep();
+	easePanel(() => {
+		ngForm.names.push('');
+		renderPlayersStep();
+	});
 	$$('input', draftList).at(-1)?.focus({ preventScroll: true });
 	showLast(draftList);
 });
+
+draftList.addEventListener('scroll', () => updateListFades(draftList), { passive: true });
 
 soloName.addEventListener('keydown', event => {
 	if (event.key === 'Enter') startNewGame();

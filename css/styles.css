@@ -628,6 +628,9 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 0.8vmin 4vmin;
+	/* Always as tall as around the clock's bed buttons, so picking another
+	   game never resizes the screen. */
+	min-height: 7vmin;
 	color: var(--text);
 	white-space: nowrap;
 }
@@ -782,6 +785,21 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	overflow-y: auto;
 	list-style: none;
 	scrollbar-width: none;
+	/* Names scrolled out of view fade out at that edge, as in Settings. */
+	mask-image: linear-gradient(transparent, black var(--fade-top), black calc(100% - var(--fade-bottom)), transparent);
+	transition: --fade-top var(--medium), --fade-bottom var(--medium);
+}
+
+.draft-list::-webkit-scrollbar {
+	display: none;
+}
+
+.draft-list.fade-top {
+	--fade-top: 5vmin;
+}
+
+.draft-list.fade-bottom {
+	--fade-bottom: 5vmin;
 }
 
 .draft-list .player-field input {
@@ -1055,11 +1073,12 @@ body.visuals-open #dartboard {
 	border-bottom: none;
 }
 
-/* Rows scrolled out of view fade out at that edge. The mask leaves the
-   section's own borders (bottom, and right in portrait) untouched. */
+/* Rows scrolled out of view fade out at that edge; the bottom one is taller
+   and fades harder, so more players below are plain to see. The mask leaves
+   the section's own borders (bottom, and right in portrait) untouched. */
 .scores-section {
 	mask-image:
-		linear-gradient(transparent, black var(--fade-top), black calc(100% - var(--fade-bottom)), transparent),
+		linear-gradient(transparent, black var(--fade-top), black calc(100% - var(--fade-bottom)), rgba(0, 0, 0, 0.3) calc(100% - var(--fade-bottom) * 0.4), transparent),
 		linear-gradient(black, black),
 		linear-gradient(black, black);
 	mask-size: 100% 100%, 100% var(--line), var(--line) 100%;
@@ -1075,7 +1094,7 @@ body.visuals-open #dartboard {
 }
 
 .scores-section.fade-bottom {
-	--fade-bottom: 4vmin;
+	--fade-bottom: 8vmin;
 }
 
 .scores-tbl {
