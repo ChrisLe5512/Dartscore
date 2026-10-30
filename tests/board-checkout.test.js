@@ -96,3 +96,19 @@ test('darts left limits the routes', () => {
 	assert.ok(getCheckouts(121, 2).every(r => r.length <= 2));
 	assert.equal(canCheckout(40, 0), false);
 });
+
+test('without double out any dart finishes, up to 180', () => {
+	const best = s => getCheckouts(s, 3, false)[0]?.join(' ');
+	assert.equal(best(180), 'T20 T20 T20');
+	assert.equal(best(171), 'T20 T20 T17');
+	assert.equal(best(60), 'T20');
+	assert.equal(best(20), '20');
+	assert.equal(best(1), '1');
+	assert.equal(canCheckout(179, 3, false), false);
+	assert.equal(canCheckout(100, 1, false), false);
+	// The same darts in another order are one route.
+	for (const s of [100, 141, 180]) {
+		const sets = getCheckouts(s, 3, false).map(r => [...r].sort().join());
+		assert.equal(new Set(sets).size, sets.length, String(s));
+	}
+});

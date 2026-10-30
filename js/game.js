@@ -11,9 +11,11 @@ import { canCheckout } from './checkout.js';
 /**
  * State shape:
  * {
- *   settings: { startScore, legs, sets, doubleOut },
- *   players: [{ id, name, score, legs, sets, turns: [{ score, leg, bust?, checkout?, darts?, hits? }] }],
- *     leg: which leg of the match the turn was thrown in, counting from 0 (see currentLeg)
+ *   settings: { startScore, legs, sets, doubleOut, practice },
+ *     legs, sets: first to this many; practice: legs go on with no sets and no winner
+ *   players: [{ id, name, score, legs, sets, turns: [{ score, leg, bust?, attempted?, checkout?, darts?, hits? }] }],
+ *     leg: the leg the turn was thrown in
+ *   leg: the leg being played, counting from 0 across the whole match (every set),
  *   active: index of the player throwing,
  *   starter: index of the player who started the current leg,
  *   winner: index of the match winner, or null,
@@ -25,6 +27,7 @@ export function createGame(settings = {}) {
 	return {
 		settings: normalizeSettings(settings),
 		players: [],
+		leg: 0,
 		active: 0,
 		starter: 0,
 		winner: null,
@@ -39,6 +42,7 @@ export function normalizeSettings(settings = {}) {
 		legs: clampInt(s.legs, 1, MAX_LEGS, DEFAULT_SETTINGS.legs),
 		sets: clampInt(s.sets, 1, MAX_SETS, DEFAULT_SETTINGS.sets),
 		doubleOut: Boolean(s.doubleOut),
+		practice: Boolean(s.practice),
 	};
 }
 
@@ -127,16 +131,22 @@ export function newMatch(state, settings = state.settings) {
 		...state,
 		settings: normalized,
 		players: state.players.map(p => ({ ...p, score: normalized.startScore, legs: 0, sets: 0, turns: [] })),
+		leg: 0,
 		active: 0,
 		starter: 0,
 		winner: null,
 	};
 }
 
-/** Hand the throw to another player (e.g. when someone was skipped). */
+/**
+ * Hand the throw to another player (e.g. when someone was skipped). Before the
+ * leg's first dart (e.g. after a bull-off) they also start the leg, so the
+ * next leg goes to the player after them.
+ */
 export function setActive(state, index) {
 	if (!state.players[index] || state.winner !== null || index === state.active) return state;
-	return { ...state, active: index };
+	const legStarted = state.players.some(p => p.turns.some(t => t.leg === state.leg));
+	return { ...state, active: index, starter: legStarted ? state.starter : index };
 }
 
 /**
@@ -170,7 +180,7 @@ export function submitTurn(state, score, darts = null) {
 	const player = { ...players[state.active] };
 	players[state.active] = player;
 	const turn = darts?.length ? { score, darts: darts.map(d => d.label) } : { score };
-	turn.leg = currentLeg(state);
+	turn.leg = state.leg;
 	// Where each dart landed, when every dart was tapped on the board.
 	if (darts?.length && darts.every(isHit)) turn.hits = darts.map(d => [round3(d.x), round3(d.y)]);
 
@@ -189,8 +199,9 @@ export function submitTurn(state, score, darts = null) {
 
 	// Leg won
 	player.legs += 1;
+	const leg = state.leg + 1;
 	let event = 'leg';
-	if (player.legs >= state.settings.legs) {
+	if (!state.settings.practice && player.legs >= state.settings.legs) {
 		player.sets += 1;
 		event = 'set';
 		for (let i = 0; i < players.length; i++) {
@@ -198,7 +209,7 @@ export function submitTurn(state, score, darts = null) {
 		}
 		if (player.sets >= state.settings.sets) {
 			// Leave the board as it finished so everyone can see it.
-			return { state: { ...state, players, winner: state.active }, event: 'match' };
+			return { state: { ...state, players, leg, winner: state.active }, event: 'match' };
 		}
 	}
 
@@ -207,12 +218,12 @@ export function submitTurn(state, score, darts = null) {
 	for (let i = 0; i < players.length; i++) {
 		players[i] = { ...players[i], score: state.settings.startScore };
 	}
-	return { state: { ...state, players, starter, active: starter }, event };
+	return { state: { ...state, players, leg, starter, active: starter }, event };
 }
 
 /** The leg being played, counting from 0 across the whole match (every set). */
 export function currentLeg(state) {
-	return state.players.reduce((sum, p) => sum + p.turns.filter(t => t.checkout).length, 0);
+	return state.leg;
 }
 
 function nextIndex(i, length) {
@@ -223,25 +234,6 @@ function nextIndex(i, length) {
 const isHit = d => Number.isFinite(d?.x) && Number.isFinite(d?.y) && Math.hypot(d.x, d.y) <= 1.5;
 const round3 = n => Math.round(n * 1000) / 1000;
 
-// ---- Stats ------------------------------------------------------------------
-
-/**
- * Match stats for one player. visits: turns at the board. The three-dart average
- * counts keypad turns as three darts and board turns as the darts tapped; busts
- * score nothing but their darts still count.
- */
-export function playerStats(player) {
-	let points = 0;
-	let darts = 0;
-	let best = 0;
-	for (const t of player.turns) {
-		points += t.score;
-		darts += t.darts?.length || 3;
-		best = Math.max(best, t.score);
-	}
-	return { average: darts ? points / darts * 3 : 0, darts, visits: player.turns.length, best };
-}
-
 // ---- Persistence ------------------------------------------------------------
 
 /** Repair anything loaded from storage; returns null if it is unusable. */
@@ -251,23 +243,25 @@ export function restoreGame(raw) {
 	let nextId = 1;
 	const players = raw.players.slice(0, MAX_PLAYERS).map((p, i) => {
 		const id = Number.isInteger(p?.id) && p.id > 0 ? p.id : i + 1;
+		const turns = Array.isArray(p?.turns) ? p.turns.filter(t => t && Number.isInteger(t.score)).map(restoreTurn) : [];
 		nextId = Math.max(nextId, id + 1);
 		return {
 			id,
 			name: cleanName(p?.name, `Player ${i + 1}`),
 			score: clampInt(p?.score, 0, settings.startScore, settings.startScore),
-			legs: clampInt(p?.legs, 0, settings.legs, 0),
+			legs: clampInt(p?.legs, 0, settings.practice ? turns.length : settings.legs, 0),
 			sets: clampInt(p?.sets, 0, settings.sets, 0),
-			turns: Array.isArray(p?.turns)
-				? p.turns.filter(t => t && Number.isInteger(t.score)).map(restoreTurn)
-				: [],
+			turns,
 		};
 	});
 	const index = (v, fallback = 0) =>
 		Number.isInteger(v) && v >= 0 && v < players.length ? v : fallback;
+	// Saved before the leg was kept: every leg won so far, counted.
+	const legsPlayed = players.reduce((sum, p) => sum + p.turns.filter(t => t.checkout).length, 0);
 	return {
 		settings,
 		players,
+		leg: Number.isInteger(raw.leg) && raw.leg >= 0 ? raw.leg : legsPlayed,
 		active: index(raw.active),
 		starter: index(raw.starter),
 		winner: raw.winner === null || raw.winner === undefined ? null : index(raw.winner, null),

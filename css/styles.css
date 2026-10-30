@@ -218,6 +218,23 @@ aside.keypad-hidden .calc-section {
 	height: 4vmin;
 }
 
+.settings-tbl input:disabled {
+	opacity: 0.4;
+}
+
+.settings-version {
+	float: right;
+	padding-top: 0.8vmin;
+	font-size: 2vmin;
+	font-weight: normal;
+	color: var(--text-muted);
+}
+
+/* Dialogs take the focus when they open (for the keyboard), without a ring. */
+.settings-background:focus {
+	outline: none;
+}
+
 .settings-heading {
 	margin: 1vmin 1vmin 0;
 	padding-bottom: 0.6vmin;
@@ -420,32 +437,55 @@ aside.keypad-hidden .calc-section {
 	background: var(--button-disabled);
 }
 
-/* Settings > Board & visuals: live preview on the left, controls on the right. */
-.visuals-section {
-	width: 70%;
+/* Settings > Board & visuals: the controls take the place of the scores and
+   keypad, and the board beside them is the preview. The rest of the screen
+   sleeps until Done. */
+body.visuals-open :is(.scores-section, .calc-section) {
+	display: none;
 }
 
-.visuals {
-	display: grid;
-	grid-template-columns: 42% 1fr;
-	gap: 3vmin;
-	align-items: center;
-	padding: 1vmin;
+body.visuals-open :is(.ctrl-section, .btn-section) {
+	opacity: 0.4;
+	pointer-events: none;
+}
+
+body.visuals-open #dartboard {
+	pointer-events: none;
+}
+
+.visuals-panel {
+	display: flex;
+	flex-direction: column;
+	gap: 2vmin;
+	height: 100%;
+	box-sizing: border-box;
+	padding: 1vmin 2vmin 2vmin;
 	color: var(--text);
 	font-family: var(--font-condensed);
-	font-size: 2.6vmin;
+	font-size: 2.8vmin;
+	overflow-y: auto;
+	scrollbar-width: none;
+	outline: none;
+	animation: fade-in var(--medium) var(--ease-out);
 }
 
-.board-preview {
-	width: 100%;
-	aspect-ratio: 1;
-	filter: drop-shadow(0 0 2vmin black);
+.visuals-panel .settings-heading {
+	margin: 0;
 }
 
 .visuals-controls {
 	display: flex;
 	flex-direction: column;
-	gap: 1.2vmin;
+	gap: 2.4vmin;
+	padding: 0 1vmin;
+}
+
+/* Reset and Done side by side at the bottom. */
+.visuals-actions {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 2vmin;
+	margin-top: auto;
 }
 
 .range {
@@ -487,18 +527,75 @@ aside.keypad-hidden .calc-section {
 	transform: scale(1.15);
 }
 
-.visuals .settings-check {
+.visuals-panel .settings-check {
 	display: flex;
 	align-items: center;
 	gap: 1vmin;
 	cursor: pointer;
 }
 
-.visuals .settings-check input {
+.visuals-panel .settings-check input {
 	width: 2.6vmin;
 	height: 2.6vmin;
 	margin: 0;
 	accent-color: var(--checkout);
+}
+
+/* Match stats (also under the winner): one column per player, each line's
+   leader in green. Many players scroll sideways. */
+.stats-section {
+	width: auto;
+	min-width: 40%;
+	max-width: 90%;
+}
+
+.stats-scroll {
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.stats-tbl {
+	margin: 1vmin auto 1.5vmin;
+	border-collapse: collapse;
+	font-family: var(--font-condensed);
+	font-size: 2.6vmin;
+	color: var(--text);
+	font-variant-numeric: tabular-nums;
+}
+
+.stats-tbl :is(th, td) {
+	padding: 0.5vmin 1.6vmin;
+	text-align: center;
+	white-space: nowrap;
+}
+
+.stats-tbl thead th {
+	max-width: 18vmin;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-weight: 600;
+	border-bottom: 1px solid var(--text-muted);
+}
+
+.stats-tbl tbody th {
+	text-align: left;
+	font-weight: normal;
+	color: var(--text-soft);
+}
+
+.stats-tbl tbody tr + tr {
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stats-tbl .lead {
+	color: var(--checkout);
+	font-weight: 600;
+}
+
+.stats-tbl small {
+	font-size: 0.8em;
+	font-weight: normal;
+	color: var(--text-muted);
 }
 
 .winner-section {
@@ -557,7 +654,6 @@ aside.keypad-hidden .calc-section {
 	overflow-y: auto;
 	overscroll-behavior: contain;
 	scrollbar-width: none;
-	transition: height var(--medium) var(--ease-out);
 }
 
 .scores-section::-webkit-scrollbar {
@@ -884,6 +980,7 @@ body.dismissing * {
 
 /* Only when there is room: a line of match stats between the name and the history. */
 .stats-row {
+	position: relative; /* see the player-wins layer below */
 	height: calc(5vmin * var(--s));
 	background: var(--row);
 }
@@ -900,10 +997,6 @@ body.dismissing * {
 /* With the score beside the name, the stats line is part of the player's
    field: the name row's layer (and menu tint) reaches down behind it. The line
    is positioned so it still paints over that layer when its row is dimmed. */
-.stats-row {
-	position: relative;
-}
-
 .scores-tbl.roomy:not(.big) .player-wins::before,
 .scores-tbl.roomy:not(.big) .player-wins::after {
 	bottom: calc(-5vmin * var(--s) - 1px);
@@ -1827,6 +1920,8 @@ td.calc-score:not(.disabled) {
 	/* The keypad is a little taller than wide (4:5). On a narrow screen the band
 	   gets shorter rather than the keypad getting any narrower than that. */
 	main {
+		/* The one use of vh: here vmin is the width, and the band must also
+		   leave the board enough of the height. */
 		--band: min(42vh, 60vw);
 		--tip-depth: calc(var(--band) * 0.76); /* the score box is about half the keypad */
 		display: grid;
@@ -1951,8 +2046,33 @@ td.calc-score:not(.disabled) {
 		height: auto;
 	}
 
-	.visuals-section {
-		width: 95%;
+	/* Board & visuals fill the band along the bottom: the controls go into
+	   columns, with Reset and Done down the right. */
+	.visuals-panel {
+		display: grid;
+		grid-template-columns: 1fr 18vmin;
+		grid-template-rows: auto 1fr;
+		width: 100%;
+		column-gap: 3vmin;
+		row-gap: 1.5vmin;
+	}
+
+	.visuals-panel .settings-heading {
+		grid-column: 1 / -1;
+	}
+
+	.visuals-controls {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		column-gap: 3vmin;
+		row-gap: 1.6vmin;
+		align-content: start;
+	}
+
+	.visuals-actions {
+		grid-template-columns: none;
+		align-content: end;
+		margin-top: 0;
 	}
 }
 

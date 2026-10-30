@@ -11,6 +11,7 @@ import { boardRadius, drawBoard, drawMarks, lightSegments, segmentKey } from './
 import { describeTravel, describeTurn, historyLegs, historyMarks, undoWarning } from './feedback.js';
 import * as Game from './game.js';
 import * as History from './history.js';
+import { matchStats, playerStats } from './stats.js';
 import { loadPrefs, loadSession, savePrefs, saveSession } from './storage.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -109,6 +110,7 @@ function replay(el, className) {
 function closeDialog(dialog) {
 	if (dialog.hidden || dialog.classList.contains('closing')) return;
 	dialog.classList.add('closing');
+	if (dialog.contains(document.activeElement)) focusBefore.get(dialog)?.focus({ preventScroll: true });
 	const closing = dialog.getAnimations({ subtree: true })
 		.filter(a => a.effect?.getComputedTiming().iterations !== Infinity); // e.g. the trophy's glow
 	Promise.allSettled(closing.map(a => a.finished)).then(() => {
@@ -118,9 +120,28 @@ function closeDialog(dialog) {
 	});
 }
 
-function openDialog(dialog) {
+// Opening a dialog moves the keyboard focus into it (Tab then stays inside,
+// see trapFocus); closing it gives the focus back.
+const focusBefore = new WeakMap();
+
+function openDialog(dialog, focus = dialog) {
+	if (dialog.hidden && !dialog.contains(document.activeElement)) focusBefore.set(dialog, document.activeElement);
 	dialog.classList.remove('closing');
 	dialog.hidden = false;
+	focus.focus({ preventScroll: true });
+}
+
+const openDialogs = () => $$('[role="dialog"], [role="alertdialog"]').filter(d => !d.hidden && !d.classList.contains('closing'));
+
+/** Tab from the last control goes back to the first, and the other way round. */
+function trapFocus(event, dialog) {
+	const focusable = $$('button, input, select', dialog).filter(el => !el.disabled && el.offsetParent !== null);
+	if (!focusable.length) return;
+	const at = focusable.indexOf(document.activeElement);
+	if (event.shiftKey ? at <= 0 : at === focusable.length - 1) {
+		event.preventDefault();
+		(event.shiftKey ? focusable.at(-1) : focusable[0]).focus();
+	}
 }
 
 const dartsTotal = () => turn.darts.reduce((sum, d) => sum + d.value, 0);
@@ -189,15 +210,15 @@ function createPlayerRows(player) {
 		renderScoreboard();
 	});
 
-	const history = $('.history', historyRow);
-	history.addEventListener('scroll', () => {
-		history.dataset.pinned = atEnd(history);
-		updateFades(history);
+	const historyCell = $('.history', historyRow);
+	historyCell.addEventListener('scroll', () => {
+		historyCell.dataset.pinned = atEnd(historyCell);
+		updateFades(historyCell);
 	}, { passive: true });
-	historyResize.observe(history);
+	historyResize.observe(historyCell);
 	// Tap a turn entered on the board to see where its darts landed, or a
 	// finished leg's dot to open or fold it.
-	history.addEventListener('click', event => {
+	historyCell.addEventListener('click', event => {
 		const dot = event.target.closest('.leg-dot');
 		if (dot) {
 			toggleLeg(player.id, Number(dot.dataset.leg));
@@ -245,9 +266,11 @@ function renderScoreboard() {
 		playerRow.classList.toggle('active', isActive);
 		statsRow.classList.toggle('active', isActive);
 		historyRow.classList.toggle('active', isActive);
+		// In practice the legs just count on: no sets, nothing to reach.
+		const { practice } = game.settings;
 		$('.player-wins u', playerRow).innerHTML = `${player.legs}&#8196;&#8196;`;
-		$('.player-sets', playerRow).textContent = player.sets;
-		$('.target-wins', playerRow).innerHTML = `&nbsp;/${game.settings.legs}<br>&nbsp;/${game.settings.sets}`;
+		$('.player-sets', playerRow).textContent = practice ? '' : player.sets;
+		$('.target-wins', playerRow).innerHTML = practice ? '' : `&nbsp;/${game.settings.legs}<br>&nbsp;/${game.settings.sets}`;
 		for (const scoreCell of [$('.player-score', playerRow), $('.big-score', statsRow)]) {
 			if (scoreCell.textContent === String(player.score)) continue;
 			if (scoreCell.textContent !== '') replay(scoreCell, 'bump');
@@ -366,7 +389,7 @@ function turnSpan(t, index, marks) {
 	span.append(bold);
 	span.classList.add(...marks);
 	span.dataset.index = index;
-	if (t.bust) span.title = `Bust (${t.attempted})`;
+	if (t.bust) span.title = t.attempted === undefined ? 'Bust' : `Bust (${t.attempted})`;
 	if (t.hits) span.classList.add('has-hits');
 	return span;
 }
@@ -409,7 +432,7 @@ function renderCheckout(historyRow, player, isActive) {
 	// The thrower's suggestion follows the darts already on the board.
 	const dartsLeft = isActive ? DARTS_PER_TURN - turn.darts.length : DARTS_PER_TURN;
 	const remaining = isActive ? player.score - dartsTotal() : player.score;
-	const routes = game.winner === null ? getCheckouts(remaining, dartsLeft) : [];
+	const routes = game.winner === null ? getCheckouts(remaining, dartsLeft, game.settings.doubleOut) : [];
 	const checkoutCell = $('.history-line > .checkout', historyRow);
 	if (routes.length) {
 		const route = routes[(checkoutChoice.get(player.id) ?? 0) % routes.length];
@@ -423,7 +446,7 @@ function renderCheckout(historyRow, player, isActive) {
 }
 
 function renderStats(statsRow, player) {
-	const { average, visits, best } = Game.playerStats(player);
+	const { average, visits, best } = playerStats(player);
 	const none = visits === 0; // nothing thrown yet
 	$('.stat-average', statsRow).textContent = none ? '–' : average.toFixed(1);
 	$('.stat-best', statsRow).textContent = none ? '–' : best;
@@ -615,7 +638,20 @@ playerMenu.addEventListener('click', event => {
 	} else if (action === 'remove') {
 		commit(Game.removePlayer(game, index));
 		showToast({ kind: 'info', title: 'Removed', detail: `${name} · Undo brings them back` });
+	} else if (action === 'stats') {
+		showStats();
 	}
+});
+
+// Up and down move between the menu's items (not the keypad's score).
+playerMenu.addEventListener('keydown', event => {
+	if ((event.key !== 'ArrowDown' && event.key !== 'ArrowUp') || event.target === menuInput) return;
+	event.preventDefault();
+	event.stopPropagation();
+	const items = $$('button:not(:disabled)', playerMenu);
+	const at = items.indexOf(document.activeElement);
+	const step = event.key === 'ArrowDown' ? 1 : -1;
+	items[at < 0 ? (step > 0 ? 0 : items.length - 1) : (at + step + items.length) % items.length].focus();
 });
 
 // While the menu or a past turn is open, a tap anywhere else only closes it:
@@ -839,9 +875,10 @@ doneBtn.addEventListener('click', () => {
 	if (turn.darts.length) submit(dartsTotal(), turn.darts);
 });
 
+// A quick way to a turn of 0 (three misses or a bust), with no darts kept.
 bustBtn.addEventListener('click', () => {
 	const name = game.players[game.active]?.name;
-	if (submit(0) === 'turn') showToast({ kind: 'bust', title: 'Bust', detail: name });
+	if (submit(0) === 'turn') showToast({ kind: 'bust', title: 'No score', detail: name });
 });
 
 /** pop: indexes of darts that just landed or moved, to animate. */
@@ -964,7 +1001,6 @@ function toggleReview(player, index) {
 	renderMarks();
 }
 
-
 // ---- Controls ---------------------------------------------------------------
 
 const undoBtn = $('.ctrl-tbl .undo');
@@ -972,7 +1008,6 @@ const redoBtn = $('.ctrl-tbl .redo');
 undoBtn.addEventListener('click', undo);
 redoBtn.addEventListener('click', redo);
 $('.ctrl-tbl .settings-btn').addEventListener('click', openSettings);
-$('.ctrl-tbl .full-screen').addEventListener('click', toggleFullscreen);
 
 function renderControls() {
 	undoBtn.classList.toggle('disabled', history.past.length === 0);
@@ -997,6 +1032,8 @@ setKeypadHidden(Boolean(prefs.keypadHidden));
 
 // The icon's corners point in while in full screen (also when left with Esc).
 const fullscreenBtn = $('.ctrl-tbl .full-screen');
+fullscreenBtn.addEventListener('click', toggleFullscreen);
+
 function renderFullscreen() {
 	const active = Boolean(document.fullscreenElement ?? document.webkitFullscreenElement);
 	fullscreenBtn.classList.toggle('active', active);
@@ -1019,6 +1056,7 @@ const startScoreSelect = $('#start-score');
 const legsInput = $('#num-legs');
 const setsInput = $('#num-sets');
 const doubleOutInput = $('#double-out');
+const practiceInput = $('#practice');
 const playersScroll = $('.players-scroll');
 const playersList = $('.players-list');
 const playersAddBtn = $('.players-add');
@@ -1027,7 +1065,7 @@ const noteRow = $('.settings-note-row');
 startScoreSelect.append(...START_SCORES.map(score => new Option(score, score)));
 legsInput.max = MAX_LEGS;
 setsInput.max = MAX_SETS;
-
+$('.settings-version', settingsDialog).textContent = `v${self.DARTSCORE_VERSION ?? ''}`;
 
 function readSettingsForm() {
 	return Game.normalizeSettings({
@@ -1035,19 +1073,20 @@ function readSettingsForm() {
 		legs: legsInput.value,
 		sets: setsInput.value,
 		doubleOut: doubleOutInput.checked,
+		practice: practiceInput.checked,
 	});
 }
 
 const sameSettings = (a, b) => Object.keys(a).every(key => a[key] === b[key]);
 
 function openSettings() {
-	const { startScore, legs, sets, doubleOut } = game.settings;
+	const { startScore, legs, sets, doubleOut, practice } = game.settings;
 	startScoreSelect.value = startScore;
 	legsInput.value = legs;
 	setsInput.value = sets;
 	doubleOutInput.checked = doubleOut;
+	practiceInput.checked = practice;
 	renderSettings();
-	showVisuals(false);
 	openDialog(settingsDialog);
 }
 
@@ -1060,6 +1099,9 @@ function closeSettings() {
 
 function renderSettings() {
 	noteRow.hidden = !matchStarted() || sameSettings(readSettingsForm(), game.settings);
+	// Practice has no legs or sets to reach.
+	legsInput.disabled = practiceInput.checked;
+	setsInput.disabled = practiceInput.checked;
 
 	const items = game.players.map((player, index) => {
 		const item = document.createElement('li');
@@ -1222,7 +1264,7 @@ function updateListFades() {
 	playersScroll.classList.toggle('fade-bottom', scrollTop + clientHeight < scrollHeight - 1);
 }
 
-[startScoreSelect, legsInput, setsInput, doubleOutInput].forEach(el => {
+[startScoreSelect, legsInput, setsInput, doubleOutInput, practiceInput].forEach(el => {
 	el.addEventListener('change', renderSettings);
 	el.addEventListener('input', renderSettings);
 });
@@ -1250,27 +1292,21 @@ settingsDialog.addEventListener('click', event => {
 		showToast({ kind: 'info', title: 'New game', detail: `${game.settings.startScore}` });
 	} else if (action === 'close' || event.target === settingsDialog) {
 		closeSettings();
-	} else if (action === 'visuals' || action === 'visuals-back') {
-		showVisuals(action === 'visuals');
-	} else if (action === 'visuals-reset') {
-		delete prefs.boardLayout;
-		delete prefs.boardStyle;
-		savePrefs(prefs);
-		redrawBoard();
-		renderVisuals();
+	} else if (action === 'visuals') {
+		openVisuals();
 	}
 });
 
 // ---- Settings: board and visuals ----------------------------------------------
 
-// Per device. Changes show straight away on the board and in the preview.
-const settingsMain = $('.settings-main', settingsDialog);
-const visualsSection = $('.visuals-section', settingsDialog);
-const boardPreview = $('.board-preview', visualsSection);
-const layoutInputs = $$('[data-layout]', visualsSection);
-const outlineInput = $('[data-style="outline"]', visualsSection);
-const wiresInput = $('[data-style="wires"]', visualsSection);
-const swatches = $('.swatches', visualsSection);
+// Per device. Settings steps aside and the controls take the place of the
+// scores and keypad, so the board itself shows each change as it is made.
+// Done goes back to Settings as it was left.
+const visualsPanel = $('.visuals-panel');
+const layoutInputs = $$('[data-layout]', visualsPanel);
+const outlineInput = $('[data-style="outline"]', visualsPanel);
+const wiresInput = $('[data-style="wires"]', visualsPanel);
+const swatches = $('.swatches', visualsPanel);
 
 for (const input of layoutInputs) [input.min, input.max] = BOARD_LAYOUT_LIMITS[input.dataset.layout];
 [outlineInput.min, outlineInput.max] = BOARD_OUTLINE_LIMITS;
@@ -1287,11 +1323,33 @@ swatches.append(...BOARD_OUTLINE_COLORS.map(color => {
 const boardLayout = () => ({ ...BOARD_LAYOUT, ...prefs.boardLayout });
 const boardStyle = () => ({ ...BOARD_STYLE, ...prefs.boardStyle });
 
-function showVisuals(show) {
-	settingsMain.hidden = show;
-	visualsSection.hidden = !show;
-	if (show) renderVisuals();
+function openVisuals() {
+	closeDialog(settingsDialog);
+	renderVisuals();
+	visualsPanel.hidden = false;
+	document.body.classList.add('visuals-open');
+	visualsPanel.focus({ preventScroll: true });
 }
+
+function closeVisuals() {
+	visualsPanel.hidden = true;
+	document.body.classList.remove('visuals-open');
+	renderSettings();
+	openDialog(settingsDialog);
+}
+
+visualsPanel.addEventListener('click', event => {
+	const action = event.target.closest('[data-action]')?.dataset.action;
+	if (action === 'visuals-done') {
+		closeVisuals();
+	} else if (action === 'visuals-reset') {
+		delete prefs.boardLayout;
+		delete prefs.boardStyle;
+		savePrefs(prefs);
+		redrawBoard();
+		renderVisuals();
+	}
+});
 
 function renderVisuals() {
 	const layout = boardLayout();
@@ -1301,7 +1359,6 @@ function renderVisuals() {
 	wiresInput.checked = style.wires;
 	for (const input of [...layoutInputs, outlineInput]) input.previousElementSibling.textContent = Number(input.value).toFixed(1);
 	for (const swatch of swatches.children) swatch.setAttribute('aria-pressed', String(swatch.dataset.color === style.outlineColor));
-	drawBoard(boardPreview, boardRings(layout), style);
 }
 
 function changeVisuals(outlineColor = boardStyle().outlineColor) {
@@ -1325,6 +1382,7 @@ const winnerDialog = $('#winner');
 function showWinner() {
 	if (game.winner === null) return;
 	$('.winner-name', winnerDialog).textContent = game.players[game.winner].name;
+	fillStatsTable($('.stats-tbl', winnerDialog));
 	hideToast();
 	openDialog(winnerDialog);
 }
@@ -1339,6 +1397,66 @@ winnerDialog.addEventListener('click', event => {
 	if (action || event.target === winnerDialog) closeDialog(winnerDialog);
 });
 
+// ---- Match stats ----------------------------------------------------------------
+
+// One line per stat, one column per player. value: the number (null for none
+// yet); show: how it reads; note: small print after it; low: the lowest leads.
+const STAT_ROWS = [
+	{ label: 'Legs won', value: s => s.finishes },
+	{ label: '3-dart average', value: s => (s.visits ? s.average : null), show: n => n.toFixed(1) },
+	{ label: 'First 9 average', value: s => (s.visits ? s.first9 : null), show: n => n.toFixed(1) },
+	{ label: 'Checkout', value: s => (s.chances ? s.finishes / s.chances : null), show: n => `${Math.round(n * 100)}%`, note: s => `${s.finishes}/${s.chances}` },
+	{ label: 'Best leg', value: s => s.bestLeg, show: n => `${n} darts`, low: true },
+	{ label: 'High finish', value: s => s.highFinish },
+	{ label: '180s', value: s => s.tons[180] },
+	{ label: '140+', value: s => s.tons[140] },
+	{ label: '100+', value: s => s.tons[100] },
+];
+
+const statsDialog = $('#stats');
+
+function cell(tag, text, scope) {
+	const el = document.createElement(tag);
+	el.textContent = text;
+	if (scope) el.scope = scope;
+	return el;
+}
+
+/** The stats table for everyone in the match; with several players, each line's leader is picked out. */
+function fillStatsTable(table) {
+	const stats = game.players.map(player => matchStats(player, game.settings));
+	const head = document.createElement('tr');
+	head.append(cell('th', ''), ...game.players.map(player => cell('th', player.name, 'col')));
+	const rows = STAT_ROWS.map(({ label, value, show = String, note, low }) => {
+		const row = document.createElement('tr');
+		row.append(cell('th', label, 'row'));
+		const values = stats.map(value);
+		const scored = values.filter(v => v !== null && v > 0);
+		const lead = game.players.length > 1 && scored.length ? (low ? Math.min : Math.max)(...scored) : null;
+		values.forEach((v, i) => {
+			const td = cell('td', v === null ? '–' : show(v));
+			if (v !== null && note) td.append(' ', cell('small', note(stats[i])));
+			if (v !== null && v === lead) td.className = 'lead';
+			row.append(td);
+		});
+		return row;
+	});
+	const thead = document.createElement('thead');
+	const tbody = document.createElement('tbody');
+	thead.append(head);
+	tbody.append(...rows);
+	table.replaceChildren(thead, tbody);
+}
+
+function showStats() {
+	fillStatsTable($('.stats-tbl', statsDialog));
+	openDialog(statsDialog);
+}
+
+statsDialog.addEventListener('click', event => {
+	if (event.target.closest('[data-action="close"]') || event.target === statsDialog) closeDialog(statsDialog);
+});
+
 // ---- Undo confirmation --------------------------------------------------------
 
 const confirmDialog = $('#confirm-undo');
@@ -1346,8 +1464,7 @@ const confirmDialog = $('#confirm-undo');
 function confirmUndo({ title, detail }) {
 	$('.confirm-title', confirmDialog).textContent = title;
 	$('.confirm-detail', confirmDialog).textContent = detail;
-	openDialog(confirmDialog);
-	$('[data-action="undo"]', confirmDialog).focus();
+	openDialog(confirmDialog, $('[data-action="undo"]', confirmDialog));
 }
 
 confirmDialog.addEventListener('click', event => {
@@ -1396,19 +1513,31 @@ document.addEventListener('keydown', event => {
 		return;
 	}
 
+	// Board & visuals: only its own controls, and Esc is Done.
+	if (!visualsPanel.hidden) {
+		if (event.key === 'Escape') closeVisuals();
+		return;
+	}
+
+	const dialogs = openDialogs();
+	if (event.key === 'Tab' && dialogs.length) {
+		trapFocus(event, dialogs.at(-1));
+		return;
+	}
+
 	if (event.key === 'Escape' && menuFor !== null) {
 		closePlayerMenu();
 		return;
 	}
 
-	const dialogOpen = !settingsDialog.hidden || !winnerDialog.hidden || !confirmDialog.hidden;
-	if (event.key === 'Escape' && dialogOpen) {
+	if (event.key === 'Escape' && dialogs.length) {
 		if (!settingsDialog.hidden) closeSettings();
-		closeDialog(winnerDialog);
-		closeDialog(confirmDialog);
+		for (const dialog of [winnerDialog, confirmDialog, statsDialog]) closeDialog(dialog);
 		return;
 	}
-	if (dialogOpen || event.target.closest('input, select, textarea')) return;
+	if (dialogs.length || event.target.closest('input, select, textarea')) return;
+	// A focused button handles its own Enter and Space.
+	if ((event.key === 'Enter' || event.key === ' ') && event.target.closest('button')) return;
 
 	const mod = event.ctrlKey || event.metaKey;
 	if (mod && event.key.toLowerCase() === 'z') {
@@ -1462,9 +1591,8 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
 // ---- Render -------------------------------------------------------------------
 
 function render() {
-	renderScoreboard();
 	renderKeypad();
-	renderDarts();
+	renderDarts(); // and the scoreboard, whose checkout follows the darts
 	renderControls();
 	if (!settingsDialog.hidden) renderSettings();
 }

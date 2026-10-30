@@ -1,5 +1,6 @@
-// Checkout suggestions: every finish of up to three darts that ends on a
-// double or the bull, ranked the way checkout charts usually rank them.
+// Checkout suggestions: every finish of up to three darts, ranked the way
+// checkout charts usually rank them. With double out a finish ends on a double
+// or the bull; without, any dart can finish.
 
 const ROUTES_PER_SCORE = 5;
 
@@ -12,23 +13,38 @@ function makeDart(label, value, cost) {
 
 // Darts that can set up a finish. Singles are safest, trebles are riskier
 // (and riskier still on low numbers you would not normally aim for).
-const SETUP_DARTS = [];
-for (let n = 1; n <= 20; n++) {
-	SETUP_DARTS.push(makeDart(String(n), n, 0));
-	SETUP_DARTS.push(makeDart(`T${n}`, 3 * n, n === 20 ? 4 : 5 + (20 - n) ** 2 * 0.1));
-	SETUP_DARTS.push(makeDart(`D${n}`, 2 * n, 12 + DOUBLE_PREFERENCE.indexOf(n) * 0.3));
+// trebleCost(n): what aiming at treble n costs.
+function setupDarts(trebleCost) {
+	const darts = [];
+	for (let n = 1; n <= 20; n++) {
+		darts.push(makeDart(String(n), n, 0));
+		darts.push(makeDart(`T${n}`, 3 * n, n === 20 ? 4 : trebleCost(n)));
+		darts.push(makeDart(`D${n}`, 2 * n, 12 + DOUBLE_PREFERENCE.indexOf(n) * 0.3));
+	}
+	darts.push(makeDart('OB', 25, 8));
+	darts.push(makeDart('B', 50, 10));
+	return darts;
 }
-SETUP_DARTS.push(makeDart('OB', 25, 8));
-SETUP_DARTS.push(makeDart('B', 50, 10));
+
+const SETUP_DARTS = setupDarts(n => 5 + (20 - n) ** 2 * 0.1);
+// Without double out the big finishes are all trebles, so a low treble costs
+// less next to T20 T20 (141 is T20 T20 T7, not T16 T16 T15).
+const ANY_OUT_DARTS = setupDarts(n => 5 + (20 - n) * 0.5);
 
 const FINISHING_DARTS = DOUBLE_PREFERENCE.map((n, rank) => makeDart(`D${n}`, 2 * n, rank));
 FINISHING_DARTS.push(makeDart('B', 50, 12));
 
-let table = null; // table[dartCount][score] = [{ darts: [labels], cost }]
+// table[dartCount][score] = [{ darts: [labels], cost }], one for each way out.
+const tables = { double: null, any: null };
 
-function buildTable() {
-	table = [null, [], [], []];
+// Same darts in another order are the same route: the bigger dart goes first.
+const before = (a, b) => b.value > a.value || (b.value === a.value && b.cost < a.cost);
+
+function buildTable(anyOut) {
+	const table = [null, [], [], []];
 	const add = (darts, finish) => {
+		// Without double out the last dart is just another dart.
+		if (anyOut && darts.length && before(darts.at(-1), finish)) return;
 		const total = darts.reduce((sum, d) => sum + d.value, finish.value);
 		const route = {
 			darts: [...darts.map(d => d.label), finish.label],
@@ -38,14 +54,13 @@ function buildTable() {
 		bucket.push(route);
 	};
 
-	for (const finish of FINISHING_DARTS) {
+	const setup = anyOut ? ANY_OUT_DARTS : SETUP_DARTS;
+	for (const finish of anyOut ? setup : FINISHING_DARTS) {
 		add([], finish);
-		for (const a of SETUP_DARTS) {
+		for (const a of setup) {
 			add([a], finish);
-			for (const b of SETUP_DARTS) {
-				// Same pair in the other order is the same route: keep the bigger dart first.
-				if (b.value > a.value || (b.value === a.value && b.cost < a.cost)) continue;
-				add([a, b], finish);
+			for (const b of setup) {
+				if (!before(a, b)) add([a, b], finish);
 			}
 		}
 	}
@@ -57,15 +72,16 @@ function buildTable() {
 			routes.length = Math.min(routes.length, ROUTES_PER_SCORE);
 		}
 	}
+	return table;
 }
 
 /**
  * Ranked finishes for `score` with at most `dartsLeft` darts.
  * Each route is an array of labels, e.g. ['T20', 'D20'].
  */
-export function getCheckouts(score, dartsLeft = 3) {
-	if (!Number.isInteger(score) || score < 2 || score > 170 || dartsLeft < 1) return [];
-	if (!table) buildTable();
+export function getCheckouts(score, dartsLeft = 3, doubleOut = true) {
+	if (!Number.isInteger(score) || score < 1 || dartsLeft < 1) return [];
+	const table = doubleOut ? (tables.double ??= buildTable(false)) : (tables.any ??= buildTable(true));
 	const routes = [];
 	for (let n = 1; n <= Math.min(dartsLeft, 3); n++) {
 		// Fewer darts always beats a cheaper route with more darts.
@@ -74,6 +90,6 @@ export function getCheckouts(score, dartsLeft = 3) {
 	return routes;
 }
 
-export function canCheckout(score, dartsLeft = 3) {
-	return getCheckouts(score, dartsLeft).length > 0;
+export function canCheckout(score, dartsLeft = 3, doubleOut = true) {
+	return getCheckouts(score, dartsLeft, doubleOut).length > 0;
 }

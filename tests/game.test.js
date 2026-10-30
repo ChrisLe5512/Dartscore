@@ -2,12 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
 	addPlayer, createGame, isValidTurnScore, movePlayer, movePlayerTo, newMatch, removePlayer,
-	currentLeg, playerStats, renamePlayer, restoreGame, setActive, submitTurn,
+	currentLeg, renamePlayer, restoreGame, setActive, submitTurn,
 } from '../js/game.js';
 import { makeDart } from '../js/board.js';
 
 const twoPlayers = (settings = {}) =>
-	addPlayer(addPlayer(createGame({ startScore: 301, legs: 2, sets: 1, ...settings }), 'Ann'), 'Bob');
+	addPlayer(addPlayer(createGame({ startScore: 301, legs: 2, sets: 1, doubleOut: false, ...settings }), 'Ann'), 'Bob');
 
 function play(state, ...scores) {
 	let event;
@@ -15,14 +15,15 @@ function play(state, ...scores) {
 	return { state, event };
 }
 
-test('players are added with defaults and capped at twelve', () => {
+test('players are added with defaults and capped at eight', () => {
 	let s = createGame();
-	for (let i = 0; i < 14; i++) s = addPlayer(s);
-	assert.equal(s.players.length, 12);
+	assert.deepEqual(s.settings, { startScore: 501, legs: 3, sets: 1, doubleOut: true, practice: false });
+	for (let i = 0; i < 10; i++) s = addPlayer(s);
+	assert.equal(s.players.length, 8);
 	assert.deepEqual(s.players.slice(0, 4).map(p => p.name), ['Player 1', 'Player 2', 'Player 3', 'Player 4']);
-	assert.equal(s.players[11].name, 'Player 12');
-	assert.ok(s.players.every(p => p.score === 301));
-	assert.equal(new Set(s.players.map(p => p.id)).size, 12);
+	assert.equal(s.players[7].name, 'Player 8');
+	assert.ok(s.players.every(p => p.score === 501));
+	assert.equal(new Set(s.players.map(p => p.id)).size, 8);
 });
 
 test('names are trimmed, limited and never blank', () => {
@@ -157,9 +158,9 @@ test('restoreGame repairs bad saves and rejects garbage', () => {
 		players: [{ name: '', score: 5000, turns: [{ score: 60 }, null, { bad: true }] }],
 		active: 7, winner: 3,
 	});
-	assert.deepEqual(s.settings, { startScore: 301, legs: 1, sets: 2, doubleOut: true });
+	assert.deepEqual(s.settings, { startScore: 501, legs: 1, sets: 1, doubleOut: true, practice: false });
 	assert.equal(s.players[0].name, 'Player 1');
-	assert.equal(s.players[0].score, 301);
+	assert.equal(s.players[0].score, 501);
 	assert.deepEqual(s.players[0].turns, [{ score: 60 }]);
 	assert.equal(s.active, 0);
 	assert.equal(s.winner, null);
@@ -194,14 +195,42 @@ test('restoreGame keeps valid hits and drops broken ones', () => {
 	assert.equal(turns[2].hits, undefined);
 });
 
-test('playerStats gives the three-dart average, darts thrown, visits and best turn', () => {
-	assert.deepEqual(playerStats({ turns: [] }), { average: 0, darts: 0, visits: 0, best: 0 });
-	const player = { turns: [{ score: 100 }, { score: 0, bust: true }, { score: 41, darts: ['T7', 'D10'] }] };
-	const stats = playerStats(player);
-	assert.equal(stats.darts, 8);
-	assert.equal(stats.visits, 3);
-	assert.equal(stats.best, 100);
-	assert.equal(stats.average.toFixed(2), (141 / 8 * 3).toFixed(2));
+test('the leg number stays put when a leg winner is removed', () => {
+	let { state } = play(addPlayer(twoPlayers(), 'Cy'), 180, 10, 10, 121, 10, 10, 180); // Ann wins leg 0
+	assert.equal(currentLeg(state), 1);
+	state = removePlayer(state, 0);
+	assert.equal(currentLeg(state), 1);
+	({ state } = submitTurn(state, 20));
+	assert.deepEqual(state.players[0].turns.map(t => t.leg), [0, 1, 1]);
+});
+
+test('handing the throw over before the first dart makes them start the leg', () => {
+	let s = setActive(addPlayer(twoPlayers(), 'Cy'), 1); // Bob won the bull-off
+	assert.equal(s.starter, 1);
+	({ state: s } = play(s, 180, 10, 10, 121)); // Bob wins leg 0
+	assert.equal(s.active, 2, 'Cy starts leg 1');
+	// Once the leg is under way it is only a skip.
+	({ state: s } = play(s, 60)); // Cy
+	s = setActive(s, 1);
+	assert.equal(s.active, 1);
+	assert.equal(s.starter, 2);
+});
+
+test('practice never ends: legs count on, no sets, no winner', () => {
+	let s = addPlayer(createGame({ startScore: 301, legs: 1, sets: 1, practice: true }), 'Ann');
+	for (let i = 0; i < 3; i++) s = play(s, 180, 121).state;
+	assert.equal(s.winner, null);
+	assert.equal(s.players[0].legs, 3);
+	assert.equal(s.players[0].sets, 0);
+	assert.equal(currentLeg(s), 3);
+	assert.equal(restoreGame(JSON.parse(JSON.stringify(s))).players[0].legs, 3);
+});
+
+test('old saves get their leg from the legs won', () => {
+	const { state } = play(twoPlayers({ legs: 3 }), 180, 0, 121, 60);
+	const old = JSON.parse(JSON.stringify(state));
+	delete old.leg;
+	assert.equal(restoreGame(old).leg, 1);
 });
 
 test('movePlayerTo moves a player to any place and keeps active pointing at the thrower', () => {

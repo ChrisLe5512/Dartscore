@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-	<title>Darts Scoreboard</title>
+	<title>Dartscore</title>
 	<meta name="description" content="Fast darts scoreboard for 301, 501 and 701 with checkout suggestions.">
 	<meta name="theme-color" content="#000000">
 	<meta name="mobile-web-app-capable" content="yes">
@@ -18,6 +18,7 @@
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@100..900&family=Roboto+Flex:opsz,wdth,wght@8..144,25..151,100..1000&display=swap">
 	<link rel="stylesheet" href="css/styles.css">
+	<script src="js/version.js"></script>
 	<script type="module" src="js/app.js"></script>
 </head>
 
@@ -36,29 +37,48 @@
 				<table class="calc-tbl">
 					<tbody>
 						<tr>
-							<td data-digit="7">7</td>
-							<td data-digit="8">8</td>
-							<td data-digit="9">9</td>
-							<td class="back-score disabled" aria-label="Delete digit">&#x232B;</td>
+							<td data-digit="7" role="button">7</td>
+							<td data-digit="8" role="button">8</td>
+							<td data-digit="9" role="button">9</td>
+							<td class="back-score disabled" role="button" aria-label="Delete digit">&#x232B;</td>
 						</tr>
 						<tr>
-							<td data-digit="4">4</td>
-							<td data-digit="5">5</td>
-							<td data-digit="6">6</td>
-							<td rowspan="2" class="calc-score disabled" aria-label="Score: tap top to add 1, bottom to subtract 1"></td>
+							<td data-digit="4" role="button">4</td>
+							<td data-digit="5" role="button">5</td>
+							<td data-digit="6" role="button">6</td>
+							<td rowspan="2" class="calc-score disabled" role="button" aria-label="Score: tap top to add 1, bottom to subtract 1"></td>
 						</tr>
 						<tr>
-							<td data-digit="1">1</td>
-							<td data-digit="2">2</td>
-							<td data-digit="3">3</td>
+							<td data-digit="1" role="button">1</td>
+							<td data-digit="2" role="button">2</td>
+							<td data-digit="3" role="button">3</td>
 						</tr>
 						<tr>
-							<td colspan="2" data-digit="0">0</td>
-							<td class="reset-score disabled" aria-label="Clear score">&#8634;</td>
-							<td class="check-score disabled" aria-label="Submit score">&#10003;</td>
+							<td colspan="2" data-digit="0" role="button">0</td>
+							<td class="reset-score disabled" role="button" aria-label="Clear score">&#8634;</td>
+							<td class="check-score disabled" role="button" aria-label="Submit score">&#10003;</td>
 						</tr>
 					</tbody>
 				</table>
+			</section>
+
+			<section class="visuals-panel" aria-label="Board and visuals" tabindex="-1" hidden>
+				<h2 class="settings-heading">Board &amp; visuals</h2>
+				<div class="visuals-controls">
+					<label class="range">Bullseye <output></output><input type="range" data-layout="bull" step="0.5"></label>
+					<label class="range">Outer bull <output></output><input type="range" data-layout="outerBull" step="0.5"></label>
+					<label class="range">Treble position <output></output><input type="range" data-layout="trebleAt" step="0.5"></label>
+					<label class="range">Treble width <output></output><input type="range" data-layout="treble" step="0.5"></label>
+					<label class="range">Double width <output></output><input type="range" data-layout="double" step="0.5"></label>
+					<label class="range">Number ring <output></output><input type="range" data-layout="legend" step="0.5"></label>
+					<label class="range">Outline <output></output><input type="range" data-style="outline" step="0.1"></label>
+					<div class="swatches" role="group" aria-label="Outline colour"></div>
+					<label class="settings-check"><input type="checkbox" data-style="wires"> Wires round every bed</label>
+				</div>
+				<div class="visuals-actions">
+					<button type="button" class="settings-btn-action" data-action="visuals-reset">Reset</button>
+					<button type="button" class="settings-btn-action" data-action="visuals-done">Done</button>
+				</div>
 			</section>
 		</aside>
 
@@ -66,14 +86,14 @@
 			<table class="ctrl-tbl">
 				<tbody>
 					<tr>
-						<td class="undo disabled" aria-label="Undo">&#8630;</td>
-						<td class="redo disabled" aria-label="Redo">&#8631;</td>
+						<td class="undo disabled" role="button" aria-label="Undo">&#8630;</td>
+						<td class="redo disabled" role="button" aria-label="Redo">&#8631;</td>
 					</tr>
 					<tr><td class="hidden"></td></tr>
 					<tr><td class="keypad-btn" role="button" aria-label="Hide keypad" aria-expanded="true"><div class="keypad-icons"><b class="keypad-icon">&#x25A6;</b><span>&#x25BE;</span></div></td></tr>
 					<tr>
-						<td class="settings-btn" aria-label="Settings">&#9881;</td>
-						<td class="full-screen" aria-label="Full screen"><svg class="fs-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9V3h6"/><path d="M15 3h6v6"/><path d="M21 15v6h-6"/><path d="M9 21H3v-6"/></svg></td>
+						<td class="settings-btn" role="button" aria-label="Settings">&#9881;</td>
+						<td class="full-screen" role="button" aria-label="Full screen"><svg class="fs-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9V3h6"/><path d="M15 3h6v6"/><path d="M21 15v6h-6"/><path d="M9 21H3v-6"/></svg></td>
 					</tr>
 				</tbody>
 			</table>
@@ -86,12 +106,12 @@
 		<section class="btn-section">
 			<table class="btn-tbl">
 				<tbody>
-					<tr><td rowspan="2" colspan="2" class="large-btn bust-btn">BUST</td></tr>
+					<tr><td rowspan="2" colspan="2" class="large-btn bust-btn" role="button" aria-label="Bust: no score">BUST</td></tr>
 					<tr><td class="hidden"></td></tr>
 					<tr><td class="hidden"></td></tr>
 					<tr>
 						<td class="hidden"></td>
-						<td class="darts-clear disabled">Darts</td>
+						<td class="darts-clear disabled" role="button">Darts</td>
 					</tr>
 					<tr>
 						<td class="hidden"></td>
@@ -106,7 +126,7 @@
 						<td class="darts-total disabled"></td>
 					</tr>
 					<tr><td class="hidden"></td></tr>
-					<tr><td rowspan="2" colspan="2" class="large-btn done-btn disabled">DONE</td></tr>
+					<tr><td rowspan="2" colspan="2" class="large-btn done-btn disabled" role="button">DONE</td></tr>
 					<tr><td class="hidden"></td></tr>
 				</tbody>
 			</table>
@@ -128,14 +148,15 @@
 			<button type="button" role="menuitem" data-menu="throw"><span>&#x25B6;</span>Throw now</button>
 			<button type="button" role="menuitem" data-menu="up"><span>&#x25B2;</span>Move up</button>
 			<button type="button" role="menuitem" data-menu="down"><span>&#x25BC;</span>Move down</button>
+			<button type="button" role="menuitem" data-menu="stats"><span>&#x25A4;</span>Match stats</button>
 			<button type="button" role="menuitem" data-menu="remove" class="danger"><span>&#10006;</span>Remove</button>
 		</div>
 
 		<div class="toast" role="status" aria-live="polite" hidden><b class="toast-title"></b> <span class="toast-detail"></span></div>
 
-		<div class="settings-background" id="settings" role="dialog" aria-modal="true" aria-label="Settings" hidden>
+		<div class="settings-background" id="settings" role="dialog" aria-modal="true" aria-label="Settings" tabindex="-1" hidden>
 			<section class="settings-section settings-main">
-				<h2 class="settings-heading">Game settings</h2>
+				<h2 class="settings-heading">Game settings<span class="settings-version"></span></h2>
 				<table class="settings-tbl game-tbl">
 					<tbody>
 						<tr>
@@ -144,7 +165,7 @@
 								<select id="start-score"></select>
 							</td>
 							<td>
-								<label for="num-legs">Legs per set</label>
+								<label for="num-legs">Legs to win</label>
 								<input type="number" id="num-legs" inputmode="numeric" min="1">
 							</td>
 							<td>
@@ -153,6 +174,7 @@
 							</td>
 							<td>
 								<label class="settings-check"><input type="checkbox" id="double-out"> Double out</label>
+								<label class="settings-check" title="Legs go on and on: no sets, no winner"><input type="checkbox" id="practice"> Practice</label>
 							</td>
 						</tr>
 					</tbody>
@@ -180,35 +202,12 @@
 				</table>
 			</section>
 
-			<section class="settings-section visuals-section" aria-label="Board and visuals" hidden>
-				<div class="visuals">
-					<svg class="dartboard board-preview" aria-hidden="true"></svg>
-					<div class="visuals-controls">
-						<label class="range">Bullseye <output></output><input type="range" data-layout="bull" step="0.5"></label>
-						<label class="range">Outer bull <output></output><input type="range" data-layout="outerBull" step="0.5"></label>
-						<label class="range">Treble ring position <output></output><input type="range" data-layout="trebleAt" step="0.5"></label>
-						<label class="range">Treble ring width <output></output><input type="range" data-layout="treble" step="0.5"></label>
-						<label class="range">Double ring width <output></output><input type="range" data-layout="double" step="0.5"></label>
-						<label class="range">Number ring width <output></output><input type="range" data-layout="legend" step="0.5"></label>
-						<label class="range">Outline <output></output><input type="range" data-style="outline" step="0.1"></label>
-						<div class="swatches" role="group" aria-label="Outline colour"></div>
-						<label class="settings-check"><input type="checkbox" data-style="wires"> Wires around every bed</label>
-					</div>
-				</div>
-				<table class="settings-tbl">
-					<tbody>
-						<tr>
-							<td><button type="button" class="settings-btn-action" data-action="visuals-reset">Reset</button></td>
-							<td><button type="button" class="settings-btn-action" data-action="visuals-back">Done</button></td>
-						</tr>
-					</tbody>
-				</table>
-			</section>
 		</div>
 
-		<div class="settings-background" id="winner" role="dialog" aria-modal="true" aria-label="Match won" hidden>
+		<div class="settings-background" id="winner" role="dialog" aria-modal="true" aria-label="Match won" tabindex="-1" hidden>
 			<section class="settings-section winner-section">
 				<p class="winner-text"><span class="winner-icon">&#127942;</span><br><span class="winner-name"></span> wins!</p>
+				<div class="stats-scroll"><table class="stats-tbl"></table></div>
 				<table class="settings-tbl">
 					<tbody>
 						<tr>
@@ -220,7 +219,21 @@
 			</section>
 		</div>
 
-		<div class="settings-background" id="confirm-undo" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-detail" hidden>
+		<div class="settings-background" id="stats" role="dialog" aria-modal="true" aria-labelledby="stats-title" tabindex="-1" hidden>
+			<section class="settings-section stats-section">
+				<p class="confirm-title" id="stats-title">Match stats</p>
+				<div class="stats-scroll"><table class="stats-tbl"></table></div>
+				<table class="settings-tbl">
+					<tbody>
+						<tr>
+							<td><button type="button" class="settings-btn-action" data-action="close">Close</button></td>
+						</tr>
+					</tbody>
+				</table>
+			</section>
+		</div>
+
+		<div class="settings-background" id="confirm-undo" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-detail" tabindex="-1" hidden>
 			<section class="settings-section confirm-section">
 				<p class="confirm-title" id="confirm-title"></p>
 				<p class="confirm-detail" id="confirm-detail"></p>

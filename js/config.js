@@ -1,7 +1,7 @@
 // Game rules and board geometry. Change values here, not in the logic.
 
 export const START_SCORES = [301, 501, 701];
-export const MAX_PLAYERS = 12;
+export const MAX_PLAYERS = 8;
 export const MAX_LEGS = 15;
 export const MAX_SETS = 15;
 export const MAX_TURN_SCORE = 180;
@@ -9,10 +9,11 @@ export const DARTS_PER_TURN = 3;
 export const MAX_NAME_LENGTH = 24;
 
 export const DEFAULT_SETTINGS = Object.freeze({
-	startScore: 301,
-	legs: 2,
-	sets: 2,
-	doubleOut: false,
+	startScore: 501,
+	legs: 3, // first to
+	sets: 1, // first to
+	doubleOut: true,
+	practice: false, // legs go on and on: no sets, no winner
 });
 
 // Totals between 0 and 180 that three darts cannot make.
@@ -52,11 +53,11 @@ export const PREFS_KEY = 'dartscore:prefs'; // per-device view choices, e.g. key
 export const LEGACY_STORAGE_KEYS = ['dartGameData'];
 export const MAX_UNDO_STEPS = 200;
 
-// How long a status toast stays on screen.
 // How close (as a fraction of the board radius) a tap must be to a dart's
 // marker to pick that dart up. The marker itself is 0.036 across the middle.
 export const MARK_REACH = 0.05;
 
+// How long a status toast stays on screen.
 export const TOAST_MS = 2200;
 
 // Player rows: heights in vmin at scale 1 (as in css/styles.css), and how far they may grow or shrink.

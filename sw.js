@@ -1,7 +1,9 @@
 // Offline support: the app shell is cached on install, fonts are cached the
-// first time they load. Bump CACHE when shipping changes to cached files.
+// first time they load. The cache is named after the version in js/version.js:
+// bump that when shipping changes to cached files.
 
-const CACHE = 'dartscore-v2.4.43';
+importScripts('js/version.js');
+const CACHE = `dartscore-v${self.DARTSCORE_VERSION}`;
 
 const APP_SHELL = [
 	'./',
@@ -16,7 +18,9 @@ const APP_SHELL = [
 	'js/feedback.js',
 	'js/game.js',
 	'js/history.js',
+	'js/stats.js',
 	'js/storage.js',
+	'js/version.js',
 	'images/icons/icon-192.png',
 	'images/icons/icon-512.png',
 ];
