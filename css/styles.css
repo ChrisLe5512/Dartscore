@@ -648,7 +648,7 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 
 
 /* ⓘ: a small circled i beside something that may need explaining (app.js). */
-.info {
+.info-btn {
 	position: relative;
 	display: inline-flex;
 	align-items: center;
@@ -672,15 +672,15 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 
 /* A finger-sized tap area round the small circle, so a tap just beside it
    still opens the tip rather than ticking the checkbox it sits in. */
-.info::before {
+.info-btn::before {
 	content: '';
 	position: absolute;
 	inset: -1.6vmin;
 	border-radius: 50%;
 }
 
-.info:hover,
-.info[aria-describedby] {
+.info-btn:hover,
+.info-btn[aria-describedby] {
 	color: var(--text);
 	border-color: var(--text);
 }

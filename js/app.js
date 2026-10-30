@@ -167,7 +167,7 @@ let infoFor = null; // the ⓘ whose bubble is showing
 function infoButton(text, about) {
 	const button = document.createElement('button');
 	button.type = 'button';
-	button.className = 'info';
+	button.className = 'info-btn';
 	button.setAttribute('aria-label', `About ${about}`);
 	button.dataset.info = text;
 	button.textContent = 'i';
@@ -202,7 +202,7 @@ function hideInfo() {
 
 // Taps toggle it (an ⓘ inside a label doesn't tick the box); a tap elsewhere closes it.
 document.addEventListener('click', event => {
-	const button = event.target.closest('.info');
+	const button = event.target.closest('.info-btn');
 	if (!button) {
 		hideInfo();
 		return;
@@ -218,13 +218,13 @@ document.addEventListener('click', event => {
 const INFO_HOVER_MS = 350;
 let infoHover = 0;
 document.addEventListener('pointerover', event => {
-	const button = event.target.closest('.info');
+	const button = event.target.closest('.info-btn');
 	if (!button || event.pointerType !== 'mouse' || infoFor === button) return;
 	clearTimeout(infoHover);
 	infoHover = setTimeout(() => showInfo(button), INFO_HOVER_MS);
 });
 document.addEventListener('pointerout', event => {
-	if (event.pointerType !== 'mouse' || !event.target.closest('.info') || event.relatedTarget?.closest?.('.info')) return;
+	if (event.pointerType !== 'mouse' || !event.target.closest('.info-btn') || event.relatedTarget?.closest?.('.info-btn')) return;
 	hideInfo();
 });
 document.addEventListener('keydown', event => {
