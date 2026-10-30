@@ -2678,7 +2678,7 @@ td.calc-score:not(.disabled) {
 /* Under the mouse pointer; and a dart in the number ring (a miss), lit the same. */
 .light.hover,
 .light.miss {
-	fill: rgba(255, 255, 255, 0.14);
+	fill: color-mix(in srgb, white 14%, transparent); /* a mix, like the lit colours: see light-from-hover */
 	stroke: rgba(255, 255, 255, 0.45);
 	stroke-width: 0.4;
 }
@@ -2695,7 +2695,9 @@ td.calc-score:not(.disabled) {
 
 @keyframes light-from-hover {
 	from {
-		fill: rgba(255, 255, 255, 0.14);
+		/* A mix like the lit colours: between a mix and a plain rgba() the
+		   browser blends through red or black. */
+		fill: color-mix(in srgb, white 14%, transparent);
 		stroke: rgba(255, 255, 255, 0.45);
 		stroke-width: 0.4;
 		filter: none;
