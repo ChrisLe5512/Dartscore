@@ -207,8 +207,14 @@ function createPlayerRows(player) {
 	for (const row of [playerRow, statsRow]) {
 		row.addEventListener('click', () => togglePlayerMenu(player.id));
 	}
+	// The history line too, where nothing in it has a tap of its own: the
+	// background, a practice game's hint.
+	historyRow.addEventListener('click', event => {
+		if (!event.target.closest('.leg-dot, span[data-index], .checkout:not(.hint)')) togglePlayerMenu(player.id);
+	});
 
-	$('.history-line > .checkout', historyRow).addEventListener('click', () => {
+	$('.history-line > .checkout', historyRow).addEventListener('click', event => {
+		if (event.currentTarget.classList.contains('hint')) return;
 		checkoutChoice.set(player.id, (checkoutChoice.get(player.id) ?? 0) + 1);
 		renderScoreboard();
 	});
@@ -220,7 +226,8 @@ function createPlayerRows(player) {
 	}, { passive: true });
 	historyResize.observe(historyCell);
 	// Tap a turn entered on the board to see where its darts landed, or a
-	// finished leg's dot to open or fold it.
+	// finished leg's dot to open or fold it. Any other turn closes a turn on
+	// show, or else opens the menu like the rest of the card.
 	historyCell.addEventListener('click', event => {
 		const dot = event.target.closest('.leg-dot');
 		if (dot) {
@@ -229,7 +236,10 @@ function createPlayerRows(player) {
 		}
 		const span = event.target.closest('span[data-index]');
 		const current = game.players.find(p => p.id === player.id);
-		if (span && current) toggleReview(current, Number(span.dataset.index));
+		if (!span || !current) return;
+		const index = Number(span.dataset.index);
+		if (current.turns[index]?.hits || review) toggleReview(current, index);
+		else togglePlayerMenu(player.id);
 	});
 
 	return [playerRow, statsRow, historyRow];
