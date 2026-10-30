@@ -70,10 +70,10 @@
 					<label class="range">Treble position <output></output><input type="range" data-layout="trebleAt" step="0.5"></label>
 					<label class="range">Treble width <output></output><input type="range" data-layout="treble" step="0.5"></label>
 					<label class="range">Double width <output></output><input type="range" data-layout="double" step="0.5"></label>
-					<label class="range">Number ring <output></output><input type="range" data-layout="legend" step="0.5"></label>
-					<label class="range">Outline <output></output><input type="range" data-style="outline" step="0.1"></label>
+					<label class="range">Number ring <button type="button" class="info" aria-label="About the number ring" data-info="The outer black ring with the numbers. A dart there scores 0.">i</button> <output></output><input type="range" data-layout="legend" step="0.5"></label>
+					<label class="range">Outline <button type="button" class="info" aria-label="About the outline" data-info="The rings drawn round the doubles and the board&#39;s edge: how thick, and (below) what colour.">i</button> <output></output><input type="range" data-style="outline" step="0.1"></label>
 					<div class="swatches" role="group" aria-label="Outline colour"></div>
-					<label class="settings-check"><input type="checkbox" data-style="wires"> Wires round every bed</label>
+					<label class="settings-check"><input type="checkbox" data-style="wires"> Wires round every bed <button type="button" class="info" aria-label="About wires" data-info="Draws a thin wire round every bed, like the metal spider on a real board.">i</button></label>
 				</div>
 				<div class="visuals-actions">
 					<button type="button" class="settings-btn-action" data-action="visuals-reset">Reset</button>
@@ -86,14 +86,14 @@
 			<table class="ctrl-tbl">
 				<tbody>
 					<tr>
-						<td class="undo disabled" role="button" aria-label="Undo">&#8630;</td>
-						<td class="redo disabled" role="button" aria-label="Redo">&#8631;</td>
+						<td class="undo disabled" role="button" aria-label="Undo" title="Undo (Ctrl+Z)">&#8630;</td>
+						<td class="redo disabled" role="button" aria-label="Redo" title="Redo (Ctrl+Y)">&#8631;</td>
 					</tr>
 					<tr><td class="hidden"></td></tr>
-					<tr><td class="keypad-btn" role="button" aria-label="Hide keypad" aria-expanded="true"><div class="keypad-icons"><b class="keypad-icon">&#x25A6;</b><span>&#x25BE;</span></div></td></tr>
+					<tr><td class="keypad-btn" role="button" aria-label="Hide keypad" aria-expanded="true" title="Hide or show the keypad"><div class="keypad-icons"><b class="keypad-icon">&#x25A6;</b><span>&#x25BE;</span></div></td></tr>
 					<tr>
-						<td class="settings-btn" role="button" aria-label="Settings">&#9881;</td>
-						<td class="full-screen" role="button" aria-label="Full screen"><svg class="fs-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9V3h6"/><path d="M15 3h6v6"/><path d="M21 15v6h-6"/><path d="M9 21H3v-6"/></svg></td>
+						<td class="settings-btn" role="button" aria-label="Settings" title="Settings: players, board layout, new game">&#9881;</td>
+						<td class="full-screen" role="button" aria-label="Full screen" title="Full screen (F11)"><svg class="fs-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9V3h6"/><path d="M15 3h6v6"/><path d="M21 15v6h-6"/><path d="M9 21H3v-6"/></svg></td>
 					</tr>
 				</tbody>
 			</table>
@@ -106,12 +106,12 @@
 		<section class="btn-section">
 			<table class="btn-tbl">
 				<tbody>
-					<tr><td rowspan="2" colspan="2" class="large-btn bust-btn" role="button" aria-label="Bust: no score">BUST</td></tr>
+					<tr><td rowspan="2" colspan="2" class="large-btn bust-btn" role="button" aria-label="Bust: no score" title="No score: this visit counts as 0">BUST</td></tr>
 					<tr><td class="hidden"></td></tr>
 					<tr><td class="hidden"></td></tr>
 					<tr>
 						<td class="hidden"></td>
-						<td class="darts-clear disabled" role="button">Darts</td>
+						<td class="darts-clear disabled" role="button" title="Clear the darts and start the turn again">Darts</td>
 					</tr>
 					<tr>
 						<td class="hidden"></td>
@@ -126,7 +126,7 @@
 						<td class="darts-total disabled"></td>
 					</tr>
 					<tr><td class="hidden"></td></tr>
-					<tr><td rowspan="2" colspan="2" class="large-btn done-btn disabled" role="button">DONE</td></tr>
+					<tr><td rowspan="2" colspan="2" class="large-btn done-btn disabled" role="button" title="Score the darts tapped on the board">DONE</td></tr>
 					<tr><td class="hidden"></td></tr>
 				</tbody>
 			</table>
@@ -189,18 +189,18 @@
 					<div class="options-reveal"><div class="mode-options"></div></div>
 					<div class="game-options">
 						<div class="stepper" data-field="legs">
-							<span class="stepper-label">Legs to win</span>
+							<span class="stepper-label">Legs to win <button type="button" class="info" aria-label="About legs to win" data-info="The first to win this many legs takes the set (or the match, with one set).">i</button></span>
 							<div class="stepper-row"><button type="button" class="stepper-btn" data-by="-1" aria-label="Fewer legs">&minus;</button><output></output><button type="button" class="stepper-btn" data-by="1" aria-label="More legs">+</button></div>
 						</div>
 						<div class="stepper" data-field="sets">
-							<span class="stepper-label">Sets to win</span>
+							<span class="stepper-label">Sets to win <button type="button" class="info" aria-label="About sets to win" data-info="The first to win this many sets takes the match. With 1, the legs decide it.">i</button></span>
 							<div class="stepper-row"><button type="button" class="stepper-btn" data-by="-1" aria-label="Fewer sets">&minus;</button><output></output><button type="button" class="stepper-btn" data-by="1" aria-label="More sets">+</button></div>
 						</div>
 						<div class="game-checks">
-							<label class="settings-check"><input type="checkbox" id="double-out"> Double out</label>
+							<label class="settings-check"><input type="checkbox" id="double-out"> Double out <button type="button" class="info" aria-label="About Double out" data-info="The last dart must be a double or the bullseye. Leaving 1, or going below 0, is a bust.">i</button></label>
 						</div>
 					</div>
-					<label class="settings-check endless-check"><input type="checkbox" id="practice"> Endless <small>no winner: legs just keep counting</small></label>
+					<label class="settings-check endless-check"><input type="checkbox" id="practice"> Endless <button type="button" class="info" aria-label="About Endless" data-info="No winner and no sets: play leg after leg for as long as you like. Each card counts the legs won.">i</button></label>
 				</div>
 
 				<div class="ng-step" data-step="players" hidden>

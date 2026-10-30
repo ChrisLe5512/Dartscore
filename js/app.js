@@ -112,6 +112,7 @@ function replay(el, className) {
 /** Play a dialog's closing animation, then hide it. */
 function closeDialog(dialog) {
 	if (dialog.hidden || dialog.classList.contains('closing')) return;
+	hideInfo();
 	dialog.classList.remove('handoff');
 	dialog.classList.add('closing');
 	if (dialog.contains(document.activeElement)) focusBefore.get(dialog)?.focus({ preventScroll: true });
@@ -148,6 +149,82 @@ function switchDialog(from, to, focus = to) {
 	openDialog(to, focus);
 	focusBefore.set(to, before);
 }
+
+// ---- Info tips ------------------------------------------------------------------
+
+// A small ⓘ beside something that may need explaining: tapped (or, with a
+// mouse, hovered) it shows a bubble with the explanation. Tap it again, or
+// anywhere else, or press Esc, to close it.
+const infoTip = document.createElement('div');
+infoTip.className = 'info-tip';
+infoTip.setAttribute('role', 'tooltip');
+infoTip.id = 'info-tip';
+infoTip.hidden = true;
+document.body.append(infoTip);
+let infoFor = null; // the ⓘ whose bubble is showing
+
+/** An ⓘ button explaining something: text is what the bubble says, about what it's about. */
+function infoButton(text, about) {
+	const button = document.createElement('button');
+	button.type = 'button';
+	button.className = 'info';
+	button.setAttribute('aria-label', `About ${about}`);
+	button.dataset.info = text;
+	button.textContent = 'i';
+	return button;
+}
+
+function showInfo(button) {
+	infoFor?.removeAttribute('aria-describedby');
+	infoFor = button;
+	button.setAttribute('aria-describedby', infoTip.id);
+	infoTip.textContent = button.dataset.info;
+	infoTip.hidden = false;
+	// Under the ⓘ, kept on screen; above it where there's no room below.
+	const at = button.getBoundingClientRect();
+	const tip = infoTip.getBoundingClientRect();
+	const margin = 8;
+	const left = Math.min(Math.max(margin, at.left + at.width / 2 - tip.width / 2), innerWidth - tip.width - margin);
+	const below = at.bottom + margin;
+	const top = below + tip.height <= innerHeight - margin ? below : Math.max(margin, at.top - margin - tip.height);
+	infoTip.style.left = `${left}px`;
+	infoTip.style.top = `${top}px`;
+	replay(infoTip, 'opening');
+}
+
+function hideInfo() {
+	if (!infoFor) return;
+	infoFor.removeAttribute('aria-describedby');
+	infoFor = null;
+	infoTip.hidden = true;
+}
+
+// Taps toggle it (an ⓘ inside a label doesn't tick the box); a tap elsewhere closes it.
+document.addEventListener('click', event => {
+	const button = event.target.closest('.info');
+	if (!button) {
+		hideInfo();
+		return;
+	}
+	event.preventDefault();
+	event.stopPropagation();
+	if (infoFor === button) hideInfo();
+	else showInfo(button);
+}, true);
+document.addEventListener('pointerover', event => {
+	const button = event.target.closest('.info');
+	if (button && event.pointerType === 'mouse' && infoFor !== button) showInfo(button);
+});
+document.addEventListener('pointerout', event => {
+	if (event.pointerType === 'mouse' && event.target.closest('.info') && !event.relatedTarget?.closest?.('.info')) hideInfo();
+});
+document.addEventListener('keydown', event => {
+	if (event.key === 'Escape' && infoFor) {
+		hideInfo();
+		event.stopPropagation(); // only the bubble closes, not the dialog it's in
+	}
+}, true);
+addEventListener('resize', hideInfo);
 
 const openDialogs = () => $$('[role="dialog"], [role="alertdialog"]').filter(d => !d.hidden && !d.classList.contains('closing'));
 
@@ -524,6 +601,7 @@ function renderCheckout(historyRow, player, index, isActive) {
 	const checkoutCell = $('.history-line > .checkout', historyRow);
 	checkoutCell.classList.toggle('hint', Boolean(hint));
 	checkoutCell.classList.toggle('muted', Boolean(hint?.muted));
+	checkoutCell.title = hint ? '' : 'Tap for another way to check out';
 	if (routes.length) {
 		const route = routes[(checkoutChoice.get(player.id) ?? 0) % routes.length];
 		checkoutCell.classList.remove('hidden');
@@ -1537,7 +1615,6 @@ function renderOptions(rules, settings) {
 	const checkBox = option => {
 		const box = document.createElement('label');
 		box.className = 'settings-check mode-check';
-		box.title = option.title ?? '';
 		const input = document.createElement('input');
 		input.type = 'checkbox';
 		input.checked = Boolean(settings[option.key]);
@@ -1547,6 +1624,7 @@ function renderOptions(rules, settings) {
 			renderGameStep();
 		});
 		box.append(input, ` ${option.label}`);
+		if (option.title) box.append(' ', infoButton(option.title, option.label));
 		return box;
 	};
 	for (const box of $$('.mode-check', checksBox)) box.remove();
@@ -1563,7 +1641,8 @@ function renderOptions(rules, settings) {
 		group.className = 'option-choice';
 		const label = document.createElement('span');
 		label.className = 'stepper-label';
-		label.textContent = option.label;
+		label.textContent = `${option.label} `;
+		if (option.title) label.append(infoButton(option.title, option.label));
 		const buttons = document.createElement('div');
 		buttons.className = 'segmented';
 		buttons.setAttribute('role', 'radiogroup');

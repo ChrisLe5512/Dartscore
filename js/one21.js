@@ -60,7 +60,7 @@ export function newMatch(state, settings = state.settings) {
 }
 
 export const OPTIONS = [
-	{ key: 'dropBack', label: 'Drop back on a miss', title: 'Three visits without a checkout send you back to the last target you checked out' },
+	{ key: 'dropBack', label: 'Drop back on a miss', title: 'Three visits without a checkout send you back to the last target you checked out (121 if none yet), instead of trying the same one again.' },
 ];
 
 /** Targets left to play this leg. */

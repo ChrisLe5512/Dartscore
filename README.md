@@ -29,7 +29,7 @@ VS Code's Live Server or `python -m http.server` work too.
   1. **The game:** a tile for 301, 501 or 701, or a practice game (below; 501 by default), then only what that game has: legs and sets to win as − / + steppers (back to 3 and 1 when switching between X01 and a practice game), **Double out** where a game finishes on a double (on by default: finishes must end on a double or bull, and leaving 1 is a bust), the game's own options, and **Endless** for any game (no winner: legs just keep counting, shown on each card as the number of legs).
   2. **Who's playing:** **Solo** (one name) or **Two or more** (a list to add to, reorder and remove from, up to 8), then **Start**.
 
-  It opens set to the last game and its players, so replaying is two taps. **Cancel** (or Back) changes nothing until Start.
+  It opens set to the last game and its players, so replaying is two taps. An **ⓘ** beside an option explains it (tap it, or hover with a mouse); the main buttons explain themselves on hover. **Cancel** (or Back) changes nothing until Start.
 - **Settings:** the game being played in a line, the players, Board layout, and New game.
 - **Match stats** (player menu, and under the winner): legs won, 3-dart and first-9 averages, checkout % (legs won from visits that started on a finish), best leg, high finish, and 100+/140+/180 counts. Visits are three darts, except a leg-winning one entered on the board.
 - The game is saved on the device, so a refresh or closing the app doesn't lose it.

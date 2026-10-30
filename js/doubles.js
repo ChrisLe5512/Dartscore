@@ -64,7 +64,7 @@ export const visitPoints = (target, made) => (made ? made * target * 2 : -target
 const doublesHit = (darts, target) => darts.filter(d => d.sector === target && d.multiplier === 2).length;
 
 export const OPTIONS = [
-	{ key: 'playOn', label: 'Play on below 0', title: 'Going to 0 or below doesn\'t put you out' },
+	{ key: 'playOn', label: 'Play on below 0', title: 'Going to 0 or below doesn\'t put you out: keep throwing round the doubles below zero.' },
 ];
 
 /** The keypad enters how many doubles the visit hit. */

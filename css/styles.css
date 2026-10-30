@@ -615,10 +615,57 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	font-size: 3vmin;
 }
 
-.endless-check small {
+
+
+/* ⓘ: a small circled i beside something that may need explaining (app.js). */
+.info {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.4vmin;
+	height: 2.4vmin;
+	padding: 0;
+	margin-left: 0.4vmin;
+	vertical-align: 0.15em;
+	font-family: Georgia, serif;
+	font-size: 1.7vmin;
+	font-style: italic;
+	font-weight: bold;
+	line-height: 1;
+	color: var(--text-soft);
+	background: none;
+	border: 1px solid var(--text-muted);
+	border-radius: 50%;
+	cursor: help;
+	transition: color var(--fast), border-color var(--fast);
+}
+
+.info:hover,
+.info[aria-describedby] {
+	color: var(--text);
+	border-color: var(--text);
+}
+
+/* The bubble it opens, over everything. */
+.info-tip {
+	position: fixed;
+	z-index: 200;
+	max-width: min(40vmin, 90vw);
+	box-sizing: border-box;
+	padding: 1.2vmin 1.6vmin;
 	font-family: var(--font-condensed);
 	font-size: 2.4vmin;
-	color: var(--text-muted);
+	line-height: 1.35;
+	color: var(--text);
+	background: #1e1e1e;
+	border: 1px solid var(--text-muted);
+	border-radius: var(--radius);
+	box-shadow: 0 1vmin 3vmin rgba(0, 0, 0, 0.6);
+	pointer-events: none;
+}
+
+.info-tip.opening {
+	animation: fade-in var(--fast) var(--ease-out);
 }
 
 /* Cancel and the next step, edge to edge with the tiles above. */

@@ -70,8 +70,8 @@ export function hitsFrom(step, darts, ring, skip = false) {
  * anything with these settings (hidden when not).
  */
 export const OPTIONS = [
-	{ key: 'ring', label: 'Counts', type: 'choice', choices: [['any', 'Any bed'], ['double', 'Doubles'], ['treble', 'Trebles']] },
-	{ key: 'skip', label: 'Skip ahead', title: 'A double moves you on two targets, a treble three', applies: s => s.ring === 'any' },
+	{ key: 'ring', label: 'Counts', type: 'choice', choices: [['any', 'Any bed'], ['double', 'Doubles'], ['treble', 'Trebles']], title: 'Which beds count for the target: any, only its double, or only its treble. For the bull: the bullseye with doubles, either bull with trebles.' },
+	{ key: 'skip', label: 'Skip ahead', title: 'A double moves you on two targets and a treble three, so a good visit can skip ahead. Any bed only.', applies: s => s.ring === 'any' },
 ];
 
 /** The keypad enters how many targets the visit moved on: one per dart, or with skip up to three. */
