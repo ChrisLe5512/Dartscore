@@ -2060,12 +2060,20 @@ td.calc-score:not(.disabled) {
 	background: var(--board-red);
 }
 
-/* The player's best visit: a small star after it, leaving its colour alone. */
-.history span.best::after {
+/* The player's best visit: a small star on its corner like a badge, taking
+   no room and leaving its colour alone. */
+.history span.best b {
+	position: relative;
+}
+
+.history span.best b::before {
 	content: '\2605';
-	margin-left: 0.2vmin;
-	font-size: 0.6em;
-	vertical-align: super;
-	line-height: 0;
+	position: absolute;
+	top: -0.3em;
+	right: -0.35em;
+	font-size: 0.55em;
+	font-weight: normal;
+	line-height: 1;
 	color: var(--text-soft);
+	text-shadow: none;
 }
