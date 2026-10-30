@@ -16,9 +16,9 @@ test('rings', () => {
 	assert.equal(hit(3, 0).value, 50);
 	assert.equal(hit(12, 0).label, 'OB');
 	assert.equal(hit(25, 0).label, '20');
-	assert.equal(hit(50, 0).label, 'T20');
+	assert.equal(hit(45, 0).label, 'T20');
 	assert.equal(hit(65, 0).label, '20');
-	assert.equal(hit(85, 0).label, 'D20');
+	assert.equal(hit(80, 0).label, 'D20');
 	assert.equal(hit(95, 0).label, '0');
 	assert.equal(hit(95, 0).value, 0);
 	assert.equal(hit(101, 0), null);
@@ -33,7 +33,7 @@ test('sectors go clockwise from 20', () => {
 });
 
 test('default layout ring edges', () => {
-	assert.deepEqual({ ...DEFAULT_RINGS }, { bull: 6, outerBull: 15, innerSingle: 45, treble: 55, outerSingle: 80, double: 90, numberRing: 100 });
+	assert.deepEqual({ ...DEFAULT_RINGS }, { bull: 6, outerBull: 16, innerSingle: 40, treble: 50, outerSingle: 75, double: 85, numberRing: 100 });
 });
 
 test('custom layouts move the rings and hit detection follows', () => {

@@ -25,11 +25,11 @@ export const BOARD_SECTORS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 
 // Adjustable in Settings > Visuals; hit detection always follows what is drawn.
 export const BOARD_LAYOUT = Object.freeze({
 	bull: 6,        // bullseye radius
-	outerBull: 15,  // outer bull radius
-	trebleAt: 45,   // where the treble ring starts
+	outerBull: 16,  // outer bull radius
+	trebleAt: 40,   // where the treble ring starts
 	treble: 10,     // treble ring width
 	double: 10,     // double ring width
-	legend: 10,     // number ring width (counts as a miss)
+	legend: 15,     // number ring width (counts as a miss)
 });
 
 // [min, max] for each layout value.
