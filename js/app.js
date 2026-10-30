@@ -569,7 +569,16 @@ document.addEventListener('pointerdown', event => {
 		return;
 	}
 	swallowClick = true;
+	// Nothing reacts to the rest of this press either: no button sinks, no bed
+	// lights up. Lifted once the press ends (after its click, if any).
+	document.body.classList.add('dismissing');
 }, true);
+
+for (const type of ['pointerup', 'pointercancel']) {
+	addEventListener(type, () => {
+		if (document.body.classList.contains('dismissing')) setTimeout(() => document.body.classList.remove('dismissing'));
+	}, true);
+}
 
 addEventListener('click', event => {
 	if (!swallowClick) return;
@@ -627,6 +636,10 @@ checkBtn.addEventListener('click', submitKeypad);
 scoreDisplay.addEventListener('click', event => {
 	const rect = scoreDisplay.getBoundingClientRect();
 	stepKeypad(event.clientY < rect.top + rect.height / 2 ? 1 : -1);
+});
+// Done rocking: drop the class, or typing (which redraws the arrows) would rock it again.
+scoreDisplay.addEventListener('animationend', event => {
+	if (event.animationName.startsWith('tip-')) scoreDisplay.classList.remove('tip-up', 'tip-down');
 });
 
 /** Dim the other players while a score is being entered. */

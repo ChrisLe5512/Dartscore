@@ -44,6 +44,7 @@ test('custom layouts move the rings and hit detection follows', () => {
 	assert.equal(hitTest(...at(85, 0), R, rings).label, 'D20');
 	assert.equal(hitTest(...at(90, 0), R, rings).label, '0');
 	assert.deepEqual(locate(...at(8, 0), R, rings), { sector: 25, ring: 'outerBull' });
+	assert.deepEqual(locate(...at(95, 0), R, rings), locate(...at(95, 123), R, rings)); // the number ring is one zone
 });
 
 test('layouts are clamped and keep the rings in order', () => {

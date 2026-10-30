@@ -53,10 +53,15 @@ export function segments(rings) {
 			list.push({ key: segmentKey(25, ring), d: annulus(inner(ring), rings[ring]), color: dartColor(25, multiplier) });
 			continue;
 		}
+		// Anywhere in the number ring is the same miss: one zone all round.
+		if (ring === 'numberRing') {
+			list.push({ key: segmentKey(0, ring), d: annulus(inner(ring), rings[ring]), color: 'legend' });
+			continue;
+		}
 		BOARD_SECTORS.forEach((sector, i) => list.push({
 			key: segmentKey(sector, ring),
 			d: wedge(inner(ring), rings[ring], i * 18 - 9, i * 18 + 9),
-			color: ring === 'numberRing' ? 'legend' : dartColor(sector, multiplier),
+			color: dartColor(sector, multiplier),
 		}));
 	}
 	return list;
@@ -164,7 +169,8 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 		const place = el('g', { transform: `translate(${round(x * 100)} ${round(y * 100)})` });
 		const classes = ['mark', kind, pop.includes(index) && 'pop', editing === index && 'editing'];
 		const mark = el('g', { class: classes.filter(Boolean).join(' ') }, place);
-		el('circle', { r: 3.6 }, mark);
+		// Dashes are measured along a pathLength of 25: always five, at any size.
+		el('circle', { r: 3.6, pathLength: 25 }, mark);
 		el('text', {}, mark).textContent = index + 1;
 		return place;
 	}));

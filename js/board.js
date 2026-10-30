@@ -69,7 +69,8 @@ export const RINGS = Object.freeze([
 
 /**
  * Where a point lands: { sector, ring } with ring one of the RINGS names
- * (sector 25 for the bulls), or null outside the board.
+ * (sector 25 for the bulls, 0 for the number ring, which is one miss zone
+ * all round), or null outside the board.
  * dx, dy: offset from the board centre. radius: board radius, same units.
  */
 export function locate(dx, dy, radius, rings = DEFAULT_RINGS) {
@@ -77,6 +78,7 @@ export function locate(dx, dy, radius, rings = DEFAULT_RINGS) {
 	const ring = RINGS.find(([name]) => distance <= rings[name])?.[0];
 	if (!ring) return null;
 	if (ring === 'bull' || ring === 'outerBull') return { sector: 25, ring };
+	if (ring === 'numberRing') return { sector: 0, ring };
 	const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 450) % 360; // 0 = top, clockwise
 	return { sector: BOARD_SECTORS[Math.floor((angle + 9) / 18) % 20], ring };
 }

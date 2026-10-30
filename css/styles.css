@@ -747,6 +747,11 @@ body:is(.menu-focus, .review-focus) #dartboard {
 	pointer-events: none;
 }
 
+/* The tap that closed it stays asleep until it lifts (see 'dismissing' in app.js). */
+body.dismissing * {
+	pointer-events: none !important;
+}
+
 .scores-tbl:has(tr.review-focus) tr:not(.review-focus) {
 	filter: var(--dim);
 }
@@ -1887,6 +1892,7 @@ td.calc-score:not(.disabled) {
 
 /* Where this turn's darts landed: the segment glows. */
 .light {
+	fill-rule: evenodd; /* rings (the outer bull, the number ring) light as rings */
 	stroke-linejoin: round;
 }
 
@@ -1970,15 +1976,11 @@ td.calc-score:not(.disabled) {
 	color: black;
 }
 
-.mark.editing {
-	transform-box: fill-box;
-	transform-origin: center;
-	animation: editing-mark 0.9s ease-in-out infinite alternate;
-}
-
+/* Only the ring pulses; the number stays put. */
 .mark.editing circle {
 	stroke: var(--board-hit);
 	stroke-dasharray: 3 2;
+	animation: editing-mark 0.9s ease-in-out infinite alternate;
 }
 
 @keyframes editing {
@@ -1986,7 +1988,8 @@ td.calc-score:not(.disabled) {
 }
 
 @keyframes editing-mark {
-	to { transform: scale(1.25); }
+	from { r: 3.6px; }
+	to { r: 4.5px; }
 }
 
 /* Corner number on each dart slot, matching its marker on the board. */
