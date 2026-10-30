@@ -499,9 +499,27 @@ aside.keypad-hidden .calc-section {
 	background: linear-gradient(#c8c8c8, #646464);
 }
 
+/* Chrome paints a row's background cell by cell, which leaves faint seams
+   where the cells meet. Instead the first cell draws one layer behind the
+   whole row, in --row-bg. */
 .player-row {
+	--row-bg: linear-gradient(#484848, #242424);
+	position: relative;
+	isolation: isolate;
 	height: calc(10vmin * var(--s));
-	background: linear-gradient(#484848, #242424);
+}
+
+.scores-tbl .player-row.active {
+	--row-bg: linear-gradient(#c8c8c8, #646464);
+	background: none;
+}
+
+.player-wins::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	background: var(--row-bg);
 }
 
 .player-wins {
@@ -742,11 +760,11 @@ aside.keypad-hidden .calc-section {
 }
 
 .big .player-row {
-	background: linear-gradient(#484848, #363636);
+	--row-bg: linear-gradient(#484848, #363636);
 }
 
 .big .player-row.active {
-	background: linear-gradient(#c8c8c8, #969696);
+	--row-bg: linear-gradient(#c8c8c8, #969696);
 }
 
 .big .stats-row {
@@ -1399,7 +1417,11 @@ td.back-score {
 	animation: fade-in var(--medium) var(--ease-out);
 }
 
-.player-row.active td,
+/* On the whole player row: a filter on its cells would cut the row's layer down to one cell. */
+.player-row.active {
+	animation: fade-in var(--medium) var(--ease-out), row-activate var(--slow) var(--ease-out);
+}
+
 .big .stats-row.active td {
 	animation: row-activate var(--slow) var(--ease-out);
 }
