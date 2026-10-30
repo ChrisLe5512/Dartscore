@@ -14,8 +14,13 @@
 	--button-pressed: linear-gradient(#484848, #202020);
 	--row: #161616;
 	--checkout: #00c800;
-	--menu-row: linear-gradient(#6fb4ff, #2f6fb0); /* a player whose menu is open */
-	--menu-line: #173450; /* their history and stats lines */
+	--active-row: linear-gradient(#6fb4ff, #2f6fb0); /* the player throwing */
+	--active-row-big: linear-gradient(#6fb4ff, #3f80c4); /* the same, 1-2 players */
+	--active-stats-big: linear-gradient(#3f80c4, #2f6fb0);
+	--edit: #e6b84a; /* a player whose menu is open, and the menu */
+	--menu-row: linear-gradient(#e6b84a, #8a6414);
+	--menu-line: #3a2e0e; /* their history and stats lines */
+	--menu-panel: linear-gradient(#4a3c18, #1a1508);
 	--history-muted: #6e6e6e; /* zero and bust visits */
 	--ton-forty: #ffa64d; /* 140+ visits */
 	--max: #ff6a3c; /* 180s */
@@ -530,7 +535,7 @@ aside.keypad-hidden .calc-section {
 
 .scores-tbl .active {
 	color: white;
-	background: linear-gradient(#c8c8c8, #646464);
+	background: var(--active-row);
 }
 
 /* Chrome paints a row's background cell by cell, which leaves faint seams
@@ -544,7 +549,7 @@ aside.keypad-hidden .calc-section {
 }
 
 .scores-tbl .player-row.active {
-	--row-bg: linear-gradient(#c8c8c8, #646464);
+	--row-bg: var(--active-row);
 	background: none;
 }
 
@@ -656,7 +661,7 @@ aside.keypad-hidden .calc-section {
 	text-overflow: ellipsis;
 }
 
-/* The player whose menu is open is tinted blue. */
+/* The player whose menu is open is tinted amber, like the menu. */
 .scores-tbl tr.player-row.menu-open {
 	--row-bg: var(--menu-row);
 }
@@ -808,7 +813,7 @@ aside.keypad-hidden .calc-section {
 }
 
 .big .player-row.active {
-	--row-bg: linear-gradient(#c8c8c8, #969696);
+	--row-bg: var(--active-row-big);
 }
 
 .big .stats-row {
@@ -818,7 +823,7 @@ aside.keypad-hidden .calc-section {
 
 .scores-tbl.big .stats-row.active {
 	color: white;
-	background: linear-gradient(#969696, #646464);
+	background: var(--active-stats-big);
 }
 
 .big .stats {
@@ -1307,8 +1312,8 @@ td.back-score {
 	min-width: 22vmin;
 	padding: 0.8vmin;
 	gap: 0.4vmin;
-	background: var(--panel);
-	border: var(--border);
+	background: var(--menu-panel);
+	border: var(--line) solid var(--edit);
 	border-radius: var(--radius);
 	box-shadow: 0 1vmin 3vmin rgba(0, 0, 0, 0.7);
 	font-family: var(--font-condensed);
@@ -1321,9 +1326,9 @@ td.back-score {
 .player-menu-name {
 	max-width: 30vmin;
 	padding: 0.4vmin 1vmin 0.8vmin;
-	border-bottom: 1px solid var(--text-muted);
+	border-bottom: 1px solid color-mix(in srgb, var(--edit) 50%, transparent);
 	font-size: 2.6vmin;
-	color: var(--text-soft);
+	color: var(--edit);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -1356,7 +1361,7 @@ td.back-score {
 }
 
 .player-menu button:active {
-	background: rgba(255, 255, 255, 0.12);
+	background: color-mix(in srgb, var(--edit) 22%, transparent);
 }
 
 .player-menu button:disabled {
