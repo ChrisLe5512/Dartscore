@@ -2060,9 +2060,12 @@ td.calc-score:not(.disabled) {
 	background: var(--board-red);
 }
 
-/* The player's best visit gets a thin ring. */
-.history span.best b {
-	border-radius: 0.5vmin;
-	outline: 1.5px solid var(--text-muted);
-	outline-offset: 0.25vmin;
+/* The player's best visit: a small star after it, leaving its colour alone. */
+.history span.best::after {
+	content: '\2605';
+	margin-left: 0.2vmin;
+	font-size: 0.6em;
+	vertical-align: super;
+	line-height: 0;
+	color: var(--text-soft);
 }
