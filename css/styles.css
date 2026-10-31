@@ -1848,7 +1848,7 @@ td.back-score {
 	--side-pad: 1.2vmin; /* from the screen's edges, and between buttons */
 	--ctrl-size: 8vmin;
 	--side-w: 15vw; /* BUST and Done */
-	--card-w: calc(8vw - 2 * var(--side-pad)); /* the darts card: the right column, clear of the board */
+	--card-w: calc(8vw - var(--side-pad) - 0.4vmin); /* the darts card: the right column, as close to the board as the board is to the scoreboard */
 }
 
 .board-btn {
@@ -2058,9 +2058,14 @@ td.back-score {
 	height: calc(2.4 * var(--u));
 }
 
+/* Each dart's value centred in its slot, with room round it. */
 .darts span {
-	width: 84%;
-	height: calc(8.65 * var(--u));
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 86%;
+	height: calc(10.4 * var(--u));
 	margin: calc(1 * var(--u)) 0;
 	border: var(--line) solid transparent;
 	border-radius: var(--radius);
@@ -2981,10 +2986,10 @@ td.calc-score:not(.disabled) {
 }
 
 /* A dart picked up to move: its slot and its marker pulse, and its bed
-   flashes, in the moving yellow. The slot's edge is red: another tap
-   removes it. */
+   flashes. The slot's edge is the moving yellow, its glow red: another
+   tap removes it. */
 .darts span.editing {
-	border-color: var(--bust);
+	border-color: var(--dart-edit);
 	animation: editing 0.9s ease-in-out infinite alternate;
 }
 
@@ -3002,7 +3007,7 @@ td.calc-score:not(.disabled) {
 }
 
 @keyframes editing {
-	to { box-shadow: 0 0 calc(2 * var(--u)) var(--dart-edit); }
+	to { box-shadow: 0 0 calc(2 * var(--u)) var(--bust); }
 }
 
 @keyframes editing-mark {
