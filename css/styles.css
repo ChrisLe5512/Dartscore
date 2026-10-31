@@ -1488,7 +1488,10 @@ body.dismissing * {
    is positioned so it still paints over that layer when its row is dimmed. */
 .scores-tbl.roomy:not(.big) .player-wins::before,
 .scores-tbl.roomy:not(.big) .player-wins::after {
-	bottom: calc(-5vmin * var(--s) - 1px);
+	/* The stats line is half the name row (5 to 10vmin), also when the table
+	   stretches its rows to fill the list: as a share of the row it always
+	   reaches the bottom, where a fixed 5vmin fell short. */
+	bottom: calc(-50% - 1px);
 }
 
 .scores-tbl.roomy:not(.big) .stats-row,
