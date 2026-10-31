@@ -74,7 +74,7 @@ export const DART_VIEW = Object.freeze({
 	flightIn: 120, // how far in front of the board a thrown dart comes from
 	flightMs: 170, // in the air
 	wobbleMs: 380, // the wobble as it lands
-	lift: 6,       // picked up to move: how far it comes out of the board
+	lift: 12,      // picked up to move: how far it comes out of the board (clear of it: more than the point in it)
 	liftMs: 140,
 	pullOut: 40,   // taken out (the score sent, cleared, removed): how far it's pulled before it's gone
 	pullMs: 240,
