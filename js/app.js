@@ -179,6 +179,7 @@ function showInfo(button) {
 	infoFor = button;
 	button.setAttribute('aria-describedby', infoTip.id);
 	infoTip.textContent = button.dataset.info;
+	infoTip.classList.remove('closing');
 	infoTip.hidden = false;
 	// Under the ⓘ, kept on screen; above it where there's no room below.
 	const at = button.getBoundingClientRect();
@@ -197,7 +198,12 @@ function hideInfo() {
 	if (!infoFor) return;
 	infoFor.removeAttribute('aria-describedby');
 	infoFor = null;
-	infoTip.hidden = true;
+	// It fades out, unless another ⓘ opens it again first.
+	infoTip.classList.remove('opening');
+	infoTip.classList.add('closing');
+	Promise.allSettled(infoTip.getAnimations().map(a => a.finished)).then(() => {
+		if (infoTip.classList.contains('closing')) infoTip.hidden = true;
+	});
 }
 
 // Taps toggle it (an ⓘ inside a label doesn't tick the box); a tap elsewhere closes it.
@@ -311,6 +317,13 @@ function createPlayerRows(player) {
 			</div>
 			<div class="big-score"></div>
 		</div></td>`;
+
+	// With a mouse, the whole card lights up under the pointer (see HOVER in the CSS).
+	const rows = [playerRow, statsRow, historyRow];
+	for (const row of rows) {
+		row.addEventListener('mouseenter', () => rows.forEach(r => r.classList.add('card-hover')));
+		row.addEventListener('mouseleave', () => rows.forEach(r => r.classList.remove('card-hover')));
+	}
 
 	// Tapping a player opens their menu beside the scores.
 	for (const row of [playerRow, statsRow]) {
