@@ -1852,20 +1852,108 @@ td.back-score {
 
 /* BUTTONS */
 
-/* Full screen: four corners pointing out; in full screen each turns to point in. */
-.fs-icon {
-	display: block;
-	width: 4.6vmin;
-	height: 4.6vmin;
-	margin: auto;
-	fill: none;
-	stroke: currentColor;
-	stroke-width: 2.2;
-	stroke-linecap: round;
-	stroke-linejoin: round;
-	filter: drop-shadow(0 0 0.6vmin black);
+/* The controls beside the board, in two groups: undo and redo at the top;
+   the keypad, Settings and full screen at the bottom. Each group is one
+   rounded block whose buttons are parted by thin lines (the group's own
+   background, showing through the gaps). In landscape each row is exactly one
+   keypad row tall (the keypad is 40% of the height in four rows, with 5px
+   between and around them), so the bottom group lines up with the keypad's
+   bottom two rows at every screen size. */
+.ctrl-section {
+	--ctrl-row: 8.4vmin;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	width: 0;
+	padding: 5px 0;
+	box-sizing: border-box;
+	pointer-events: none;
+	z-index: 1;
 }
 
+@media (orientation: landscape) {
+	.ctrl-section {
+		--ctrl-row: calc((40vmin - 5 * 5px) / 4);
+	}
+}
+
+.ctrl-group {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--line);
+	box-sizing: border-box;
+	width: calc(12.5vw - 10px);
+	margin-left: 5px;
+	overflow: hidden;
+	background: white;
+	border: var(--border);
+	border-radius: var(--radius);
+	pointer-events: auto;
+}
+
+.ctrl-top {
+	height: var(--ctrl-row);
+}
+
+/* Two rows: as tall as the keypad's bottom two rows and the 5px between them. */
+.ctrl-bottom {
+	grid-template-rows: 1fr 1fr;
+	height: calc(2 * var(--ctrl-row) + 5px);
+}
+
+.ctrl-btn {
+	display: grid;
+	place-items: center;
+	min-width: 0;
+	padding: 0;
+	color: white;
+	background: var(--button);
+	border: none;
+	cursor: pointer;
+}
+
+.ctrl-btn.disabled {
+	color: var(--text-muted);
+	background: var(--button-disabled);
+	cursor: default;
+}
+
+.ctrl-btn .icon {
+	width: 4.6vmin;
+	height: 4.6vmin;
+}
+
+.icon.flip {
+	transform: scaleX(-1);
+}
+
+/* Keypad show/hide, across the top of its group: a keypad, and an arrow that
+   points down to hide it, up to show it. */
+.ctrl-btn.keypad-btn {
+	grid-column: 1 / -1;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 0.6vmin;
+}
+
+.keypad-icon {
+	fill: currentColor;
+	stroke: none;
+}
+
+.ctrl-btn .keypad-arrow {
+	width: 3.4vmin;
+	height: 3.4vmin;
+	transition: transform var(--medium) var(--ease-out);
+}
+
+.keypad-btn[aria-expanded="false"] .keypad-arrow {
+	transform: rotate(180deg);
+}
+
+/* Full screen: four corners pointing out; in full screen each turns to point in. */
 .fs-icon path {
 	transform-box: fill-box;
 	transform-origin: center;
@@ -1874,90 +1962,6 @@ td.back-score {
 
 .full-screen.active .fs-icon path {
 	transform: rotate(180deg);
-}
-
-/* Keypad show/hide: a keypad symbol, and an arrow that points down to hide, up to show.
-   As tall as the Darts and total labels on the right. Flex centres the symbols by
-   their boxes rather than the text baseline. */
-.ctrl-tbl td.keypad-btn {
-	height: 6.5vmin;
-}
-
-.keypad-icons {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 0.4vmin;
-	line-height: 1;
-}
-
-.keypad-btn .keypad-icon {
-	font-size: 3.6vmin;
-	font-weight: normal;
-}
-
-.keypad-btn span {
-	font-size: 3vmin;
-	transition: transform var(--medium) var(--ease-out);
-}
-
-.keypad-btn[aria-expanded="false"] span {
-	transform: rotate(180deg);
-}
-
-.ctrl-section {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	width: 0;
-	pointer-events: none;
-	z-index: 1;
-}
-
-.ctrl-tbl {
-	table-layout: fixed;
-	border-spacing: 5px;
-	width: 12.5vw;
-	height: 100%;
-	text-align: center;
-	text-shadow: 0 0 1vmin black;
-	color: white;
-}
-
-.ctrl-tbl td {
-	height: 8.4vmin;
-	font-size: 6vmin;
-	line-height: 1;
-	overflow: hidden;
-	border: var(--border);
-	border-radius: var(--radius);
-	background: var(--button);
-	pointer-events: auto;
-	cursor: pointer;
-}
-
-/* Landscape: each button exactly one keypad row tall (the keypad is 40% of the
-   height in four rows, with 5px between and around them), so the bottom row
-   lines up with the keypad at every screen size. */
-@media (orientation: landscape) {
-	.ctrl-tbl td:not(.hidden, .keypad-btn) {
-		box-sizing: border-box;
-		height: calc((40vmin - 5 * 5px) / 4);
-	}
-}
-
-.ctrl-tbl td.disabled {
-	color: var(--text-muted);
-	background: var(--button-disabled);
-	border: var(--border-muted);
-	cursor: default;
-}
-
-.ctrl-tbl td.hidden {
-	height: auto; /* takes the space between the top and bottom buttons */
-	visibility: hidden;
-	pointer-events: none;
 }
 
 .btn-section {
@@ -2481,7 +2485,7 @@ td.back-score {
 		.segmented button,
 		.players-add,
 		.calc-tbl td:not(.disabled),
-		.ctrl-tbl td:not(.disabled),
+		.ctrl-btn:not(.disabled),
 		.btn-tbl td:not(.disabled, .darts-btn),
 		.darts span:not(.empty),
 		.add-player td
@@ -2536,7 +2540,7 @@ td.back-score {
 
 /* Buttons sink slightly when pressed, and their hover light fades. */
 .calc-tbl td,
-.ctrl-tbl td,
+.ctrl-btn,
 .btn-tbl td,
 .darts span,
 .add-player td,
@@ -2578,7 +2582,7 @@ td.back-score {
 }
 
 .calc-tbl td:not(.disabled, .calc-score):active,
-.ctrl-tbl td:not(.disabled):active,
+.ctrl-btn:not(.disabled):active,
 .btn-tbl td:not(.disabled, .darts-btn):active,
 .darts span:not(.empty):active,
 .add-player td:active,
@@ -2762,8 +2766,8 @@ td.calc-score:not(.disabled) {
 		height: 100%;
 	}
 
-	.ctrl-tbl {
-		width: 20vmin;
+	.ctrl-group {
+		width: calc(20vmin - 10px);
 	}
 
 	.dartboard-section {
@@ -2836,11 +2840,11 @@ td.calc-score:not(.disabled) {
 
 	/* The keypad folds away to the right here: the arrow points right to hide it,
 	   left to bring it back. */
-	.keypad-btn span {
+	.keypad-btn .keypad-arrow {
 		transform: rotate(-90deg);
 	}
 
-	.keypad-btn[aria-expanded="false"] span {
+	.keypad-btn[aria-expanded="false"] .keypad-arrow {
 		transform: rotate(90deg);
 	}
 

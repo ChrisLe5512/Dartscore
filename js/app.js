@@ -774,7 +774,7 @@ function placePlayerMenu() {
 	const room = innerHeight - playerMenu.offsetHeight - 8;
 	if (portrait.matches) {
 		// Scores run along the bottom: open just above them, clear of the buttons on the left.
-		playerMenu.style.left = `${$('.ctrl-tbl').getBoundingClientRect().right + 8}px`;
+		playerMenu.style.left = `${$('.ctrl-top').getBoundingClientRect().right + 8}px`;
 		playerMenu.style.top = `${Math.max(8, sidebar.getBoundingClientRect().top - playerMenu.offsetHeight - 8)}px`;
 	} else {
 		playerMenu.style.left = `${sidebar.getBoundingClientRect().right + 8}px`;
@@ -1296,11 +1296,11 @@ function toggleReview(player, index) {
 
 // ---- Controls ---------------------------------------------------------------
 
-const undoBtn = $('.ctrl-tbl .undo');
-const redoBtn = $('.ctrl-tbl .redo');
+const undoBtn = $('.ctrl-section .undo');
+const redoBtn = $('.ctrl-section .redo');
 undoBtn.addEventListener('click', undo);
 redoBtn.addEventListener('click', redo);
-$('.ctrl-tbl .settings-btn').addEventListener('click', openSettings);
+$('.ctrl-section .settings-btn').addEventListener('click', openSettings);
 
 function renderControls() {
 	undoBtn.classList.toggle('disabled', history.past.length === 0);
@@ -1309,7 +1309,7 @@ function renderControls() {
 
 // The keypad can fold away; remembered on this device.
 const sidebar = $('aside');
-const keypadToggle = $('.ctrl-tbl .keypad-btn');
+const keypadToggle = $('.ctrl-section .keypad-btn');
 
 const calcSection = $('.calc-section');
 let keypadSettled = 0;
@@ -1366,7 +1366,7 @@ keypadToggle.addEventListener('click', () => setKeypadHidden(!sidebar.classList.
 setKeypadHidden(Boolean(prefs.keypadHidden));
 
 // The icon's corners point in while in full screen (also when left with Esc).
-const fullscreenBtn = $('.ctrl-tbl .full-screen');
+const fullscreenBtn = $('.ctrl-section .full-screen');
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 
 function renderFullscreen() {
