@@ -1929,7 +1929,6 @@ newGameDialog.addEventListener('click', event => {
 const visualsPanel = $('.visuals-panel');
 const layoutInputs = $$('[data-layout]', visualsPanel);
 const outlineInput = $('[data-style="outline"]', visualsPanel);
-const wiresInput = $('[data-style="wires"]', visualsPanel);
 const wireInput = $('[data-style="wire"]', visualsPanel);
 // A row of colours for each colour setting: { key in BOARD_STYLE: its row }.
 const swatchRows = {
@@ -2002,9 +2001,7 @@ function renderVisuals() {
 	const style = boardStyle();
 	for (const input of layoutInputs) input.value = layout[input.dataset.layout];
 	outlineInput.value = style.outline;
-	wiresInput.checked = style.wires;
 	wireInput.value = style.wire;
-	wireInput.disabled = !style.wires; // how thick, once there are wires
 	for (const input of [...layoutInputs, outlineInput, wireInput]) input.previousElementSibling.textContent = Number(input.value).toFixed(1);
 	for (const [key, row] of Object.entries(swatchRows)) {
 		for (const swatch of row.children) swatch.setAttribute('aria-pressed', String(swatch.dataset.color === style[key]));
@@ -2015,13 +2012,13 @@ function renderVisuals() {
 function changeVisuals(colors = {}) {
 	const { outlineColor, hitColor } = boardStyle();
 	prefs.boardLayout = Object.fromEntries(layoutInputs.map(input => [input.dataset.layout, Number(input.value)]));
-	prefs.boardStyle = { outline: Number(outlineInput.value), wires: wiresInput.checked, wire: Number(wireInput.value), outlineColor, hitColor, ...colors };
+	prefs.boardStyle = { outline: Number(outlineInput.value), wire: Number(wireInput.value), outlineColor, hitColor, ...colors };
 	savePrefs(prefs);
 	redrawBoard();
 	renderVisuals();
 }
 
-for (const input of [...layoutInputs, outlineInput, wiresInput, wireInput]) input.addEventListener('input', () => changeVisuals());
+for (const input of [...layoutInputs, outlineInput, wireInput]) input.addEventListener('input', () => changeVisuals());
 
 // ---- Winner -----------------------------------------------------------------
 

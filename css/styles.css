@@ -930,11 +930,6 @@ body.visuals-open :is(.ctrl-section, .btn-section) {
 	accent-color: var(--checkout);
 }
 
-/* Not in use (wire thickness with the wires off): greyed, like a checkbox. */
-.range:has(input:disabled) {
-	opacity: 0.4;
-}
-
 .swatches {
 	display: flex;
 	gap: 1.5vmin;
