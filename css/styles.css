@@ -869,6 +869,19 @@ body.visuals-open #dartboard {
 	pointer-events: none;
 }
 
+/* The board shows just itself: no darts or lit beds over the preview. */
+body.visuals-open #dartboard :is(.lit, .marks) {
+	display: none;
+}
+
+/* A colour row with its name above it (Highlight). */
+.swatch-group {
+	display: flex;
+	flex-direction: column;
+	gap: 1vmin;
+	color: var(--text-soft);
+}
+
 .visuals-panel {
 	display: flex;
 	flex-direction: column;
@@ -1349,7 +1362,7 @@ body:is(.menu-focus, .review-focus) .calc-section {
 	transition: opacity var(--medium) var(--ease-out);
 }
 
-body.keypad-input :is(.board-frame, .btn-tbl td.darts-btn) {
+body.keypad-input:not(.visuals-open) :is(.board-frame, .btn-tbl td.darts-btn) {
 	opacity: 0.45;
 }
 

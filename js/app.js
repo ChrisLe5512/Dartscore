@@ -3,7 +3,7 @@
 // state into DOM.
 
 import {
-	BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_OUTLINE_LIMITS, BOARD_STYLE,
+	BOARD_HIT_COLORS, BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_OUTLINE_LIMITS, BOARD_STYLE,
 	DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, TOAST_MS,
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate } from './board.js';
@@ -1172,11 +1172,18 @@ function renderDarts(pop = []) {
 // (when it was entered on the board).
 let rings = boardRings(prefs.boardLayout);
 drawBoard(board, rings, prefs.boardStyle);
+paintHitColor();
+
+/** The highlight colour picked in Board layout, for everything drawn in it (--board-hit). */
+function paintHitColor() {
+	document.documentElement.style.setProperty('--board-hit', { ...BOARD_STYLE, ...prefs.boardStyle }.hitColor);
+}
 
 /** Redraw the board, e.g. after its layout or outline changed in Settings. */
 function redrawBoard() {
 	rings = boardRings(prefs.boardLayout);
 	drawBoard(board, rings, prefs.boardStyle);
+	paintHitColor();
 	renderMarks();
 }
 
@@ -1916,19 +1923,29 @@ const visualsPanel = $('.visuals-panel');
 const layoutInputs = $$('[data-layout]', visualsPanel);
 const outlineInput = $('[data-style="outline"]', visualsPanel);
 const wiresInput = $('[data-style="wires"]', visualsPanel);
-const swatches = $('.swatches', visualsPanel);
+// A row of colours for each colour setting: { key in BOARD_STYLE: its row }.
+const swatchRows = {
+	outlineColor: $('.outline-swatches', visualsPanel),
+	hitColor: $('.hit-swatches', visualsPanel),
+};
 
 for (const input of layoutInputs) [input.min, input.max] = BOARD_LAYOUT_LIMITS[input.dataset.layout];
 [outlineInput.min, outlineInput.max] = BOARD_OUTLINE_LIMITS;
-swatches.append(...BOARD_OUTLINE_COLORS.map(color => {
-	const swatch = document.createElement('button');
-	swatch.type = 'button';
-	swatch.className = 'swatch';
-	swatch.style.background = color;
-	swatch.dataset.color = color;
-	swatch.setAttribute('aria-label', `Outline ${color}`);
-	return swatch;
-}));
+for (const [key, colors] of [['outlineColor', BOARD_OUTLINE_COLORS], ['hitColor', BOARD_HIT_COLORS]]) {
+	swatchRows[key].append(...colors.map(color => {
+		const swatch = document.createElement('button');
+		swatch.type = 'button';
+		swatch.className = 'swatch';
+		swatch.style.background = color;
+		swatch.dataset.color = color;
+		swatch.setAttribute('aria-label', `${swatchRows[key].getAttribute('aria-label')} ${color}`);
+		return swatch;
+	}));
+	swatchRows[key].addEventListener('click', event => {
+		const color = event.target.closest('.swatch')?.dataset.color;
+		if (color) changeVisuals({ [key]: color });
+	});
+}
 
 const boardLayout = () => ({ ...BOARD_LAYOUT, ...prefs.boardLayout });
 const boardStyle = () => ({ ...BOARD_STYLE, ...prefs.boardStyle });
@@ -1968,22 +1985,22 @@ function renderVisuals() {
 	outlineInput.value = style.outline;
 	wiresInput.checked = style.wires;
 	for (const input of [...layoutInputs, outlineInput]) input.previousElementSibling.textContent = Number(input.value).toFixed(1);
-	for (const swatch of swatches.children) swatch.setAttribute('aria-pressed', String(swatch.dataset.color === style.outlineColor));
+	for (const [key, row] of Object.entries(swatchRows)) {
+		for (const swatch of row.children) swatch.setAttribute('aria-pressed', String(swatch.dataset.color === style[key]));
+	}
 }
 
-function changeVisuals(outlineColor = boardStyle().outlineColor) {
+/** colors: a colour picked, e.g. { hitColor }; the rest is read from the controls. */
+function changeVisuals(colors = {}) {
+	const { outlineColor, hitColor } = boardStyle();
 	prefs.boardLayout = Object.fromEntries(layoutInputs.map(input => [input.dataset.layout, Number(input.value)]));
-	prefs.boardStyle = { outline: Number(outlineInput.value), outlineColor, wires: wiresInput.checked };
+	prefs.boardStyle = { outline: Number(outlineInput.value), outlineColor, wires: wiresInput.checked, hitColor, ...colors };
 	savePrefs(prefs);
 	redrawBoard();
 	renderVisuals();
 }
 
 for (const input of [...layoutInputs, outlineInput, wiresInput]) input.addEventListener('input', () => changeVisuals());
-swatches.addEventListener('click', event => {
-	const color = event.target.closest('.swatch')?.dataset.color;
-	if (color) changeVisuals(color);
-});
 
 // ---- Winner -----------------------------------------------------------------
 
