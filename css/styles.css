@@ -1340,6 +1340,32 @@ body:is(.menu-focus, .review-focus) .calc-section {
 	filter: var(--dim);
 }
 
+/* Which way the score is going in. Typing on the keypad, its panel turns
+   amber and the board and its darts step back; darts on the board, the
+   keypad steps back. Nothing is cleared: using the other one switches. JS
+   sets the body classes (renderInputting). */
+.board-frame,
+.btn-tbl td.darts-btn {
+	transition: opacity var(--medium) var(--ease-out);
+}
+
+body.keypad-input :is(.board-frame, .btn-tbl td.darts-btn) {
+	opacity: 0.45;
+}
+
+body.keypad-input .calc-section {
+	--keypad-veil: inset 0 0 0 100vmax color-mix(in srgb, var(--board-hit) 30%, transparent);
+	background: color-mix(in srgb, var(--board-hit) 22%, transparent);
+}
+
+body.keypad-input .calc-tbl td {
+	box-shadow: var(--keypad-veil);
+}
+
+body.board-input:not(.menu-focus, .review-focus) .calc-section {
+	filter: brightness(0.6);
+}
+
 /* The sections themselves let taps through; their buttons and the board opt back in. */
 body:is(.menu-focus, .review-focus) :is(.ctrl-section, .dartboard-section, .btn-section, .calc-section) *,
 body:is(.menu-focus, .review-focus) #dartboard {
@@ -1630,7 +1656,7 @@ body.dismissing * {
 	height: 40%;
 	flex: none;
 	overflow: hidden;
-	transition: height var(--medium) var(--ease-out), visibility var(--medium), filter var(--medium) var(--ease-out);
+	transition: height var(--medium) var(--ease-out), visibility var(--medium), filter var(--medium) var(--ease-out), background var(--medium) var(--ease-out);
 	font-family: var(--font);
 	font-weight: 500;
 }
@@ -2308,8 +2334,10 @@ td.back-score {
 }
 
 /* HOVER: with a mouse, whatever can be pressed lights up a little under the
-   pointer (the board has its own: .light.hover). Only where there is a
-   pointer that hovers, so a tap on a tablet leaves nothing lit. */
+   pointer (the board has its own: .light.hover), fading in and out (see
+   MOTION). Only with a pointer that hovers, and not since the last touch
+   (app.js sets .touching on the root: a touch screen laptop has both), so a
+   tap leaves nothing lit. */
 
 :root {
 	--hover-veil: inset 0 0 0 100vmax rgba(255, 255, 255, 0.15); /* over a button's own fill */
@@ -2317,57 +2345,62 @@ td.back-score {
 }
 
 @media (hover: hover) {
-	.settings-btn-action:not(:disabled):hover,
-	.stepper-btn:not(:disabled):hover,
-	.game-tile:hover,
-	.segmented button:hover,
-	.players-add:hover,
-	.calc-tbl td:not(.disabled):hover,
-	.ctrl-tbl td:not(.disabled):hover,
-	.btn-tbl td:not(.disabled, .darts-btn, .darts-total):hover,
-	.darts span[class]:not([class=""]):hover,
-	.add-player td:hover {
+	:root:not(.touching) :is(
+		.settings-btn-action:not(:disabled),
+		.stepper-btn:not(:disabled),
+		.game-tile,
+		.segmented button,
+		.players-add,
+		.calc-tbl td:not(.disabled),
+		.ctrl-tbl td:not(.disabled),
+		.btn-tbl td:not(.disabled, .darts-btn, .darts-total),
+		.darts span[class]:not([class=""]),
+		.add-player td
+	):hover {
 		box-shadow: var(--hover-veil);
 	}
 
-	.field-btn:not(:disabled):hover,
-	.player-menu button:not(:disabled):hover {
+	/* The keypad's amber (while typing) stays under the hover light. */
+	:root:not(.touching) body.keypad-input .calc-tbl td:not(.disabled):hover {
+		box-shadow: var(--hover-veil), var(--keypad-veil);
+	}
+
+	:root:not(.touching) :is(.field-btn, .player-menu button):not(:disabled):hover {
 		background: var(--hover-tint);
 	}
 
-	.swatch:not([aria-pressed="true"]):hover {
+	:root:not(.touching) .swatch:not([aria-pressed="true"]):hover {
 		transform: scale(1.08);
 	}
 
-	.settings-check:has(input:not(:disabled)):hover {
+	:root:not(.touching) .settings-check:has(input:not(:disabled)):hover {
 		color: white;
 	}
 
-	.checkout:not(.hint):hover {
+	:root:not(.touching) .checkout:not(.hint):hover {
 		filter: brightness(1.25);
 	}
 
-	.history span.has-hits:not(.reviewing):hover b {
+	:root:not(.touching) .history span.has-hits:not(.reviewing):hover b {
 		background: var(--hover-tint);
 		border-radius: 0.5vmin;
 		box-shadow: 0 0 0 0.35vmin var(--hover-tint);
 	}
 
-	.history .leg-dot:not(.open):hover::before {
+	:root:not(.touching) .history .leg-dot:not(.open):hover::before {
 		box-shadow: 0 0 0 calc(0.3vmin * var(--s)) color-mix(in srgb, var(--text-soft) 30%, transparent);
 	}
 
 	/* A player's card, all of it (app.js sets .card-hover on its rows). */
-	.card-hover .player-wins::before,
-	.history-row.card-hover > td,
-	.big .stats-row.card-hover > td {
+	:root:not(.touching) .card-hover .player-wins::before,
+	:root:not(.touching) :is(.history-row.card-hover, .big .stats-row.card-hover) > td {
 		box-shadow: inset 0 0 0 100vmax rgba(255, 255, 255, 0.07);
 	}
 }
 
 /* MOTION */
 
-/* Buttons sink slightly when pressed. */
+/* Buttons sink slightly when pressed, and their hover light fades. */
 .calc-tbl td,
 .ctrl-tbl td,
 .btn-tbl td,
@@ -2375,7 +2408,39 @@ td.back-score {
 .add-player td,
 .players-add,
 .settings-btn-action {
-	transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium);
+	transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium), box-shadow var(--medium);
+}
+
+/* The other hover lights fade too, with each one's own transitions. */
+.stepper-btn {
+	transition: transform var(--fast) var(--ease-out), opacity var(--medium), box-shadow var(--medium);
+}
+
+.game-tile {
+	transition: transform var(--fast) var(--ease-out), border-color var(--medium), background var(--medium), box-shadow var(--medium);
+}
+
+.segmented button {
+	transition: background var(--medium), box-shadow var(--medium);
+}
+
+.field-btn {
+	transition: transform var(--fast) var(--ease-out), background var(--medium);
+}
+
+.player-menu button,
+.settings-check {
+	transition: background var(--medium), color var(--medium);
+}
+
+.checkout {
+	transition: filter var(--medium);
+}
+
+.player-wins::before,
+.history-row > td,
+.stats-row > td {
+	transition: box-shadow var(--medium);
 }
 
 .calc-tbl td:not(.disabled, .calc-score):active,

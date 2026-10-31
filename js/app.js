@@ -32,7 +32,17 @@ const turn = {
 	keypad: '',   // digits typed on the keypad
 	darts: [],    // darts tapped on the board
 	editing: null, // index of the dart being moved, if any
+	input: null,  // 'keypad' or 'board': the one used last, when both have something
 };
+
+// After a touch, nothing stays lit as if the pointer were over it, until a
+// mouse moves again (a touch screen laptop has both; see HOVER in the CSS).
+addEventListener('pointerdown', event => {
+	document.documentElement.classList.toggle('touching', event.pointerType === 'touch');
+}, true);
+addEventListener('pointermove', event => {
+	if (event.pointerType === 'mouse') document.documentElement.classList.remove('touching');
+}, true);
 const checkoutChoice = new Map(); // player id -> which suggested route to show
 let review = null; // { id, index }: a past turn whose darts are shown on the board
 let toastSticky = false; // the toast stays up (while a past turn is on show)
@@ -85,6 +95,7 @@ function clearTurn() {
 	turn.keypad = '';
 	turn.darts = [];
 	turn.editing = null;
+	turn.input = null;
 }
 
 /** Returns the game event, or null if the turn wasn't recorded. */
@@ -916,6 +927,7 @@ const inputMax = () => mode().inputMax?.(game) ?? mode().maxInput;
 function typeDigit(digit) {
 	const next = String(parseInt(turn.keypad + digit, 10));
 	if (Number(next) <= inputMax()) turn.keypad = next;
+	turn.input = 'keypad';
 	renderKeypad();
 }
 
@@ -923,6 +935,7 @@ function stepKeypad(step) {
 	if (turn.keypad === '') return;
 	const next = Number(turn.keypad) + step;
 	if (next >= 0 && next <= inputMax()) turn.keypad = String(next);
+	turn.input = 'keypad';
 	renderKeypad();
 	// The score box rocks like a switch towards the half that was pressed.
 	scoreDisplay.classList.remove('tip-up', 'tip-down');
@@ -960,9 +973,18 @@ scoreDisplay.addEventListener('animationend', event => {
 	if (event.animationName.startsWith('tip-')) scoreDisplay.classList.remove('tip-up', 'tip-down');
 });
 
-/** Dim the other players while a score is being entered. */
+/**
+ * Dim the other players while a score is being entered, and show which way
+ * it's going in: the keypad or the board (the one used last, if both have
+ * something).
+ */
 function renderInputting() {
-	scoresTable.classList.toggle('inputting', turn.keypad !== '' || turn.darts.length > 0);
+	const keypad = turn.keypad !== '';
+	const board = turn.darts.length > 0;
+	scoresTable.classList.toggle('inputting', keypad || board);
+	const using = keypad && board ? turn.input : keypad ? 'keypad' : board ? 'board' : null;
+	document.body.classList.toggle('keypad-input', using === 'keypad');
+	document.body.classList.toggle('board-input', using === 'board');
 }
 
 function renderKeypad() {
@@ -1000,12 +1022,17 @@ function boardOffset(event) {
 	};
 }
 
-// With a mouse, the segment under the pointer lights up faintly.
+/** A dart can go on the board: fewer than three are down, or one is picked up to move. */
+const canAim = () => turn.darts.length < DARTS_PER_TURN || turn.editing !== null;
+
+// With a mouse, the segment under the pointer lights up faintly (while a dart
+// can still go there). A touch lights nothing.
 let hovered = null;
-board.addEventListener('mousemove', event => {
+board.addEventListener('pointermove', event => {
+	if (event.pointerType !== 'mouse') return;
 	const { dx, dy, radius } = boardOffset(event);
 	const onMark = markAt(dx, dy, radius) >= 0;
-	board.classList.toggle('aiming', !onMark && isOnBoard(dx, dy, radius));
+	board.classList.toggle('aiming', canAim() && !onMark && isOnBoard(dx, dy, radius));
 	board.classList.toggle('on-mark', onMark);
 	const spot = locate(dx, dy, radius, rings);
 	const key = spot && segmentKey(spot.sector, spot.ring);
@@ -1013,7 +1040,12 @@ board.addEventListener('mousemove', event => {
 	hovered = key;
 	renderLights();
 });
-board.addEventListener('mouseleave', () => {
+board.addEventListener('pointerleave', () => {
+	hovered = null;
+	renderLights();
+});
+board.addEventListener('pointerdown', event => {
+	if (event.pointerType === 'mouse' || hovered === null) return;
 	hovered = null;
 	renderLights();
 });
@@ -1025,6 +1057,9 @@ board.addEventListener('click', event => {
 		const pct = Math.round(Math.hypot(dx, dy) / radius * 100);
 		debugSpan.textContent = `(${Math.round(dx)}, ${Math.round(dy)}) ${pct}% ${dart?.label ?? 'off'}`;
 	}
+	// Using the board brings it (and its darts) back in front of the keypad.
+	turn.input = 'board';
+	renderInputting();
 	// A dart's marker works like its box in the darts column.
 	const mark = markAt(dx, dy, radius);
 	if (mark >= 0) {
@@ -1067,6 +1102,7 @@ function markAt(dx, dy, radius) {
 dartSpans.forEach((span, index) => {
 	span.addEventListener('click', () => {
 		if (!turn.darts[index]) return;
+		turn.input = 'board';
 		if (turn.editing === index) {
 			turn.darts.splice(index, 1);
 			turn.editing = null;
@@ -1191,7 +1227,9 @@ function renderLights() {
 		.filter(Boolean)
 		.map(spot => segmentKey(spot.sector, spot.ring))
 		.map(key => ({ key, kind: key === NUMBER_RING ? 'miss' : kind === 'live' ? 'hit' : 'review' }));
-	if (hovered && !lights.some(light => light.key === hovered)) lights.push({ key: hovered, kind: 'hover' });
+	// The pointer's light only where a dart can still go (not with three down).
+	if (!canAim()) board.classList.remove('aiming');
+	else if (hovered && !lights.some(light => light.key === hovered)) lights.push({ key: hovered, kind: 'hover' });
 	lightSegments(board, lights);
 }
 
