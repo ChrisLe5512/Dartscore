@@ -1249,9 +1249,11 @@ const NUMBER_RING = segmentKey(0, 'numberRing');
 
 function renderLights() {
 	const { hits, kind } = shownHits();
-	// The dart picked up to move: its bed flashes in the moving yellow, with its marker.
-	const lightKind = (key, index) => kind === 'live' && index === turn.editing ? 'editing'
-		: key === NUMBER_RING ? 'miss' : kind === 'live' ? 'hit' : 'review';
+	// The dart picked up to move: its bed flashes in the moving yellow (not the
+	// number ring, which a miss lights all round).
+	const lightKind = (key, index) => key === NUMBER_RING ? 'miss'
+		: kind === 'live' && index === turn.editing ? 'editing'
+		: kind === 'live' ? 'hit' : 'review';
 	const lights = hits.flatMap(({ x, y }, index) => {
 		const spot = locate(x, y, 1, rings);
 		if (!spot) return [];
