@@ -119,10 +119,16 @@ export function drawBoard(svg, rings, style = BOARD_STYLE) {
 		el('circle', { r: edge + width, fill: `url(#groove-${i})` }, shading);
 	});
 
-	// Outline around the doubles and the board edge.
+	// Lit beds, under the outline: a light's edge line, centred on its bed's
+	// edge, would otherwise show past the doubles.
+	el('g', { class: 'lit' }, svg);
+
+	// Outline around the doubles and the board edge, each in the number ring:
+	// centred on the doubles' edge, it covered their outer part, which then
+	// looked like the number ring but still scored (and lit) as a double.
 	if (outline > 0) {
 		const outlines = el('g', { class: 'outlines', fill: 'none', stroke: outlineColor, 'stroke-width': outline }, svg);
-		el('circle', { r: rings.double }, outlines);
+		el('circle', { r: rings.double + outline / 2 }, outlines);
 		el('circle', { r: 100 - outline / 2 }, outlines);
 	}
 
@@ -136,7 +142,6 @@ export function drawBoard(svg, rings, style = BOARD_STYLE) {
 		text.textContent = sector;
 	});
 
-	el('g', { class: 'lit' }, svg);
 	el('g', { class: 'marks' }, svg);
 }
 

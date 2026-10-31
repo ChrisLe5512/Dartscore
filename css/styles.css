@@ -1374,6 +1374,18 @@ body.keypad-input:not(.visuals-open) .darts {
 	opacity: 0.45;
 }
 
+/* Likewise the keypad's score rocker while the board is in use. (On its plate
+   and what's on it: a table cell's own opacity didn't reach them.) */
+td.calc-score::before,
+td.calc-score > * {
+	transition: opacity var(--medium) var(--ease-out);
+}
+
+body.board-input td.calc-score::before,
+body.board-input td.calc-score > * {
+	opacity: 0.45;
+}
+
 /* (Pressed, ✓ shows the keypad's pressed fill.) */
 .calc-tbl td.check-score:not(.disabled, :active) {
 	background: linear-gradient(var(--send-top), var(--send-bottom)), linear-gradient(#808080, #484848);
