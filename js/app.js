@@ -1127,7 +1127,7 @@ doneBtn.addEventListener('click', () => {
 });
 
 // With the mouse over ✓ or Done, that input shows as the one in use (its
-// button amber, the board's darts grey or lit) until the mouse leaves.
+// button green, the board's darts grey or lit) until the mouse leaves.
 for (const [button, input] of [[checkBtn, 'keypad'], [doneBtn, 'board']]) {
 	button.addEventListener('pointerenter', event => {
 		if (event.pointerType !== 'mouse') return;

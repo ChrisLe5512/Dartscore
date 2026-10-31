@@ -18,6 +18,8 @@
 	--button-pressed: linear-gradient(#484848, #202020);
 	--row: #161616;
 	--checkout: #00c800;
+	--go-top: #2e8a22; /* the main button (Start) and the button that sends a score */
+	--go-bottom: #1a5212;
 	--active-row: linear-gradient(#6fb4ff, #2f6fb0); /* the player throwing */
 	--active-row-big: linear-gradient(#6fb4ff, #3f80c4); /* the same, 1-2 players */
 	--active-stats-big: linear-gradient(#3f80c4, #2f6fb0);
@@ -843,7 +845,7 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 /* The action that settings changes are waiting on (Start new game). */
 .settings-btn-action.primary {
 	border-color: var(--checkout);
-	background: linear-gradient(#2e8a22, #1a5212);
+	background: linear-gradient(var(--go-top), var(--go-bottom));
 	animation: fade-in var(--medium) var(--ease-out);
 }
 
@@ -1346,11 +1348,11 @@ body:is(.menu-focus, .review-focus) .calc-section {
 }
 
 /* Which way the score is going in, and the button that sends it, in the
-   amber of a player being edited. Typing: ✓ turns amber,
+   green of the New game screen's main button (Start). Typing: ✓ turns green,
    and the board's darts (still shown) turn grey with the darts column
-   stepping back. Darts on the board: Done turns amber. Nothing is cleared:
+   stepping back. Darts on the board: Done turns green. Nothing is cleared:
    using the other one switches. JS sets the body classes (renderInputting).
-   The amber is a gradient over each button's own fill, its two colours
+   The green is a gradient over each button's own fill, its two colours
    see-through until in use, so it fades in and out. */
 @property --send-top {
 	syntax: "<color>";
@@ -1398,10 +1400,11 @@ body.board-input td.calc-score > * {
 	transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium), box-shadow var(--hover-speed), --send-top var(--medium) var(--ease-out), --send-bottom var(--medium) var(--ease-out);
 }
 
-body.keypad-input .calc-tbl td.check-score,
-body.board-input .done-btn {
-	--send-top: var(--edit);
-	--send-bottom: var(--edit-dark);
+body.keypad-input .calc-tbl td.check-score:not(.disabled),
+body.board-input .done-btn:not(.disabled) {
+	--send-top: var(--go-top);
+	--send-bottom: var(--go-bottom);
+	border-color: var(--checkout);
 }
 
 /* The turn's darts, still on the board but not what is being entered. */
