@@ -122,8 +122,7 @@ aside.keypad-hidden .calc-section {
 
 /* With nothing under it, the list needs no line at its bottom. */
 aside.keypad-hidden .scores-section.overflowing,
-aside.keypad-hidden .scores-section .add-player:not(.hidden) td,
-aside.keypad-hidden .scores-section .history-row:has(+ .add-player.hidden) .history-cell {
+aside.keypad-hidden .scores-section .history-row:last-child .history-cell {
 	border-bottom: none;
 }
 
@@ -1090,8 +1089,7 @@ body.visuals-open :is(.ctrl-section, .btn-section) {
 	border-bottom: var(--border);
 }
 
-.scores-section.overflowing .add-player:not(.hidden) td,
-.scores-section.overflowing .history-row:has(+ .add-player.hidden) .history-cell {
+.scores-section.overflowing .history-row:last-child .history-cell {
 	border-bottom: none;
 }
 
@@ -1673,20 +1671,6 @@ body.dismissing * {
 	font-size: calc(13vmin * var(--s));
 	line-height: 1;
 	text-shadow: 0 0 1vmin black;
-}
-
-.add-player {
-	text-align: center;
-	width: 100%;
-	background: var(--panel);
-}
-
-.add-player td {
-	font-size: calc(6vmin * var(--s));
-	border-bottom: var(--border);
-	box-sizing: border-box;
-	height: calc(10vmin * var(--s));
-	cursor: pointer;
 }
 
 .scrollable {
@@ -2460,8 +2444,7 @@ td.back-score {
 		.calc-tbl td:not(.disabled),
 		.ctrl-btn:not(.disabled),
 		.side-btn:not(.disabled),
-		.darts span:not(.empty),
-		.add-player td
+		.darts span:not(.empty)
 	):hover {
 		box-shadow: var(--hover-veil);
 	}
@@ -2516,7 +2499,6 @@ td.back-score {
 .ctrl-btn,
 .side-btn,
 .darts span,
-.add-player td,
 .players-add,
 .settings-btn-action {
 	transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium), box-shadow var(--hover-speed);
@@ -2558,7 +2540,6 @@ td.back-score {
 .ctrl-btn:not(.disabled):active,
 .side-btn:not(.disabled):active,
 .darts span:not(.empty):active,
-.add-player td:active,
 .players-add:active,
 .settings-btn-action:active {
 	transform: scale(0.94);
@@ -2782,8 +2763,7 @@ td.calc-score:not(.disabled) {
 
 	/* The list ends at the bottom of the screen: no line there. */
 	.scores-section.overflowing,
-	.scores-section .add-player:not(.hidden) td,
-	.scores-section .history-row:has(+ .add-player.hidden) .history-cell {
+	.scores-section .history-row:last-child .history-cell {
 		border-bottom: none;
 	}
 

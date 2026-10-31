@@ -273,7 +273,6 @@ const matchStarted = () => game.players.some(p => p.turns.length > 0);
 const scoresSection = $('.scores-section');
 const scoresTable = $('.scores-tbl');
 const scoresBody = $('tbody', scoresTable);
-const addPlayerRow = $('.add-player', scoresTable);
 
 function addPlayer() {
 	if (!mode().canAddPlayer(game)) return;
@@ -283,13 +282,6 @@ function addPlayer() {
 
 /** Scroll a list to its end, where a player was just added, so they're in view. */
 const showLast = list => list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
-
-addPlayerRow.addEventListener('click', () => {
-	const index = addPlayer();
-	if (index === undefined) return;
-	showLast(scoresSection);
-	startRename(game.players[index].id);
-});
 
 // The list's edge fades' heights in vmin, as in the CSS (.scores-section.fade-*).
 const SCORE_FADES = { top: 4, bottom: 8 };
@@ -444,8 +436,6 @@ function renderScoreboard() {
 
 	for (const rows of rowsById.values()) rows.forEach(row => row.remove());
 	renderInputting();
-	// New players join from the scoreboard before the first throw, from Settings after.
-	addPlayerRow.classList.toggle('hidden', !mode().canAddPlayer(game) || matchStarted());
 	layoutScores();
 	fitNames();
 	if (menuFor !== null) placePlayerMenu();
@@ -471,12 +461,11 @@ function renderScoreboard() {
  * players the rows shrink and the list scrolls.
  */
 function layoutScores() {
-	const { rows, bigRows, addRow, minScale, maxScale, bigMaxScale } = SCORES_LAYOUT;
+	const { rows, bigRows, minScale, maxScale, bigMaxScale } = SCORES_LAYOUT;
 	const count = game.players.length;
 	// Inside the border, so the rows never overflow it.
 	const available = scoresSection.clientHeight / (Math.min(innerWidth, innerHeight) / 100); // in vmin
-	const add = addPlayerRow.classList.contains('hidden') ? 0 : addRow;
-	const fit = block => (count ? available / (count * block + add) : 1);
+	const fit = block => (count ? available / (count * block) : 1);
 	// A layout is used when it fits at (nearly) full size; the scale below makes it fit exactly.
 	const big = count > 0 && fit(bigRows) >= SCORES_LAYOUT.tolerance;
 	const roomy = big || (count > 0 && fit(rows + SCORES_LAYOUT.stats) >= SCORES_LAYOUT.tolerance);

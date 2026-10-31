@@ -74,7 +74,7 @@ export const TOAST_MS = 2200;
 // Player rows: heights in vmin at scale 1 (as in css/styles.css), and how far they may grow or shrink.
 // rows: name + history; stats: the stats line; bigRows: name + big score + history.
 export const SCORES_LAYOUT = Object.freeze({
-	rows: 15, stats: 5, bigRows: 30, addRow: 10,
+	rows: 15, stats: 5, bigRows: 30,
 	minScale: 0.7, maxScale: 1, bigMaxScale: 1.25,
 	tolerance: 0.97, // a layout still counts as fitting at 97% size
 });
