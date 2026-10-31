@@ -66,3 +66,10 @@ test('dart: a tap on its body or marker reaches it; one well beside it does not'
 	assert.ok(tapDistance(x, y, markSpot(x, y)) < 1e-9);
 	assert.ok(tapDistance(x, y, [x - 0.2, y + 0.2]) > 0.1);
 });
+
+test('dart: shadows fall away from one lamp, so they fan out across the board', () => {
+	const angle = ({ from, to }) => Math.atan2(to[1] - from[1], to[0] - from[0]);
+	const left = dartShape(-0.7, 0.5, straight).shadow;
+	const right = dartShape(0.7, 0.5, straight).shadow;
+	assert.ok(angle(right) < angle(left));
+});

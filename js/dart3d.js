@@ -20,9 +20,17 @@ const BURIED = 0.1;
 // One vane of the flight: [along, out] corners, fractions of the length.
 // Its leading edge curves out from the shaft.
 const VANE = [[0.6, 0], [0.64, 0.06], [0.69, 0.12], [0.75, 0.16], [0.8, 0.17], [0.9, 0.17], [0.91, 0]];
-// The light: from the top left, in front. A point `h` off the board casts its
-// shadow h × this further down and right.
-const LIGHT = [0.35, 0.5];
+// The light: one lamp, above and to the left of the board, in front of it
+// (as a board's light is near it, not far off like the sun): every dart's
+// shadow falls away from the same point.
+const LAMP = [-70, -160, 360];
+/** Where a point casts its shadow on the board, in the lamp's light. */
+const cast = ([px, py, height]) => {
+	const k = LAMP[2] / (LAMP[2] - height);
+	return [LAMP[0] + (px - LAMP[0]) * k, LAMP[1] + (py - LAMP[1]) * k];
+};
+/** Which way the lamp's light falls across the board at x, y (board units). */
+const lightAt = (x, y) => norm([x - LAMP[0], y - LAMP[1]]);
 // The shadow fades out by this far along the dart: its flight casts none, which would hide the board.
 const SHADOW_END = 0.72;
 // How far the numbered marker sits from the point, beside the dart.
@@ -100,7 +108,7 @@ export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = D
 	const ahead = norm(add(back, flat(tip), -1));
 	let side = [-ahead[1], ahead[0]];
 	if (!side[0] && !side[1]) side = [-0.6, -0.8];
-	if (dot(side, LIGHT) > 0) side = side.map(v => -v);
+	if (dot(side, lightAt(tip[0], tip[1])) > 0) side = side.map(v => -v);
 	const lengthwise = [side[1], -side[0]];
 
 	// A round section of the dart at t, radius r: on screen an ellipse, as
@@ -135,8 +143,7 @@ export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = D
 		return { points: corners.map(flat), root, edge, depth };
 	}).sort((a, b) => a.depth - b.depth);
 
-	// Its shadow: each part's round ends cast on the board along the light.
-	const cast = ([px, py, height]) => [px + LIGHT[0] * height, py + LIGHT[1] * height];
+	// Its shadow: each part's round ends cast on the board in the lamp's light.
 	const section = (t, r) => Array.from({ length: ROUND }, (_, i) => {
 		const a = i / ROUND * 2 * Math.PI;
 		return cast(add(add(along(t), right, r * Math.cos(a)), up, r * Math.sin(a)));
@@ -188,6 +195,6 @@ export function markSpot(x, y, view = DART_VIEW) {
 	const { end } = dartShape(x, y, dartPose(x, y, view), {}, view);
 	const tip = [x * 100, y * 100];
 	const tail = norm(add([end.cx, end.cy], tip, -1));
-	const away = norm(add(tail, norm(LIGHT))).map(v => -v);
+	const away = norm(add(tail, lightAt(...tip))).map(v => -v);
 	return [(tip[0] + away[0] * MARK_OFF) / 100, (tip[1] + away[1] * MARK_OFF) / 100];
 }
