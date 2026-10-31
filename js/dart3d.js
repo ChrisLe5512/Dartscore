@@ -16,7 +16,8 @@ const PARTS = {
 	shaft: [0.44, 0.66, 0.85, 0.75],
 };
 // One vane of the flight: [along, out] corners, fractions of the length.
-const VANE = [[0.62, 0], [0.73, 0.17], [0.9, 0.17], [0.91, 0]];
+// Its leading edge curves out from the shaft.
+const VANE = [[0.6, 0], [0.64, 0.06], [0.69, 0.12], [0.75, 0.16], [0.8, 0.17], [0.9, 0.17], [0.91, 0]];
 // The light: from the top left, in front. A point `h` off the board casts its
 // shadow h × this further down and right.
 const LIGHT = [0.35, 0.5];
@@ -44,7 +45,7 @@ function seeded(x, y) {
 export function dartPose(x, y, view = DART_VIEW) {
 	const random = seeded(x, y);
 	const spread = () => (random() * 2 - 1) * view.tilt;
-	return { lean: [spread(), view.lift + spread()], roll: random() * Math.PI / 2 };
+	return { lean: [spread(), view.droop + spread()], roll: random() * Math.PI / 2 };
 }
 
 const add = (a, b, k = 1) => a.map((v, i) => v + b[i] * k);
@@ -80,7 +81,7 @@ function hull(points) {
  * - grip: the barrel's middle line, end to end, for its grip rings;
  * - vanes: the flight's four vanes, back to front, each { points, root, edge };
  * - shadow: on the board, its parts' outlines, from (the point) to where it
- *   has faded out (none in the air).
+ *   has faded out.
  */
 export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = DART_VIEW) {
 	const tip = [x * 100, y * 100, 0];
@@ -125,8 +126,8 @@ export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = D
 		const out = add(right.map(v => v * Math.cos(angle)), up, Math.sin(angle));
 		const corners = VANE.map(([t, w]) => add(along(t), out, w * view.length));
 		const depth = corners.reduce((sum, p) => sum + p[2], 0);
-		const root = flat(along((VANE[0][0] + VANE[3][0]) / 2));
-		const edge = flat(add(along((VANE[1][0] + VANE[2][0]) / 2), out, VANE[1][1] * view.length));
+		const root = flat(along((VANE[0][0] + VANE.at(-1)[0]) / 2));
+		const edge = flat(add(along(0.85), out, 0.17 * view.length));
 		return { points: corners.map(flat), root, edge, depth };
 	}).sort((a, b) => a.depth - b.depth);
 
@@ -136,7 +137,7 @@ export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = D
 		const a = i / ROUND * 2 * Math.PI;
 		return cast(add(add(along(t), right, r * Math.cos(a)), up, r * Math.sin(a)));
 	});
-	const shadow = away ? null : {
+	const shadow = {
 		from: cast(along(0)),
 		to: cast(along(SHADOW_END)),
 		parts: Object.values(PARTS).map(([from, to, r1, r2]) => hull([...section(from, r1), ...section(to, r2)])),

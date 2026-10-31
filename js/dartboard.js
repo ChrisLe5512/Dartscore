@@ -211,8 +211,10 @@ function paintDart(group, { x, y }, motion = {}) {
 	const shape = dartShape(x, y, dartPose(x, y), motion);
 	group.replaceChildren();
 	const defs = el('defs', {}, group);
-	const polygons = (list, attrs) => list.forEach(piece => el('polygon', { points: points(piece), ...attrs }, group));
-	if (shape.shadow) {
+	// The dart itself, see-through as one (overlapping pieces don't darken).
+	let body = group;
+	const polygons = (list, attrs) => list.forEach(piece => el('polygon', { points: points(piece), ...attrs }, body));
+	if (!motion.inAir) {
 		// The dart's own shape as one flat layer (no darker overlaps), faded
 		// by a mask from the point to nothing before the flight.
 		const fade = gradient(defs, [[0, 'white'], [0.55, '#777'], [1, 'black']], [shape.shadow.from, shape.shadow.to]);
@@ -224,88 +226,183 @@ function paintDart(group, { x, y }, motion = {}) {
 	const across = [shape.across.from, shape.across.to];
 	const steel = gradient(defs, [[0, '#121417'], [0.42, '#3d4249'], [0.72, '#a3a9b1'], [0.86, '#5e646c'], [1, '#202328']], across);
 	const black = gradient(defs, [[0, '#030303'], [0.55, '#18181a'], [0.76, '#4a4c50'], [1, '#0b0b0b']], across);
-	polygons([shape.point, shape.nose, shape.barrel], { class: 'dart-steel', fill: steel });
+	body = el('g', { class: 'dart-body' }, group);
+	// The point black, so it doesn't look like its shadow.
+	polygons([shape.point], { class: 'dart-point' });
+	polygons([shape.nose, shape.barrel], { class: 'dart-steel', fill: steel });
 	// Grip rings round the barrel.
 	const [g1, g2] = shape.grip;
 	const grip = [0.12, 0.88].map(t => [g1[0] + (g2[0] - g1[0]) * t, g1[1] + (g2[1] - g1[1]) * t]);
 	const width = Math.hypot(shape.across.to[0] - shape.across.from[0], shape.across.to[1] - shape.across.from[1]);
-	el('line', { class: 'dart-grip', 'stroke-width': round(width * 0.94), x1: round(grip[0][0]), y1: round(grip[0][1]), x2: round(grip[1][0]), y2: round(grip[1][1]) }, group);
+	el('line', { class: 'dart-grip', 'stroke-width': round(width * 0.94), x1: round(grip[0][0]), y1: round(grip[0][1]), x2: round(grip[1][0]), y2: round(grip[1][1]) }, body);
 	polygons([shape.tail], { class: 'dart-steel', fill: steel });
 	// The barrel's end, facing you: a shaded disc, the shaft coming out of it.
-	ellipse(shape.face, { class: 'dart-face', fill: gradient(defs, [[0, '#8d939b'], [0.55, '#3a3f45'], [1, '#141619']]) }, group);
+	ellipse(shape.face, { class: 'dart-face', fill: gradient(defs, [[0, '#8d939b'], [0.55, '#3a3f45'], [1, '#141619']]) }, body);
 	polygons([shape.shaft], { class: 'dart-shaft', fill: black });
-	ellipse(shape.end, { class: 'dart-shaft', fill: '#0d0d0d' }, group);
+	// The shaft's end, into the flight: shaded like the shaft, no hard rim.
+	ellipse(shape.end, { class: 'dart-shaft-end', fill: gradient(defs, [[0, '#4a4c50'], [1, '#0b0b0b']]) }, body);
 	// The flight: one see-through layer, so where the vanes meet doesn't darken.
 	const flight = el('g', { class: 'dart-flight' }, group);
 	for (const { points: vane, root, edge } of shape.vanes) {
 		const fill = gradient(defs, [[0, 'color-mix(in srgb, var(--dart-flight) 45%, black)'], [0.5, 'var(--dart-flight)'], [1, 'color-mix(in srgb, var(--dart-flight) 70%, white)']], [root, edge]);
 		el('polygon', { points: points(vane), fill }, flight);
 	}
-	group.style.opacity = motion.opacity ?? '';
+	// A past turn's darts are fainter.
+	const faint = group.classList.contains('review') ? 0.6 : 1;
+	group.style.opacity = (motion.opacity ?? 1) * faint;
 }
 
-// Darts in the air: when each was thrown, by where it landed. They keep
-// flying when the board is redrawn mid-flight.
-const flying = new Map();
+// How each dart is moving, by where it landed (so it keeps moving when the
+// board is redrawn): thrown (when), lifted (picked up to move: how far out,
+// from and to, and since when). Darts being taken out keep theirs on their
+// element (`pulled`), as they're no longer in the list.
+const thrown = new Map();
+const lifted = new Map();
 const dartId = ({ x, y }) => `${x},${y}`;
+const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const moving = new WeakSet(); // board layers with darts on the move
 
-/** Where a thrown dart is `ms` after the throw: coming in along its line, then wobbling about its point. */
-function motionAt(ms) {
+/** A thrown dart `ms` after the throw: coming in along its line, then wobbling about its point. */
+function throwAt(ms) {
 	const { flightIn, flightMs, wobbleMs } = DART_VIEW;
 	if (ms < flightMs) {
 		const t = ms / flightMs;
-		return { away: flightIn * (1 - t * t), opacity: Math.min(1, t * 3) };
+		return { away: flightIn * (1 - t * t), opacity: Math.min(1, t * 3), inAir: true };
 	}
 	const t = Math.min(1, (ms - flightMs) / wobbleMs);
 	const swing = 0.06 * Math.sin(t * Math.PI * 4) * (1 - t) ** 2;
 	return { sway: [swing * 0.4, swing] };
 }
 
-function flyDarts(svg) {
-	const now = performance.now();
-	for (const [id, thrown] of flying) {
-		const group = svg.querySelector(`.dart[data-dart="${id}"]`);
-		const ms = now - thrown;
-		if (!group || ms > DART_VIEW.flightMs + DART_VIEW.wobbleMs) {
-			flying.delete(id);
-			if (group) paintDart(group, group.hit);
-		} else paintDart(group, group.hit, motionAt(ms));
+/** How far out of the board a picked-up dart is at `now`. */
+function liftAt(id, now) {
+	const lift = lifted.get(id);
+	if (!lift) return 0;
+	const t = Math.min(1, (now - lift.since) / DART_VIEW.liftMs);
+	return lift.from + (lift.to - lift.from) * (1 - (1 - t) ** 2);
+}
+
+/** A dart's motion at `now`: thrown, lifted and being pulled out, added up. Null once it's gone. */
+function motionOf(group, now) {
+	const id = group.dataset.dart;
+	const motion = thrown.has(id) ? throwAt(now - thrown.get(id)) : {};
+	let away = (motion.away ?? 0) + (group.pulled ? group.pulled.from : liftAt(id, now));
+	if (group.pulled) {
+		const t = (now - group.pulled.since) / DART_VIEW.pullMs;
+		if (t >= 1) return null;
+		if (t > 0) {
+			away += DART_VIEW.pullOut * t * t;
+			motion.opacity = 1 - t;
+		}
 	}
-	if (flying.size) requestAnimationFrame(() => flyDarts(svg));
+	return { ...motion, away };
+}
+
+/** Whether a dart still has somewhere to go. */
+function isMoving(group, now) {
+	const id = group.dataset.dart;
+	const lift = lifted.get(id);
+	return Boolean(group.pulled)
+		|| (thrown.has(id) && now - thrown.get(id) < DART_VIEW.flightMs + DART_VIEW.wobbleMs)
+		|| Boolean(lift && now - lift.since < DART_VIEW.liftMs);
+}
+
+/** Move the darts on, a frame at a time, until none is moving. */
+function moveDarts(layer) {
+	const now = performance.now();
+	let more = false;
+	for (const group of layer.querySelectorAll('.dart')) {
+		const motion = motionOf(group, now);
+		if (!motion) {
+			group.remove();
+			continue;
+		}
+		paintDart(group, group.hit, motion);
+		if (isMoving(group, now)) more = true;
+		else thrown.delete(group.dataset.dart);
+	}
+	if (more) requestAnimationFrame(() => moveDarts(layer));
+	else moving.delete(layer);
+}
+
+function startMoving(layer) {
+	if (moving.has(layer)) return;
+	moving.add(layer);
+	requestAnimationFrame(() => moveDarts(layer));
+}
+
+/**
+ * Take darts out of the board: this turn's are pulled out and fade, one after
+ * another in their order; a past turn's (or with reduced motion) fade
+ * together. Their markers go with them.
+ */
+function takeOut(layer, darts) {
+	if (!darts.length) return;
+	const now = performance.now();
+	darts.sort((a, b) => a.index - b.index).forEach((group, order) => {
+		const mark = layer.querySelector(`.mark-place[data-dart="${group.dataset.dart}"]`);
+		if (group.classList.contains('review') || still()) {
+			fadeOut(group);
+			if (mark) fadeOut(mark);
+			return;
+		}
+		const delay = order * DART_VIEW.pullGap;
+		group.pulled = { since: now + delay, from: liftAt(group.dataset.dart, now) };
+		lifted.delete(group.dataset.dart);
+		thrown.delete(group.dataset.dart);
+		if (mark) {
+			mark.style.animationDelay = `${delay}ms`;
+			fadeOut(mark);
+		}
+	});
+	startMoving(layer);
 }
 
 /**
  * Darts where they landed, each with a numbered marker beside its point:
  * [{ x, y }] as fractions of the radius. kind: 'live' or 'review'; pop:
- * indexes to fly in; editing: index of the dart being moved.
+ * indexes just thrown; editing: index of the dart being moved (it comes a
+ * little out of the board). A past turn's darts are all thrown in at once.
  */
 export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null } = {}) {
 	const layer = svg.querySelector('.marks');
 	if (!layer) return;
-	if (!hits.length) {
-		for (const place of [...layer.children]) fadeOut(place);
-		return;
-	}
+	const now = performance.now();
+	const shown = [...layer.querySelectorAll('.dart')].filter(group => !group.pulled && !group.classList.contains('leaving'));
+	const ids = new Set(hits.map(dartId));
+	// Darts no longer listed are taken out.
+	takeOut(layer, shown.filter(group => !ids.has(group.dataset.dart)));
+	if (!hits.length) return;
+
+	const before = new Set(shown.map(group => group.dataset.dart));
+	const landing = index => (kind === 'review' ? !before.has(dartId(hits[index])) : pop.includes(index));
+	const state = index => [kind, landing(index) && 'pop', editing === index && 'editing'];
 	const at = ({ x, y }) => ({ transform: `translate(${round(x * 100)} ${round(y * 100)})` });
-	const state = index => [kind, pop.includes(index) && 'pop', editing === index && 'editing'];
-	const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-	const wasFlying = flying.size > 0;
+
 	// All the darts first, then all the markers, so no dart covers a number.
 	const darts = hits.map((hit, index) => {
 		const id = dartId(hit);
 		const group = el('g', { class: ['dart', ...state(index)].filter(Boolean).join(' '), 'data-dart': id });
 		group.hit = hit;
-		if (pop.includes(index) && !still && !flying.has(id)) flying.set(id, performance.now());
-		paintDart(group, hit, flying.has(id) ? motionAt(performance.now() - flying.get(id)) : {});
+		group.index = index;
+		if (landing(index) && !still()) thrown.set(id, now);
+		// Picked up: out a little; put back: in again.
+		const lift = editing === index ? DART_VIEW.lift : 0;
+		if ((lifted.get(id)?.to ?? 0) !== lift) {
+			lifted.set(id, { from: still() ? lift : liftAt(id, now), to: lift, since: now });
+		}
+		paintDart(group, hit, motionOf(group, now));
+		if (isMoving(group, now)) startMoving(layer);
 		return group;
 	});
+	for (const id of lifted.keys()) if (!ids.has(id)) lifted.delete(id);
 	layer.style.setProperty('--dart-flight-time', `${DART_VIEW.flightMs}ms`);
-	if (flying.size && !wasFlying) requestAnimationFrame(() => flyDarts(svg));
+
 	// Each marker beside its dart's point, a short line pointing at it, so
 	// where the dart went in shows.
 	const marks = hits.map((hit, index) => {
 		const [mx, my] = markSpot(hit.x, hit.y);
-		const place = el('g', at({ x: mx, y: my }));
+		const place = el('g', { class: 'mark-place', 'data-dart': dartId(hit), ...at({ x: mx, y: my }) });
 		const toTip = [(hit.x - mx) * 100, (hit.y - my) * 100];
 		const reach = Math.hypot(...toTip);
 		const unit = toTip.map(v => v / reach);
@@ -319,5 +416,8 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 		el('text', {}, mark).textContent = index + 1;
 		return place;
 	});
-	layer.replaceChildren(...darts, ...marks);
+	// Darts and markers on their way out stay until they're gone.
+	const leaving = [...layer.children].filter(node => node.pulled || node.classList.contains('leaving'));
+	const isDart = node => node.classList.contains('dart');
+	layer.replaceChildren(...darts, ...leaving.filter(isDart), ...marks, ...leaving.filter(node => !isDart(node)));
 }

@@ -2989,6 +2989,11 @@ td.calc-score:not(.disabled) {
 
 .mark-leader.review {
 	opacity: 0.7;
+}
+
+/* A past turn's markers fade in; when its darts are thrown in again, they pop as those land. */
+.mark-leader.review:not(.pop),
+.mark.review:not(.pop) {
 	animation: fade-in var(--medium) var(--ease-out);
 }
 
@@ -3003,10 +3008,6 @@ td.calc-score:not(.disabled) {
 	animation: mark-pop var(--medium) var(--ease-back);
 }
 
-.mark.review {
-	animation: fade-in var(--medium) var(--ease-out);
-}
-
 /* A dart in the board, in perspective (dart3d.js): solid at its point,
    fading towards its tail so the board shows through. Its barrel and shaft
    are shaded in dartboard.js; its flight is blue for now (one day, your own
@@ -3019,6 +3020,15 @@ td.calc-score:not(.disabled) {
 .dart-shadow {
 	fill: black;
 	opacity: 0.4;
+}
+
+/* The dart's steel, a little see-through. */
+.dart-body {
+	opacity: 0.85;
+}
+
+.dart-point {
+	fill: black;
 }
 
 /* Soft edges, a darker tone of each part rather than a hard line. */
@@ -3051,12 +3061,6 @@ td.calc-score:not(.disabled) {
 	stroke-width: 0.25;
 	stroke-opacity: 0.5;
 	stroke-linejoin: round;
-}
-
-/* A past turn being looked back at: its darts fainter. */
-.dart.review {
-	opacity: 0.6;
-	animation: fade-in var(--medium) var(--ease-out);
 }
 
 /* The marker pops as its dart lands (--dart-flight-time is set from config.js). */

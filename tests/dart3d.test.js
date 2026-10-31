@@ -38,11 +38,10 @@ test('dart: the same spot gives the same pose; poses vary', () => {
 	assert.notDeepEqual(dartPose(0.31, -0.42), dartPose(0.32, -0.42));
 });
 
-test('dart: its shadow starts at the point and falls down and right; none in the air', () => {
+test('dart: its shadow starts at the point and falls down and right', () => {
 	const { shadow } = dartShape(0.1, 0.1, straight);
 	assert.deepEqual(shadow.from, [10, 10]);
 	assert.ok(shadow.to[0] > 10 && shadow.to[1] > 10);
-	assert.equal(dartShape(0.1, 0.1, straight, { away: 10 }).shadow, null);
 	assert.equal(dartShape(0.1, 0.1, straight).vanes.length, 4);
 });
 

@@ -70,10 +70,15 @@ export const DART_VIEW = Object.freeze({
 	eye: 300,      // how far the eye is from the board: nearer, the darts splay out more
 	length: 76,    // point to the end of the flights (a real dart, to the board's scale)
 	tilt: 0.09,    // how far a dart leans any way at random (tan of the angle)
-	lift: -0.1,    // the usual lean: tails a little up (negative is up)
+	droop: -0.1,   // the usual lean: tails a little up (negative is up)
 	flightIn: 120, // how far in front of the board a thrown dart comes from
 	flightMs: 170, // in the air
 	wobbleMs: 380, // the wobble as it lands
+	lift: 6,       // picked up to move: how far it comes out of the board
+	liftMs: 140,
+	pullOut: 40,   // taken out (the score sent, cleared, removed): how far it's pulled before it's gone
+	pullMs: 240,
+	pullGap: 70,   // between darts 1, 2 and 3 being taken out
 });
 
 // How close (as a fraction of the board radius) a tap must be to a dart's
