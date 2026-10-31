@@ -2414,6 +2414,13 @@ td.back-score {
 		background: var(--hover-tint);
 	}
 
+	/* ✓ or Done for the input not in use, when it has something to send:
+	   amber under the pointer too, as it can still be used. */
+	:root:not(.touching) :is(.calc-tbl td.check-score, .btn-tbl td.done-btn):not(.disabled):hover {
+		--send-top: var(--edit);
+		--send-bottom: var(--edit-dark);
+	}
+
 	/* The player menu's name row lights as one; its pencil not on its own. */
 	:root:not(.touching) .player-menu:not(.renaming) .player-menu-head:hover {
 		background: var(--hover-tint);
