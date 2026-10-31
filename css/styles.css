@@ -2003,9 +2003,49 @@ td.back-score {
 	pointer-events: none;
 }
 
-/* Frame around the three dart slots: outline only. */
+/* The darts card: one panel for the turn's three darts (laid over it from
+   .darts), with ✕ in its corner to clear them once there are any. */
 .btn-tbl td.darts-btn {
+	position: relative;
+	background: linear-gradient(#262626, #161616);
+	border: var(--border-muted);
+}
+
+.darts-clear {
+	position: absolute;
+	top: calc(0.8 * var(--u));
+	right: calc(0.8 * var(--u));
+	display: grid;
+	place-items: center;
+	width: calc(4.4 * var(--u));
+	height: calc(4.4 * var(--u));
+	padding: 0;
+	color: var(--text);
 	background: none;
+	border: none;
+	border-radius: 50%;
+	cursor: pointer;
+	transition: background var(--hover-speed), transform var(--fast) var(--ease-out);
+}
+
+.darts-clear:active {
+	transform: scale(0.85);
+}
+
+.darts-clear .icon {
+	width: 62%;
+	height: 62%;
+}
+
+/* Line icons (the darts' ✕, the controls on the left): drawn in the text colour. */
+.icon {
+	display: block;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2.2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	filter: drop-shadow(0 0 0.6vmin black);
 }
 
 .large-btn {
@@ -2013,17 +2053,29 @@ td.back-score {
 	cursor: pointer;
 }
 
-.darts-clear {
-	font-size: calc(4 * var(--u));
-	font-weight: normal;
-	cursor: pointer;
+/* BUST scores nothing: a dark button edged and lettered in the bust red. */
+.btn-tbl td.bust-btn {
+	color: var(--bust);
+	background: linear-gradient(#3a1d18, #1c0e0b);
+	border-color: color-mix(in srgb, var(--bust) 80%, transparent);
 }
 
-.darts-total {
-	line-height: calc(1.5 * var(--u));
+/* Done: a ✓ like the keypad's, with what the darts make beside it. */
+.done-btn {
+	white-space: nowrap;
+}
+
+.done-total:not(:empty) {
+	margin-right: calc(1.2 * var(--u));
+	font-size: calc(5.2 * var(--u));
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.done-check {
+	font-family: var(--font);
 	font-size: calc(6 * var(--u));
-	font-weight: 400;
-	cursor: default;
+	font-weight: 500;
 }
 
 .darts {
@@ -2089,6 +2141,22 @@ td.back-score {
 	line-height: calc(8 * var(--u));
 	background: black;
 	cursor: pointer;
+}
+
+/* A dart still to throw: a dashed outline with its number, faint. */
+.darts span.empty {
+	display: grid;
+	place-items: center;
+	border-style: dashed;
+	border-color: color-mix(in srgb, var(--text-muted) 70%, transparent);
+	color: var(--text-muted);
+	text-shadow: none;
+	pointer-events: none;
+}
+
+.darts span.empty::before {
+	content: attr(data-n);
+	font-size: calc(3.6 * var(--u));
 }
 
 
@@ -2414,8 +2482,8 @@ td.back-score {
 		.players-add,
 		.calc-tbl td:not(.disabled),
 		.ctrl-tbl td:not(.disabled),
-		.btn-tbl td:not(.disabled, .darts-btn, .darts-total),
-		.darts span[class]:not([class=""]),
+		.btn-tbl td:not(.disabled, .darts-btn),
+		.darts span:not(.empty),
 		.add-player td
 	):hover {
 		box-shadow: var(--hover-veil);
@@ -2511,8 +2579,8 @@ td.back-score {
 
 .calc-tbl td:not(.disabled, .calc-score):active,
 .ctrl-tbl td:not(.disabled):active,
-.btn-tbl td:not(.disabled, .darts-btn, .darts-total):active,
-.darts span[class]:not([class=""]):active,
+.btn-tbl td:not(.disabled, .darts-btn):active,
+.darts span:not(.empty):active,
 .add-player td:active,
 .players-add:active,
 .settings-btn-action:active {

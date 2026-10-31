@@ -1016,7 +1016,7 @@ const dartSpans = $$('.darts span');
 const bustBtn = $('.bust-btn');
 const doneBtn = $('.done-btn');
 const dartsClearBtn = $('.darts-clear');
-const dartsTotalCell = $('.darts-total');
+const doneTotal = $('.done-total', doneBtn);
 const debugSpan = $('.debug-span');
 const debug = new URLSearchParams(location.search).has('debug');
 debugSpan.hidden = !debug;
@@ -1162,7 +1162,8 @@ bustBtn.addEventListener('click', () => {
 function renderDarts(pop = []) {
 	dartSpans.forEach((span, index) => {
 		const dart = turn.darts[index];
-		span.className = dart ? dart.color : '';
+		// An empty slot shows its number faintly (data-n), so the darts left show.
+		span.className = dart ? dart.color : 'empty';
 		span.classList.toggle('editing', turn.editing === index);
 		if (dart && pop.includes(index)) replay(span, 'pop');
 		if (!dart) {
@@ -1183,10 +1184,9 @@ function renderDarts(pop = []) {
 	renderMarks(pop);
 
 	const hasDarts = turn.darts.length > 0;
-	dartsClearBtn.textContent = hasDarts ? 'Clear' : 'Darts';
-	dartsClearBtn.classList.toggle('disabled', !hasDarts);
-	dartsTotalCell.textContent = hasDarts ? mode().dartsValue(game, turn.darts) : '';
-	dartsTotalCell.classList.toggle('disabled', !hasDarts);
+	dartsClearBtn.hidden = !hasDarts;
+	// Done is a ✓ like the keypad's, with what the darts make beside it.
+	doneTotal.textContent = hasDarts ? mode().dartsValue(game, turn.darts) : '';
 	doneBtn.classList.toggle('disabled', !hasDarts);
 
 	// The active player's checkout follows the darts on the board.
