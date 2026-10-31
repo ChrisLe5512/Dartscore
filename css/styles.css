@@ -2193,7 +2193,7 @@ td.back-score {
 	display: block;
 	width: 100%;
 	height: 100%;
-	overflow: visible; /* a dart in a top double reaches past the board */
+	overflow: visible; /* darts lean out past the board, and fly in from beyond it */
 	pointer-events: auto;
 	-webkit-tap-highlight-color: transparent;
 }
@@ -2992,93 +2992,64 @@ td.calc-score:not(.disabled) {
 	animation: fade-in var(--medium) var(--ease-out);
 }
 
-/* A dart in the board: steel point, silver barrel, its flight in the
+/* A dart in the board, in perspective (dart3d.js): solid at its point,
+   fading towards its tail so the board shows through. Its flight in the
    highlight colour (the moving yellow while it's picked up). */
-:root {
-	--dart-flight-time: 200ms; /* in the air; the marker pops as it lands */
+.dart line {
+	stroke-linecap: round;
 }
 
 .dart-shadow {
-	stroke: rgba(0, 0, 0, 0.45);
-	stroke-width: 2.2;
-	stroke-linecap: round;
-	filter: blur(0.6px);
+	stroke: rgba(0, 0, 0, 0.3);
+	stroke-width: 2.4;
+	filter: blur(1px);
 }
 
 .dart-point {
-	stroke: #d8d8d8;
-	stroke-width: 0.5;
-	stroke-linecap: round;
+	stroke: #e2e4e8;
 }
 
 .dart-barrel {
-	fill: #9a9ea6;
-	stroke: #2a2c30;
-	stroke-width: 0.25;
+	stroke: #8d939c;
+	opacity: 0.85;
 }
 
+/* Grip rings round the barrel. */
 .dart-grip {
-	stroke: #3c3f45;
-	stroke-width: 0.35;
+	stroke: #2c2f34;
+	stroke-dasharray: 0.9 1.1;
+	stroke-linecap: butt !important;
+	opacity: 0.6;
 }
 
 .dart-shaft {
-	fill: #1c1c1c;
-	stroke: #555;
-	stroke-width: 0.2;
+	stroke: #1a1a1a;
+	opacity: 0.5;
 }
 
-.dart-flight {
+.dart-vane {
 	fill: color-mix(in srgb, var(--board-hit) 85%, black);
-	stroke: rgba(0, 0, 0, 0.7);
+	stroke: rgba(0, 0, 0, 0.6);
 	stroke-width: 0.3;
 	stroke-linejoin: round;
+	opacity: 0.32;
 }
 
-.dart-flight-fold {
-	stroke: rgba(0, 0, 0, 0.45);
-	stroke-width: 0.3;
-}
-
-.dart.editing .dart-flight {
+.dart.editing .dart-vane {
 	fill: var(--dart-edit);
+	opacity: 0.5;
 }
 
-/* A past turn being looked back at: its darts faint. */
+/* A past turn being looked back at: its darts fainter. */
 .dart.review {
-	opacity: 0.55;
+	opacity: 0.6;
 	animation: fade-in var(--medium) var(--ease-out);
 }
 
-/* Thrown: from big and below (nearer the thrower) onto the board, quickening
-   as it goes; then a little wobble about its point. */
-.dart.pop {
-	transform-box: fill-box;
-	transform-origin: 50% 100%;
-	animation: dart-fly var(--dart-flight-time) cubic-bezier(0.55, 0, 0.9, 0.5);
-}
-
-.dart.pop .dart-body {
-	transform-box: fill-box;
-	transform-origin: 50% 100%;
-	animation: dart-wobble 450ms ease-out var(--dart-flight-time);
-}
-
+/* The marker pops as its dart lands (--dart-flight-time is set from config.js). */
 .mark.pop {
-	animation-delay: calc(var(--dart-flight-time) * 0.8);
+	animation-delay: calc(var(--dart-flight-time, 0ms) * 0.8);
 	animation-fill-mode: backwards;
-}
-
-@keyframes dart-fly {
-	from { opacity: 0; transform: translate(14px, 34px) scale(2.4); }
-	30% { opacity: 1; }
-}
-
-@keyframes dart-wobble {
-	20% { transform: rotate(5deg); }
-	45% { transform: rotate(-3deg); }
-	70% { transform: rotate(1.5deg); }
-	to { transform: none; }
 }
 
 /* Lit beds and markers on their way out. */

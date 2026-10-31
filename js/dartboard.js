@@ -2,8 +2,9 @@
 // sizes, outlines and colours (CSS variables) can change and segments can
 // light up. DOM only: where a dart lands is worked out in board.js.
 
-import { BOARD_SECTORS, BOARD_STYLE } from './config.js';
+import { BOARD_SECTORS, BOARD_STYLE, DART_VIEW } from './config.js';
 import { dartColor, RINGS } from './board.js';
+import { dartPose, dartShape } from './dart3d.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -178,21 +179,54 @@ export function lightSegments(svg, lights) {
 	}
 }
 
-/**
- * A dart stuck in the board, its point at 0 0 and its flight up and a little
- * to the right, as a dart hangs in a real board. The flight is drawn in the
- * highlight colour (CSS).
- */
-function drawDart(parent) {
-	const lean = el('g', { transform: 'rotate(18)' }, parent);
-	const body = el('g', { class: 'dart-body' }, lean);
-	el('path', { class: 'dart-shadow', d: 'M0.6 0.4 L1.6 -15' }, body);
-	el('path', { class: 'dart-point', d: 'M0 0 L0 -3.4' }, body);
-	el('rect', { class: 'dart-barrel', x: -1.05, y: -9.2, width: 2.1, height: 6, rx: 0.9 }, body);
-	el('path', { class: 'dart-grip', d: 'M-1 -7.6 H1 M-1 -6.6 H1 M-1 -5.6 H1 M-1 -4.6 H1' }, body);
-	el('rect', { class: 'dart-shaft', x: -0.45, y: -12.6, width: 0.9, height: 3.6, rx: 0.3 }, body);
-	el('path', { class: 'dart-flight', d: 'M0 -11.6 L3.3 -14.6 L3.1 -17.6 L0 -16.8 L-3.1 -17.6 L-3.3 -14.6 Z' }, body);
-	el('path', { class: 'dart-flight-fold', d: 'M0 -11.6 V-16.8' }, body);
+// ---- Darts in the board ----
+
+const line = ([x1, y1], [x2, y2], attrs, parent) =>
+	el('line', { x1: round(x1), y1: round(y1), x2: round(x2), y2: round(y2), ...attrs }, parent);
+
+/** Draw a dart into its group (emptied first): shadow, point, barrel, shaft, then the flight, nearest the eye. */
+function paintDart(group, { x, y }, motion = {}) {
+	const shape = dartShape(x, y, dartPose(x, y), motion);
+	group.replaceChildren();
+	if (shape.shadow) line(shape.shadow.a, shape.shadow.b, { class: 'dart-shadow' }, group);
+	line(shape.point.a, shape.point.b, { class: 'dart-point', 'stroke-width': round(shape.point.width) }, group);
+	line(shape.barrel.a, shape.barrel.b, { class: 'dart-barrel', 'stroke-width': round(shape.barrel.width) }, group);
+	line(shape.barrel.a, shape.barrel.b, { class: 'dart-grip', 'stroke-width': round(shape.barrel.width * 0.9) }, group);
+	line(shape.shaft.a, shape.shaft.b, { class: 'dart-shaft', 'stroke-width': round(shape.shaft.width) }, group);
+	for (const vane of shape.vanes) {
+		el('polygon', { class: 'dart-vane', points: vane.map(p => p.map(round).join(',')).join(' ') }, group);
+	}
+	group.style.opacity = motion.opacity ?? '';
+}
+
+// Darts in the air: when each was thrown, by where it landed. They keep
+// flying when the board is redrawn mid-flight.
+const flying = new Map();
+const dartId = ({ x, y }) => `${x},${y}`;
+
+/** Where a thrown dart is `ms` after the throw: coming in along its line, then wobbling about its point. */
+function motionAt(ms) {
+	const { flightIn, flightMs, wobbleMs } = DART_VIEW;
+	if (ms < flightMs) {
+		const t = ms / flightMs;
+		return { away: flightIn * (1 - t * t), opacity: Math.min(1, t * 3) };
+	}
+	const t = Math.min(1, (ms - flightMs) / wobbleMs);
+	const swing = 0.06 * Math.sin(t * Math.PI * 4) * (1 - t) ** 2;
+	return { sway: [swing * 0.4, swing] };
+}
+
+function flyDarts(svg) {
+	const now = performance.now();
+	for (const [id, thrown] of flying) {
+		const group = svg.querySelector(`.dart[data-dart="${id}"]`);
+		const ms = now - thrown;
+		if (!group || ms > DART_VIEW.flightMs + DART_VIEW.wobbleMs) {
+			flying.delete(id);
+			if (group) paintDart(group, group.hit);
+		} else paintDart(group, group.hit, motionAt(ms));
+	}
+	if (flying.size) requestAnimationFrame(() => flyDarts(svg));
 }
 
 /**
@@ -209,12 +243,19 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 	}
 	const at = ({ x, y }) => ({ transform: `translate(${round(x * 100)} ${round(y * 100)})` });
 	const state = index => [kind, pop.includes(index) && 'pop', editing === index && 'editing'];
+	const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const wasFlying = flying.size > 0;
 	// All the darts first, then all the markers, so no dart covers a number.
 	const darts = hits.map((hit, index) => {
-		const place = el('g', at(hit));
-		drawDart(el('g', { class: ['dart', ...state(index)].filter(Boolean).join(' ') }, place));
-		return place;
+		const id = dartId(hit);
+		const group = el('g', { class: ['dart', ...state(index)].filter(Boolean).join(' '), 'data-dart': id });
+		group.hit = hit;
+		if (pop.includes(index) && !still && !flying.has(id)) flying.set(id, performance.now());
+		paintDart(group, hit, flying.has(id) ? motionAt(performance.now() - flying.get(id)) : {});
+		return group;
 	});
+	layer.style.setProperty('--dart-flight-time', `${DART_VIEW.flightMs}ms`);
+	if (flying.size && !wasFlying) requestAnimationFrame(() => flyDarts(svg));
 	const marks = hits.map((hit, index) => {
 		const place = el('g', at(hit));
 		const mark = el('g', { class: ['mark', ...state(index)].filter(Boolean).join(' ') }, place);

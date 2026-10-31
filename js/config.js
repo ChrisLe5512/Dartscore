@@ -64,6 +64,18 @@ export const PREFS_KEY = 'dartscore:prefs'; // per-device view choices, e.g. key
 export const LEGACY_STORAGE_KEYS = ['dartGameData'];
 export const MAX_UNDO_STEPS = 200;
 
+// The darts drawn in the board, in perspective from an eye in front of the
+// bull. Lengths in % of the board radius (100 = the number ring's edge).
+export const DART_VIEW = Object.freeze({
+	eye: 300,      // how far the eye is from the board: nearer, the darts splay out more
+	length: 76,    // point to the end of the flights (a real dart, to the board's scale)
+	tilt: 0.09,    // how far a dart leans any way at random (tan of the angle)
+	lift: -0.1,    // the usual lean: tails a little up (negative is up)
+	flightIn: 120, // how far in front of the board a thrown dart comes from
+	flightMs: 220, // in the air
+	wobbleMs: 500, // the wobble as it lands
+});
+
 // How close (as a fraction of the board radius) a tap must be to a dart's
 // marker to pick that dart up. The marker itself is 0.036 across the middle.
 export const MARK_REACH = 0.05;

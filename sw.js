@@ -21,6 +21,7 @@ const APP_SHELL = [
 	'js/checkout.js',
 	'js/clock.js',
 	'js/config.js',
+	'js/dart3d.js',
 	'js/dartboard.js',
 	'js/doubles.js',
 	'js/feedback.js',
