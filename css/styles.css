@@ -2929,7 +2929,7 @@ td.calc-score:not(.disabled) {
 }
 
 @keyframes editing-light {
-	to { opacity: 0.35; }
+	from { opacity: 0.35; }
 }
 
 /* Centred on where the dart landed. */
