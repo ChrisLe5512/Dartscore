@@ -835,7 +835,9 @@ renameBtn.addEventListener('pointerdown', event => {
 });
 
 playerMenu.addEventListener('click', event => {
-	const action = event.target.closest('[data-menu]')?.dataset.menu;
+	// The whole name row renames, not just its pencil (but not the text field).
+	const onName = event.target.closest('.player-menu-head') && !event.target.closest('input');
+	const action = event.target.closest('[data-menu]')?.dataset.menu ?? (onName ? 'rename' : undefined);
 	const index = game.players.findIndex(p => p.id === menuFor);
 	if (!action || index < 0) return;
 	if (action === 'rename') {

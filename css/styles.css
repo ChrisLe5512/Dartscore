@@ -2193,6 +2193,13 @@ td.back-score {
 	border-bottom: 1px solid color-mix(in srgb, var(--edit) 50%, transparent);
 }
 
+/* All of it (name and pencil) is one button to rename, until renaming. */
+.player-menu:not(.renaming) .player-menu-head {
+	border-radius: calc(var(--radius) * 0.7) calc(var(--radius) * 0.7) 0 0;
+	cursor: pointer;
+	transition: background var(--hover-speed);
+}
+
 .player-menu-name {
 	flex: 1;
 	min-width: 0;
@@ -2392,6 +2399,15 @@ td.back-score {
 
 	:root:not(.touching) :is(.field-btn, .player-menu button):not(:disabled):hover {
 		background: var(--hover-tint);
+	}
+
+	/* The player menu's name row lights as one; its pencil not on its own. */
+	:root:not(.touching) .player-menu:not(.renaming) .player-menu-head:hover {
+		background: var(--hover-tint);
+	}
+
+	:root:not(.touching) .player-menu:not(.renaming) .player-menu-rename:hover {
+		background: none;
 	}
 
 	:root:not(.touching) .swatch:not([aria-pressed="true"]):hover {
