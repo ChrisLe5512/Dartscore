@@ -24,7 +24,8 @@
 	--active-line: #173450; /* their history and stats lines */
 	--dim: brightness(0.5); /* players out of focus while a score is entered or a player edited */
 	--edit: #e6b84a; /* a player whose menu is open, and the menu */
-	--menu-row: linear-gradient(#e6b84a, #8a6414);
+	--edit-dark: #8a6414; /* the bottom of its gradient */
+	--menu-row: linear-gradient(var(--edit), var(--edit-dark));
 	--menu-line: #3a2e0e; /* their history and stats lines */
 	--menu-panel: linear-gradient(#4a3c18, #1a1508);
 	--history-muted: #6e6e6e; /* zero and bust visits */
@@ -1351,15 +1352,23 @@ body:is(.menu-focus, .review-focus) .calc-section {
 	filter: var(--dim);
 }
 
-/* Which way the score is going in, in the amber of a player being edited,
-   and the button that sends it. Typing: the keypad's panel is tinted, the
-   score rocker and ✓ are amber, and the board's darts (still shown) turn grey
-   with the darts column stepping back. Darts on the board: Done is amber.
-   Nothing is cleared: using the other one switches. JS sets the body classes
-   (renderInputting). The amber is a veil over each button's own fill, so it
-   fades in and out. */
-:root {
-	--edit-veil: inset 0 0 0 100vmax color-mix(in srgb, var(--edit) 80%, transparent);
+/* Which way the score is going in, and the button that sends it, in the
+   amber of a player being edited. Typing: the score rocker and ✓ turn amber,
+   and the board's darts (still shown) turn grey with the darts column
+   stepping back. Darts on the board: Done turns amber. Nothing is cleared:
+   using the other one switches. JS sets the body classes (renderInputting).
+   The amber is a gradient over each button's own fill, its two colours
+   see-through until in use, so it fades in and out. */
+@property --send-top {
+	syntax: "<color>";
+	inherits: false;
+	initial-value: transparent;
+}
+
+@property --send-bottom {
+	syntax: "<color>";
+	inherits: false;
+	initial-value: transparent;
 }
 
 .darts {
@@ -1370,18 +1379,30 @@ body.keypad-input:not(.visuals-open) .darts {
 	opacity: 0.45;
 }
 
-body.keypad-input .calc-section {
-	background: color-mix(in srgb, var(--edit) 22%, transparent);
+td.calc-score:not(.disabled)::before {
+	background: linear-gradient(var(--send-top), var(--send-bottom)), #323232;
+	transition: --send-top var(--medium) var(--ease-out), --send-bottom var(--medium) var(--ease-out);
 }
 
-td.calc-score::before {
-	transition: box-shadow var(--medium) var(--ease-out);
+/* (Pressed, ✓ shows the keypad's pressed fill.) */
+.calc-tbl td.check-score:not(.disabled, :active) {
+	background: linear-gradient(var(--send-top), var(--send-bottom)), linear-gradient(#808080, #484848);
 }
 
-body.keypad-input td.calc-score:not(.disabled)::before,
-body.keypad-input .calc-tbl td.check-score:not(.disabled),
-body.board-input .btn-tbl td.done-btn:not(.disabled) {
-	box-shadow: var(--edit-veil);
+.btn-tbl td.done-btn:not(.disabled) {
+	background: linear-gradient(var(--send-top), var(--send-bottom)), var(--button);
+}
+
+.calc-tbl td.check-score,
+.btn-tbl td.done-btn {
+	transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium), box-shadow var(--hover-speed), --send-top var(--medium) var(--ease-out), --send-bottom var(--medium) var(--ease-out);
+}
+
+body.keypad-input td.calc-score::before,
+body.keypad-input .calc-tbl td.check-score,
+body.board-input .btn-tbl td.done-btn {
+	--send-top: var(--edit);
+	--send-bottom: var(--edit-dark);
 }
 
 /* The turn's darts, still on the board but not what is being entered. */
@@ -2399,10 +2420,6 @@ td.back-score {
 		box-shadow: var(--hover-veil);
 	}
 
-	/* The amber of the button that sends the score stays under the hover light. */
-	:root:not(.touching) :is(body.keypad-input .calc-tbl td.check-score, body.board-input .btn-tbl td.done-btn):not(.disabled):hover {
-		box-shadow: var(--hover-veil), var(--edit-veil);
-	}
 
 	:root:not(.touching) :is(.field-btn, .player-menu button):not(:disabled):hover {
 		background: var(--hover-tint);
