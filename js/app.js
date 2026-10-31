@@ -1063,7 +1063,7 @@ board.addEventListener('click', event => {
 	// Using the board brings it (and its darts) back in front of the keypad.
 	turn.input = 'board';
 	renderInputting();
-	// A dart's marker works like its box in the darts column.
+	// A dart (or its marker) works like its box in the darts column.
 	const mark = markAt(dx, dy, radius);
 	if (mark >= 0) {
 		dartSpans[mark].click();
@@ -1088,20 +1088,21 @@ board.addEventListener('click', event => {
 
 /**
  * The dart under a board offset (its point, body or marker), or -1. Darts can
- * be tapped once all three are down, or while one is picked up to move.
+ * be tapped once all three are down. While one is picked up, every tap on the
+ * board places it, even a tap on itself (a nudge): -1.
  */
 function markAt(dx, dy, radius) {
-	if (turn.darts.length < DARTS_PER_TURN && turn.editing === null) return -1;
+	if (turn.darts.length < DARTS_PER_TURN || turn.editing !== null) return -1;
 	let closest = -1;
 	let best = MARK_REACH;
 	turn.darts.forEach((dart, index) => {
-		const distance = tapDistance(dart.x, dart.y, [dx / radius, dy / radius], { lifted: index === turn.editing });
+		const distance = tapDistance(dart.x, dart.y, [dx / radius, dy / radius]);
 		if (distance <= best) [closest, best] = [index, distance];
 	});
 	return closest;
 }
 
-// Tap a dart to pick it up (then tap the board to move it); tap it again to remove it.
+// Tap a dart to pick it up (then tap the board to move it); tap its box again to remove it.
 dartSpans.forEach((span, index) => {
 	span.addEventListener('click', () => {
 		if (!turn.darts[index]) return;
@@ -1111,7 +1112,7 @@ dartSpans.forEach((span, index) => {
 			turn.editing = null;
 		} else {
 			turn.editing = index;
-			showToast({ kind: 'info', title: `Dart ${index + 1}`, detail: 'Tap board to move · tap again to remove' });
+			showToast({ kind: 'info', title: `Moving dart ${index + 1}`, detail: '' });
 		}
 		renderDarts();
 	});

@@ -164,18 +164,20 @@ function fromSegment(p, a, b) {
 }
 
 /**
- * How far a tap at [px, py] is from a dart that landed at x, y (fractions of
- * the radius): from its point, its marker (unless it's picked up, when the
- * marker steps aside) or its body, point to shaft end. The body is narrow,
- * so it counts as further: taps beside it still reach the board.
+ * How far a tap at [px, py] is from a dart in the board at x, y (fractions of
+ * the radius): from its point, its marker or its body, point to shaft end.
+ * The body is narrow, so it counts as further: taps beside it still reach
+ * the board.
  */
-export function tapDistance(x, y, [px, py], { lifted = false } = {}, view = DART_VIEW) {
+export function tapDistance(x, y, [px, py], view = DART_VIEW) {
 	const tap = [px * 100, py * 100];
-	const { tip, end } = dartShape(x, y, dartPose(x, y, view), { away: lifted ? view.lift : 0 }, view);
+	const { tip, end } = dartShape(x, y, dartPose(x, y, view), {}, view);
 	const [mx, my] = markSpot(x, y, view);
-	const near = [Math.hypot(...add(tap, [x * 100, y * 100], -1)), fromSegment(tap, tip, [end.cx, end.cy]) * 1.6];
-	if (!lifted) near.push(Math.hypot(...add(tap, [mx * 100, my * 100], -1)));
-	return Math.min(...near) / 100;
+	return Math.min(
+		Math.hypot(...add(tap, [x * 100, y * 100], -1)),
+		Math.hypot(...add(tap, [mx * 100, my * 100], -1)),
+		fromSegment(tap, tip, [end.cx, end.cy]) * 1.6,
+	) / 100;
 }
 
 /**

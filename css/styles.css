@@ -3113,7 +3113,29 @@ td.calc-score:not(.disabled) {
 
 @keyframes editing {
 	from { box-shadow: var(--slot-veil), 0 0 0 transparent; }
-	to { box-shadow: var(--slot-veil), 0 0 calc(2 * var(--u)) var(--bust); }
+	to { box-shadow: var(--slot-veil), 0 0 calc(2.6 * var(--u)) calc(0.3 * var(--u)) var(--bust); }
+}
+
+/* A dart picked up to move: a red × in its box's other corner, as tapping it again removes it. */
+.darts span.editing::after {
+	content: '✕';
+	position: absolute;
+	top: calc(-1.1 * var(--u));
+	right: calc(-1.1 * var(--u));
+	display: grid;
+	place-items: center;
+	width: calc(2.6 * var(--u));
+	height: calc(2.6 * var(--u));
+	box-sizing: border-box;
+	border: var(--line) solid white; /* like the number in the other corner */
+	border-radius: 50%;
+	background: var(--bust);
+	color: white;
+	font-size: calc(1.3 * var(--u));
+	font-weight: 700;
+	line-height: 1;
+	text-shadow: none;
+	animation: fade-in var(--fast) var(--ease-out);
 }
 
 /* Corner number on each dart slot, matching its marker on the board. */

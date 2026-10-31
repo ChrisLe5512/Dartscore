@@ -64,6 +64,5 @@ test('dart: a tap on its body or marker reaches it; one well beside it does not'
 	const onBody = [(x * 100 + end.cx) / 200, (y * 100 + end.cy) / 200];
 	assert.ok(tapDistance(x, y, onBody) < 0.01);
 	assert.ok(tapDistance(x, y, markSpot(x, y)) < 1e-9);
-	assert.ok(tapDistance(x, y, markSpot(x, y), { lifted: true }) > 0.02);
 	assert.ok(tapDistance(x, y, [x - 0.2, y + 0.2]) > 0.1);
 });
