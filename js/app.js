@@ -1057,6 +1057,11 @@ board.addEventListener('click', event => {
 		const pct = Math.round(Math.hypot(dx, dy) / radius * 100);
 		debugSpan.textContent = `(${Math.round(dx)}, ${Math.round(dy)}) ${pct}% ${dart?.label ?? 'off'}`;
 	}
+	// Test darts in Board layout: after three, the next one starts again.
+	if (realDarts && turn.darts.length >= DARTS_PER_TURN) {
+		turn.darts = [];
+		renderDarts();
+	}
 	// Using the board brings it (and its darts) back in front of the keypad.
 	turn.input = 'board';
 	renderInputting();
@@ -1950,17 +1955,27 @@ for (const [key, colors] of [['outlineColor', BOARD_OUTLINE_COLORS], ['hitColor'
 const boardLayout = () => ({ ...BOARD_LAYOUT, ...prefs.boardLayout });
 const boardStyle = () => ({ ...BOARD_STYLE, ...prefs.boardStyle });
 
+// The board stays live as a test: darts can be thrown at it to see the
+// layout. The turn's own darts are put aside and come back with Done.
+let realDarts = null;
+
 function openVisuals() {
 	closeDialog(settingsDialog);
 	renderVisuals();
 	visualsPanel.hidden = false;
 	document.body.classList.add('visuals-open');
+	realDarts = { darts: turn.darts, editing: turn.editing, input: turn.input };
+	Object.assign(turn, { darts: [], editing: null });
+	renderDarts();
 	visualsPanel.focus({ preventScroll: true });
 }
 
 function closeVisuals() {
 	visualsPanel.hidden = true;
 	document.body.classList.remove('visuals-open');
+	Object.assign(turn, realDarts);
+	realDarts = null;
+	renderDarts();
 	renderSettings();
 	openDialog(settingsDialog);
 }

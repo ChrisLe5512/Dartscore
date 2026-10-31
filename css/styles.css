@@ -42,6 +42,7 @@
 	--board-number: #ffffff;
 	--board-seam: rgba(0, 0, 0, 0.6);
 	--board-hit: #ffd24d;
+	--dart-edit: #ffd24d; /* a dart picked up to move: always this yellow, whatever the highlight colour */
 	--ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 	--ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
 	--fast: 120ms;
@@ -865,14 +866,6 @@ body.visuals-open :is(.ctrl-section, .btn-section) {
 	pointer-events: none;
 }
 
-body.visuals-open #dartboard {
-	pointer-events: none;
-}
-
-/* The board shows just itself: no darts or lit beds over the preview. */
-body.visuals-open #dartboard :is(.lit, .marks) {
-	display: none;
-}
 
 /* A colour row with its name above it (Highlight). */
 .swatch-group {
@@ -1353,30 +1346,48 @@ body:is(.menu-focus, .review-focus) .calc-section {
 	filter: var(--dim);
 }
 
-/* Which way the score is going in. Typing on the keypad, its panel turns
-   amber and the board and its darts step back; darts on the board, the
-   keypad steps back. Nothing is cleared: using the other one switches. JS
-   sets the body classes (renderInputting). */
-.board-frame,
-.btn-tbl td.darts-btn {
+/* Which way the score is going in, in the amber of a player being edited,
+   and the button that sends it. Typing: the keypad's panel is tinted, the
+   score rocker and ✓ are amber, and the board's darts (still shown) turn grey
+   with the darts column stepping back. Darts on the board: Done is amber.
+   Nothing is cleared: using the other one switches. JS sets the body classes
+   (renderInputting). The amber is a veil over each button's own fill, so it
+   fades in and out. */
+:root {
+	--edit-veil: inset 0 0 0 100vmax color-mix(in srgb, var(--edit) 80%, transparent);
+}
+
+.darts {
 	transition: opacity var(--medium) var(--ease-out);
 }
 
-body.keypad-input:not(.visuals-open) :is(.board-frame, .btn-tbl td.darts-btn) {
+body.keypad-input:not(.visuals-open) .darts {
 	opacity: 0.45;
 }
 
 body.keypad-input .calc-section {
-	--keypad-veil: inset 0 0 0 100vmax color-mix(in srgb, var(--board-hit) 30%, transparent);
-	background: color-mix(in srgb, var(--board-hit) 22%, transparent);
+	background: color-mix(in srgb, var(--edit) 22%, transparent);
 }
 
-body.keypad-input .calc-tbl td {
-	box-shadow: var(--keypad-veil);
+td.calc-score::before {
+	transition: box-shadow var(--medium) var(--ease-out);
 }
 
-body.board-input:not(.menu-focus, .review-focus) .calc-section {
-	filter: brightness(0.6);
+body.keypad-input td.calc-score:not(.disabled)::before,
+body.keypad-input .calc-tbl td.check-score:not(.disabled),
+body.board-input .btn-tbl td.done-btn:not(.disabled) {
+	box-shadow: var(--edit-veil);
+}
+
+/* The turn's darts, still on the board but not what is being entered. */
+.light.hit {
+	transition: fill var(--medium), stroke var(--medium), filter var(--medium);
+}
+
+body.keypad-input:not(.visuals-open) .light.hit {
+	fill: color-mix(in srgb, white 12%, transparent); /* a mix, as the lit colours are: see light-from-hover */
+	stroke: #9a9a9a;
+	filter: none;
 }
 
 /* The sections themselves let taps through; their buttons and the board opt back in. */
@@ -2355,6 +2366,7 @@ td.back-score {
 :root {
 	--hover-veil: inset 0 0 0 100vmax rgba(255, 255, 255, 0.15); /* over a button's own fill */
 	--hover-tint: rgba(255, 255, 255, 0.1); /* buttons with no fill of their own */
+	--hover-speed: 150ms; /* the hover lights fade a little quicker than other changes (--medium) */
 }
 
 @media (hover: hover) {
@@ -2373,9 +2385,9 @@ td.back-score {
 		box-shadow: var(--hover-veil);
 	}
 
-	/* The keypad's amber (while typing) stays under the hover light. */
-	:root:not(.touching) body.keypad-input .calc-tbl td:not(.disabled):hover {
-		box-shadow: var(--hover-veil), var(--keypad-veil);
+	/* The amber of the button that sends the score stays under the hover light. */
+	:root:not(.touching) :is(body.keypad-input .calc-tbl td.check-score, body.board-input .btn-tbl td.done-btn):not(.disabled):hover {
+		box-shadow: var(--hover-veil), var(--edit-veil);
 	}
 
 	:root:not(.touching) :is(.field-btn, .player-menu button):not(:disabled):hover {
@@ -2421,39 +2433,39 @@ td.back-score {
 .add-player td,
 .players-add,
 .settings-btn-action {
-	transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium), box-shadow var(--medium);
+	transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium), box-shadow var(--hover-speed);
 }
 
 /* The other hover lights fade too, with each one's own transitions. */
 .stepper-btn {
-	transition: transform var(--fast) var(--ease-out), opacity var(--medium), box-shadow var(--medium);
+	transition: transform var(--fast) var(--ease-out), opacity var(--medium), box-shadow var(--hover-speed);
 }
 
 .game-tile {
-	transition: transform var(--fast) var(--ease-out), border-color var(--medium), background var(--medium), box-shadow var(--medium);
+	transition: transform var(--fast) var(--ease-out), border-color var(--medium), background var(--medium), box-shadow var(--hover-speed);
 }
 
 .segmented button {
-	transition: background var(--medium), box-shadow var(--medium);
+	transition: background var(--medium), box-shadow var(--hover-speed);
 }
 
 .field-btn {
-	transition: transform var(--fast) var(--ease-out), background var(--medium);
+	transition: transform var(--fast) var(--ease-out), background var(--hover-speed);
 }
 
 .player-menu button,
 .settings-check {
-	transition: background var(--medium), color var(--medium);
+	transition: background var(--hover-speed), color var(--hover-speed);
 }
 
 .checkout {
-	transition: filter var(--medium);
+	transition: filter var(--hover-speed);
 }
 
 .player-wins::before,
 .history-row > td,
 .stats-row > td {
-	transition: box-shadow var(--medium);
+	transition: box-shadow var(--hover-speed);
 }
 
 .calc-tbl td:not(.disabled, .calc-score):active,
@@ -2894,25 +2906,25 @@ td.calc-score:not(.disabled) {
 
 /* A dart picked up to move: its slot and its marker pulse. */
 .darts span.editing {
-	border-color: var(--board-hit);
+	border-color: var(--dart-edit);
 	animation: editing 0.9s ease-in-out infinite alternate;
 }
 
 .darts span.editing .dart-num {
-	border-color: var(--board-hit);
-	background: var(--board-hit);
+	border-color: var(--dart-edit);
+	background: var(--dart-edit);
 	color: black;
 }
 
 /* Only the ring pulses; the number stays put. */
 .mark.editing circle {
-	stroke: var(--board-hit);
+	stroke: var(--dart-edit);
 	stroke-dasharray: 3 2;
 	animation: editing-mark 0.9s ease-in-out infinite alternate;
 }
 
 @keyframes editing {
-	to { box-shadow: 0 0 calc(2 * var(--u)) var(--board-hit); }
+	to { box-shadow: 0 0 calc(2 * var(--u)) var(--dart-edit); }
 }
 
 @keyframes editing-mark {
