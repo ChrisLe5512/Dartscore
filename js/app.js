@@ -3,12 +3,12 @@
 // state into DOM.
 
 import {
-	BOARD_HIT_COLORS, BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_OUTLINE_LIMITS, BOARD_STYLE,
+	BOARD_HIT_COLORS, BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_OUTLINE_LIMITS, BOARD_WIRE_LIMITS,
 	DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, TOAST_MS,
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate } from './board.js';
 import { getCheckouts } from './checkout.js';
-import { boardRadius, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
+import { boardRadius, boardStyle as savedBoardStyle, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
 import { describeTravel, describeTurn, historyLegs, undoWarning } from './feedback.js';
 import * as History from './history.js';
 import { GAME_CHOICES, MODES, choiceOf, createGame, modeOf, newGame, wonLegs } from './modes.js';
@@ -1181,7 +1181,7 @@ paintHitColor();
 
 /** The highlight colour picked in Board layout, for everything drawn in it (--board-hit). */
 function paintHitColor() {
-	document.documentElement.style.setProperty('--board-hit', { ...BOARD_STYLE, ...prefs.boardStyle }.hitColor);
+	document.documentElement.style.setProperty('--board-hit', savedBoardStyle(prefs.boardStyle).hitColor);
 }
 
 /** Redraw the board, e.g. after its layout or outline changed in Settings. */
@@ -1927,7 +1927,7 @@ newGameDialog.addEventListener('click', event => {
 const visualsPanel = $('.visuals-panel');
 const layoutInputs = $$('[data-layout]', visualsPanel);
 const outlineInput = $('[data-style="outline"]', visualsPanel);
-const wiresInput = $('[data-style="wires"]', visualsPanel);
+const wireInput = $('[data-style="wire"]', visualsPanel);
 // A row of colours for each colour setting: { key in BOARD_STYLE: its row }.
 const swatchRows = {
 	outlineColor: $('.outline-swatches', visualsPanel),
@@ -1936,6 +1936,7 @@ const swatchRows = {
 
 for (const input of layoutInputs) [input.min, input.max] = BOARD_LAYOUT_LIMITS[input.dataset.layout];
 [outlineInput.min, outlineInput.max] = BOARD_OUTLINE_LIMITS;
+[wireInput.min, wireInput.max] = BOARD_WIRE_LIMITS;
 for (const [key, colors] of [['outlineColor', BOARD_OUTLINE_COLORS], ['hitColor', BOARD_HIT_COLORS]]) {
 	swatchRows[key].append(...colors.map(color => {
 		const swatch = document.createElement('button');
@@ -1953,7 +1954,7 @@ for (const [key, colors] of [['outlineColor', BOARD_OUTLINE_COLORS], ['hitColor'
 }
 
 const boardLayout = () => ({ ...BOARD_LAYOUT, ...prefs.boardLayout });
-const boardStyle = () => ({ ...BOARD_STYLE, ...prefs.boardStyle });
+const boardStyle = () => savedBoardStyle(prefs.boardStyle);
 
 // The board stays live as a test: darts can be thrown at it to see the
 // layout. The turn's own darts are put aside and come back with Done.
@@ -1998,8 +1999,8 @@ function renderVisuals() {
 	const style = boardStyle();
 	for (const input of layoutInputs) input.value = layout[input.dataset.layout];
 	outlineInput.value = style.outline;
-	wiresInput.checked = style.wires;
-	for (const input of [...layoutInputs, outlineInput]) input.previousElementSibling.textContent = Number(input.value).toFixed(1);
+	wireInput.value = style.wire;
+	for (const input of [...layoutInputs, outlineInput, wireInput]) input.previousElementSibling.textContent = Number(input.value).toFixed(1);
 	for (const [key, row] of Object.entries(swatchRows)) {
 		for (const swatch of row.children) swatch.setAttribute('aria-pressed', String(swatch.dataset.color === style[key]));
 	}
@@ -2009,13 +2010,13 @@ function renderVisuals() {
 function changeVisuals(colors = {}) {
 	const { outlineColor, hitColor } = boardStyle();
 	prefs.boardLayout = Object.fromEntries(layoutInputs.map(input => [input.dataset.layout, Number(input.value)]));
-	prefs.boardStyle = { outline: Number(outlineInput.value), outlineColor, wires: wiresInput.checked, hitColor, ...colors };
+	prefs.boardStyle = { outline: Number(outlineInput.value), wire: Number(wireInput.value), outlineColor, hitColor, ...colors };
 	savePrefs(prefs);
 	redrawBoard();
 	renderVisuals();
 }
 
-for (const input of [...layoutInputs, outlineInput, wiresInput]) input.addEventListener('input', () => changeVisuals());
+for (const input of [...layoutInputs, outlineInput, wireInput]) input.addEventListener('input', () => changeVisuals());
 
 // ---- Winner -----------------------------------------------------------------
 

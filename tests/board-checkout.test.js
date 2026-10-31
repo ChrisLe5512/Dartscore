@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { boardRings, DEFAULT_RINGS, hitTest, locate, makeDart } from '../js/board.js';
 import { canCheckout, getCheckouts } from '../js/checkout.js';
+import { boardStyle } from '../js/dartboard.js';
 
 const R = 100; // board radius in px for these tests
 // Point at `percent` of the radius, `deg` degrees clockwise from the top.
@@ -111,4 +112,12 @@ test('without double out any dart finishes, up to 180', () => {
 		const sets = getCheckouts(s, 3, false).map(r => [...r].sort().join());
 		assert.equal(new Set(sets).size, sets.length, String(s));
 	}
+});
+
+test('board style: old wires on/off keep their thickness, new ones are a slider', () => {
+	assert.equal(boardStyle({}).wire, 0);
+	assert.equal(boardStyle({ outline: 1.5, wires: true }).wire, 0.9);
+	assert.equal(boardStyle({ wires: false }).wire, 0);
+	assert.equal(boardStyle({ wire: 0.4, wires: true }).wire, 0.4);
+	assert.equal('wires' in boardStyle({ wires: true }), false);
 });

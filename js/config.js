@@ -51,9 +51,11 @@ export const BOARD_LAYOUT_LIMITS = Object.freeze({
 });
 
 // The white rings around the doubles and the board edge (width in % of the radius).
+// wire: the wires round every bed, how thick (0: none), in the outline's colour.
 // hitColor: the beds lit where darts landed (and everything else in that colour).
-export const BOARD_STYLE = Object.freeze({ outline: 1, outlineColor: '#ffffff', wires: false, hitColor: '#ffd24d' });
+export const BOARD_STYLE = Object.freeze({ outline: 1, wire: 0, outlineColor: '#ffffff', hitColor: '#ffd24d' });
 export const BOARD_OUTLINE_LIMITS = Object.freeze([0, 2.5]);
+export const BOARD_WIRE_LIMITS = Object.freeze([0, 1.5]);
 export const BOARD_OUTLINE_COLORS = Object.freeze(['#ffffff', '#c8c8c8', '#808080', '#d4af37', '#000000']);
 export const BOARD_HIT_COLORS = Object.freeze(['#ffd24d', '#ff8a3d', '#ff5cd6', '#4dd2ff', '#ffffff']);
 
