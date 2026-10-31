@@ -2472,6 +2472,10 @@ td.back-score {
 		box-shadow: var(--hover-veil);
 	}
 
+	/* A dart being moved keeps its veil under the pulsing glow. */
+	:root:not(.touching) .darts span.editing:hover {
+		--slot-veil: var(--hover-veil);
+	}
 
 	:root:not(.touching) :is(.field-btn, .player-menu button, .darts-clear):not(:disabled):hover {
 		background: var(--hover-tint);
@@ -3004,6 +3008,7 @@ td.calc-score:not(.disabled) {
    flashes. The slot's edge is the moving yellow, its glow red: another
    tap removes it. */
 .darts span.editing {
+	--slot-veil: inset 0 0 0 0 transparent; /* the hover veil, if any: both frames list it, so the glow fades */
 	border-color: var(--dart-edit);
 	animation: editing 0.9s ease-in-out infinite alternate;
 }
@@ -3022,7 +3027,8 @@ td.calc-score:not(.disabled) {
 }
 
 @keyframes editing {
-	to { box-shadow: 0 0 calc(2 * var(--u)) var(--bust); }
+	from { box-shadow: var(--slot-veil), 0 0 0 transparent; }
+	to { box-shadow: var(--slot-veil), 0 0 calc(2 * var(--u)) var(--bust); }
 }
 
 @keyframes editing-mark {
