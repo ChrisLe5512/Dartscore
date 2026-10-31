@@ -72,8 +72,8 @@ export const DART_VIEW = Object.freeze({
 	tilt: 0.09,    // how far a dart leans any way at random (tan of the angle)
 	lift: -0.1,    // the usual lean: tails a little up (negative is up)
 	flightIn: 120, // how far in front of the board a thrown dart comes from
-	flightMs: 220, // in the air
-	wobbleMs: 500, // the wobble as it lands
+	flightMs: 170, // in the air
+	wobbleMs: 380, // the wobble as it lands
 });
 
 // How close (as a fraction of the board radius) a tap must be to a dart's

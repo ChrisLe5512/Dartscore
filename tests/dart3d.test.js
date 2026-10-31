@@ -1,13 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dartPose, dartShape } from '../js/dart3d.js';
+import { dartPose, dartShape, markSpot } from '../js/dart3d.js';
 
 const straight = { lean: [0, 0], roll: 0 };
-const tailEnd = shape => shape.shaft.b;
+const mid = ([a, b]) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+// The shaft's far end, midway across.
+const tailEnd = shape => mid(shape.shaft[0].slice(1, 3));
+const barrelWidth = shape => Math.hypot(shape.across.to[0] - shape.across.from[0], shape.across.to[1] - shape.across.from[1]);
 
 test('dart: in the bull and straight, you look down its tail', () => {
 	const shape = dartShape(0, 0, straight);
-	assert.deepEqual(shape.point.a, [0, 0]);
+	assert.ok(Math.hypot(...mid([shape.point[0][0], shape.point[0][3]])) < 1e-9);
 	assert.ok(Math.hypot(...tailEnd(shape)) < 1e-9);
 });
 
@@ -21,8 +24,8 @@ test('dart: further out, its tail splays away from the bull', () => {
 
 test('dart: nearer the eye, it is drawn bigger', () => {
 	const shape = dartShape(0.5, 0.5, straight);
-	assert.ok(shape.barrel.width > 2 * 1.8);
-	assert.ok(dartShape(0.5, 0.5, straight, { away: 60 }).barrel.width > shape.barrel.width);
+	assert.ok(barrelWidth(shape) > 2 * 1.8);
+	assert.ok(barrelWidth(dartShape(0.5, 0.5, straight, { away: 60 })) > barrelWidth(shape));
 });
 
 test('dart: the same spot gives the same pose; poses vary', () => {
@@ -30,8 +33,17 @@ test('dart: the same spot gives the same pose; poses vary', () => {
 	assert.notDeepEqual(dartPose(0.31, -0.42), dartPose(0.32, -0.42));
 });
 
-test('dart: four vanes; no shadow while it is in the air', () => {
-	assert.equal(dartShape(0.1, 0.1, straight).vanes.length, 4);
-	assert.ok(dartShape(0.1, 0.1, straight).shadow);
+test('dart: its shadow starts at the point and falls down and right; none in the air', () => {
+	const { shadow } = dartShape(0.1, 0.1, straight);
+	assert.deepEqual(shadow.from, [10, 10]);
+	assert.ok(shadow.to[0] > 10 && shadow.to[1] > 10);
 	assert.equal(dartShape(0.1, 0.1, straight, { away: 10 }).shadow, null);
+	assert.equal(dartShape(0.1, 0.1, straight).vanes.length, 4);
+});
+
+test('dart: its marker sits beside the point, up and left of the shadow', () => {
+	const [mx, my] = markSpot(0.4, 0.3);
+	const off = Math.hypot(mx - 0.4, my - 0.3);
+	assert.ok(off > 0.05 && off < 0.12);
+	assert.ok(mx < 0.4 + 0.02);
 });

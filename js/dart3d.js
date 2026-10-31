@@ -5,15 +5,23 @@
 
 import { DART_VIEW } from './config.js';
 
-// Along the dart from its point (fractions of its length): where each part
-// starts and ends, and its radius in board units.
+// Along the dart from its point (fractions of its length): each part as
+// pieces [from, to, radius at from, radius at to], radii in board units.
+// The barrel tapers into the point and into the shaft.
 const PARTS = {
-	point: { from: 0, to: 0.2, r: 0.35 },
-	barrel: { from: 0.2, to: 0.53, r: 1.8 },
-	shaft: { from: 0.53, to: 0.75, r: 0.85 },
+	point: [[0, 0.2, 0.12, 0.4]],
+	barrel: [[0.2, 0.235, 0.45, 1.8], [0.235, 0.5, 1.8, 1.8], [0.5, 0.54, 1.8, 0.85]],
+	shaft: [[0.54, 0.75, 0.85, 0.75]],
 };
 // One vane of the flight: [along, out] corners, fractions of the length.
 const VANE = [[0.71, 0], [0.82, 0.17], [0.99, 0.17], [1, 0]];
+// The light: from the top left, in front. A point `h` off the board casts its
+// shadow h × this further down and right.
+const LIGHT = [0.35, 0.5];
+// The shadow fades out by this far along the dart: its flight casts none, which would hide the board.
+const SHADOW_END = 0.8;
+// How far the numbered marker sits from the point, beside the dart.
+const MARK_OFF = 9;
 
 /** The same random numbers for the same spot every time: a dart keeps its pose when redrawn. */
 function seeded(x, y) {
@@ -39,15 +47,18 @@ export function dartPose(x, y, view = DART_VIEW) {
 const add = (a, b, k = 1) => a.map((v, i) => v + b[i] * k);
 const norm = v => {
 	const length = Math.hypot(...v);
-	return v.map(n => n / length);
+	return length ? v.map(n => n / length) : v;
 };
 const cross = ([a, b, c], [d, e, f]) => [b * f - c * e, c * d - a * f, a * e - b * d];
 
 /**
  * The dart's shapes on screen. away: how far it still is from the board,
  * along its own line (0 when stuck in it); sway: an extra lean, for the
- * wobble as it lands. Returns the parts as [x, y] ends and on-screen widths,
- * the flight's vanes as polygons, and its shadow on the board.
+ * wobble as it lands. Returns:
+ * - point, barrel, shaft: outlines (tapered pieces) as lists of [x, y];
+ * - across: from the barrel's shaded side to its lit side, for its shading;
+ * - vanes: the flight's four vanes, as polygons;
+ * - shadow: on the board, from the point back along the dart (none in the air).
  */
 export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = DART_VIEW) {
 	const tip = [x * 100, y * 100, 0];
@@ -57,23 +68,50 @@ export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = D
 	const scale = ([, , z]) => view.eye / (view.eye - z);
 	const flat = p => [p[0] * scale(p), p[1] * scale(p)];
 
-	const parts = {};
-	for (const [name, { from, to, r }] of Object.entries(PARTS)) {
-		const middle = along((from + to) / 2);
-		parts[name] = { a: flat(along(from)), b: flat(along(to)), width: 2 * r * scale(middle) };
-	}
+	// Which way is across the dart on screen; the lit side towards the light.
+	const back = flat(along(1));
+	let side = norm([-(back[1] - tip[1]), back[0] - tip[0]]);
+	if (!side[0] && !side[1]) side = [-0.6, -0.8];
+	if (side[0] * -LIGHT[0] + side[1] * -LIGHT[1] < 0) side = side.map(v => -v);
+
+	const piece = ([from, to, r1, r2]) => {
+		const a = along(from), b = along(to);
+		const [pa, pb] = [flat(a), flat(b)];
+		const [wa, wb] = [r1 * scale(a), r2 * scale(b)];
+		return [add(pa, side, wa), add(pb, side, wb), add(pb, side, -wb), add(pa, side, -wa)];
+	};
+	const parts = Object.fromEntries(Object.entries(PARTS).map(([name, pieces]) => [name, pieces.map(piece)]));
+
+	const middle = along(0.37);
+	const r = 1.8 * scale(middle);
+	const centre = flat(middle);
+	const across = { from: add(centre, side, -r), to: add(centre, side, r) };
 
 	// Four vanes round the shaft, turned by the pose's roll.
-	const side = norm(cross([0, 1, 0], axis));
-	const up = cross(axis, side);
+	const right = norm(cross([0, 1, 0], axis));
+	const up = cross(axis, right);
 	const vanes = [0, 1, 2, 3].map(k => {
 		const angle = pose.roll + k * Math.PI / 2;
-		const out = add(side.map(v => v * Math.cos(angle)), up, Math.sin(angle));
+		const out = add(right.map(v => v * Math.cos(angle)), up, Math.sin(angle));
 		return VANE.map(([t, w]) => flat(add(along(t), out, w * view.length)));
 	});
 
-	// Its shadow, cast down and to the right (light from the top left); none in the air.
-	const reach = view.length * 0.35;
-	const shadow = away ? null : { a: [tip[0], tip[1]], b: [tip[0] + reach * 0.7, tip[1] + reach] };
-	return { ...parts, vanes, shadow };
+	const shade = t => {
+		const [px, py, height] = along(t);
+		return [px + LIGHT[0] * height, py + LIGHT[1] * height];
+	};
+	const shadow = away ? null : { from: shade(0), to: shade(SHADOW_END) };
+	return { ...parts, across, vanes, shadow };
+}
+
+/**
+ * Where a dart's numbered marker goes (fractions of the radius): beside the
+ * point, away from the dart and its shadow, so the point itself shows.
+ */
+export function markSpot(x, y, view = DART_VIEW) {
+	const shape = dartShape(x, y, dartPose(x, y, view), {}, view);
+	const tip = [x * 100, y * 100];
+	const tail = norm(add(shape.shaft[0][1], tip, -1));
+	const away = norm(add(tail, norm(LIGHT))).map(v => -v);
+	return [(tip[0] + away[0] * MARK_OFF) / 100, (tip[1] + away[1] * MARK_OFF) / 100];
 }

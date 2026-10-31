@@ -2977,6 +2977,31 @@ td.calc-score:not(.disabled) {
 	dominant-baseline: central;
 }
 
+/* The marker's line to its dart's point: white on a dark edge, like the marker. */
+.mark-leader line {
+	stroke: white;
+	stroke-width: 0.45;
+	stroke-linecap: round;
+}
+
+.mark-leader .under {
+	stroke: rgba(0, 0, 0, 0.8);
+	stroke-width: 1.1;
+}
+
+.mark-leader.editing line:not(.under) {
+	stroke: var(--dart-edit);
+}
+
+.mark-leader.pop {
+	animation: fade-in var(--medium) var(--ease-out) calc(var(--dart-flight-time, 0ms) * 0.8) backwards;
+}
+
+.mark-leader.review {
+	opacity: 0.7;
+	animation: fade-in var(--medium) var(--ease-out);
+}
+
 .mark.review circle {
 	fill: rgba(0, 0, 0, 0.55);
 	stroke-dasharray: 3 2;
@@ -2993,43 +3018,46 @@ td.calc-score:not(.disabled) {
 }
 
 /* A dart in the board, in perspective (dart3d.js): solid at its point,
-   fading towards its tail so the board shows through. Its flight in the
-   highlight colour (the moving yellow while it's picked up). */
-.dart line {
-	stroke-linecap: round;
+   fading towards its tail so the board shows through. Its barrel and shaft
+   are shaded in dartboard.js; its flight is blue for now (one day, your own
+   darts), the moving yellow while it's picked up. */
+:root {
+	--dart-flight: #2f7de1;
 }
 
+/* Its shadow on the board, darkest at the point (a gradient from dartboard.js). */
 .dart-shadow {
-	stroke: rgba(0, 0, 0, 0.3);
-	stroke-width: 2.4;
-	filter: blur(1px);
+	stroke-width: 2.6;
+	stroke-linecap: round; /* no blur: a blurred gradient line vanishes in Chrome */
 }
 
-.dart-point {
-	stroke: #e2e4e8;
+.dart-point,
+.dart-barrel {
+	stroke: rgba(0, 0, 0, 0.55);
+	stroke-width: 0.15;
+	stroke-linejoin: round;
 }
 
 .dart-barrel {
-	stroke: #8d939c;
-	opacity: 0.85;
+	opacity: 0.92;
 }
 
 /* Grip rings round the barrel. */
 .dart-grip {
-	stroke: #2c2f34;
-	stroke-dasharray: 0.9 1.1;
-	stroke-linecap: butt !important;
-	opacity: 0.6;
+	stroke: #1e2125;
+	stroke-dasharray: 0.7 1.1;
+	opacity: 0.45;
 }
 
 .dart-shaft {
-	stroke: #1a1a1a;
-	opacity: 0.5;
+	stroke: rgba(0, 0, 0, 0.6);
+	stroke-width: 0.12;
+	opacity: 0.6;
 }
 
 .dart-vane {
-	fill: color-mix(in srgb, var(--board-hit) 85%, black);
-	stroke: rgba(0, 0, 0, 0.6);
+	fill: var(--dart-flight);
+	stroke: color-mix(in srgb, var(--dart-flight) 40%, black);
 	stroke-width: 0.3;
 	stroke-linejoin: round;
 	opacity: 0.32;
