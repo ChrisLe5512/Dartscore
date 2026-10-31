@@ -1845,7 +1845,7 @@ td.back-score {
 	--side-pad: 1.2vmin; /* from the screen's edges, and between buttons */
 	--ctrl-size: 8vmin;
 	--side-w: 15vw; /* BUST and Done */
-	--card-w: 7.5vw; /* the darts card */
+	--card-w: calc(8vw - 2 * var(--side-pad)); /* the darts card: the right column, clear of the board */
 }
 
 .board-btn {
@@ -2056,7 +2056,7 @@ td.back-score {
 }
 
 .darts span {
-	width: 70%;
+	width: 84%;
 	height: calc(8.65 * var(--u));
 	margin: calc(1 * var(--u)) 0;
 	border: var(--line) solid transparent;
