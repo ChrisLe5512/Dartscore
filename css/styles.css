@@ -2073,6 +2073,21 @@ td.back-score {
 	pointer-events: auto;
 }
 
+/* A double, treble or bull: the letter over its value, evenly spaced (the
+   column stacks them; a <br> would add an empty line). */
+.darts span br {
+	display: none;
+}
+
+.darts span:has(br),
+.darts span:has(br) u {
+	line-height: 1;
+}
+
+.darts span:has(br) {
+	gap: calc(0.8 * var(--u));
+}
+
 .darts u {
 	font-size: calc(5 * var(--u));
 	text-decoration-thickness: calc(0.25 * var(--u));
