@@ -400,9 +400,14 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 
 	// Each marker beside its dart's point, a short line pointing at it, so
 	// where the dart went in shows.
+	// A picked-up dart's marker steps aside: it fades as the dart lifts, and back as it's put down.
+	const wasLifted = new Set([...layer.querySelectorAll('.mark-place.lifted')].map(place => place.dataset.dart));
 	const marks = hits.map((hit, index) => {
 		const [mx, my] = markSpot(hit.x, hit.y);
-		const place = el('g', { class: 'mark-place', 'data-dart': dartId(hit), ...at({ x: mx, y: my }) });
+		const id = dartId(hit);
+		const lifted = editing === index;
+		const step = lifted ? `lifted${wasLifted.has(id) ? '' : ' lifting'}` : wasLifted.has(id) ? 'landing' : '';
+		const place = el('g', { class: `mark-place ${step}`.trim(), 'data-dart': id, ...at({ x: mx, y: my }) });
 		const toTip = [(hit.x - mx) * 100, (hit.y - my) * 100];
 		const reach = Math.hypot(...toTip);
 		const unit = toTip.map(v => v / reach);

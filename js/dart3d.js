@@ -75,6 +75,7 @@ function hull(points) {
  * The dart's shapes on screen. away: how far it still is from the board,
  * along its own line (0 when stuck in it); sway: an extra lean, for the
  * wobble as it lands. Returns:
+ * - tip: where its point is (on the board once it's in);
  * - point, nose, barrel, tail, shaft: outlines round both round ends of each
  *   part, as lists of [x, y];
  * - face: the end of the barrel facing the eye, and end: the shaft's, as
@@ -146,12 +147,35 @@ export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = D
 		parts: Object.values(pieces).map(([from, to, r1, r2]) => hull([...section(from, r1), ...section(to, r2)])),
 	};
 	return {
+		tip: flat(start),
 		...parts,
 		face: ring(PARTS.barrel[1], PARTS.barrel[3]),
 		grip: [ring(PARTS.barrel[0], 0), ring(PARTS.barrel[1], 0)].map(({ cx, cy }) => [cx, cy]),
 		end: ring(PARTS.shaft[1], PARTS.shaft[3]),
 		across, vanes, shadow,
 	};
+}
+
+/** How far a point is from the line between a and b. */
+function fromSegment(p, a, b) {
+	const ab = add(b, a, -1);
+	const t = Math.max(0, Math.min(1, dot(add(p, a, -1), ab) / (dot(ab, ab) || 1)));
+	return Math.hypot(...add(p, add(a, ab, t), -1));
+}
+
+/**
+ * How far a tap at [px, py] is from a dart that landed at x, y (fractions of
+ * the radius): from its point, its marker (unless it's picked up, when the
+ * marker steps aside) or its body, point to shaft end. The body is narrow,
+ * so it counts as further: taps beside it still reach the board.
+ */
+export function tapDistance(x, y, [px, py], { lifted = false } = {}, view = DART_VIEW) {
+	const tap = [px * 100, py * 100];
+	const { tip, end } = dartShape(x, y, dartPose(x, y, view), { away: lifted ? view.lift : 0 }, view);
+	const [mx, my] = markSpot(x, y, view);
+	const near = [Math.hypot(...add(tap, [x * 100, y * 100], -1)), fromSegment(tap, tip, [end.cx, end.cy]) * 1.6];
+	if (!lifted) near.push(Math.hypot(...add(tap, [mx * 100, my * 100], -1)));
+	return Math.min(...near) / 100;
 }
 
 /**

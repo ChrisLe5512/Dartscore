@@ -3097,21 +3097,23 @@ td.calc-score:not(.disabled) {
 	color: black;
 }
 
-/* Only the ring pulses; the number stays put. */
-.mark.editing circle {
-	stroke: var(--dart-edit);
-	stroke-dasharray: 3 2;
-	animation: editing-mark 0.9s ease-in-out infinite alternate;
+/* A dart picked up to move: its marker steps aside (fades), back when it's put down. */
+.mark-place.lifted {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.mark-place.lifting {
+	animation: fade-out var(--fast) var(--ease-out);
+}
+
+.mark-place.landing {
+	animation: fade-in var(--fast) var(--ease-out);
 }
 
 @keyframes editing {
 	from { box-shadow: var(--slot-veil), 0 0 0 transparent; }
 	to { box-shadow: var(--slot-veil), 0 0 calc(2 * var(--u)) var(--bust); }
-}
-
-@keyframes editing-mark {
-	from { r: 3px; }
-	to { r: 3.8px; }
 }
 
 /* Corner number on each dart slot, matching its marker on the board. */

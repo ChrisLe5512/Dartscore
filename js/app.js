@@ -8,7 +8,7 @@ import {
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate } from './board.js';
 import { getCheckouts } from './checkout.js';
-import { markSpot } from './dart3d.js';
+import { tapDistance } from './dart3d.js';
 import { boardRadius, boardStyle as savedBoardStyle, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
 import { describeTravel, describeTurn, historyLegs, undoWarning } from './feedback.js';
 import * as History from './history.js';
@@ -1087,17 +1087,15 @@ board.addEventListener('click', event => {
 });
 
 /**
- * The dart whose point or marker is under a board offset, or -1. Markers can be tapped
- * once all three darts are down, or while one is picked up to move.
+ * The dart under a board offset (its point, body or marker), or -1. Darts can
+ * be tapped once all three are down, or while one is picked up to move.
  */
 function markAt(dx, dy, radius) {
 	if (turn.darts.length < DARTS_PER_TURN && turn.editing === null) return -1;
 	let closest = -1;
 	let best = MARK_REACH;
 	turn.darts.forEach((dart, index) => {
-		// Its point, or its marker beside it.
-		const [mx, my] = markSpot(dart.x, dart.y);
-		const distance = Math.min(Math.hypot(dart.x - dx / radius, dart.y - dy / radius), Math.hypot(mx - dx / radius, my - dy / radius));
+		const distance = tapDistance(dart.x, dart.y, [dx / radius, dy / radius], { lifted: index === turn.editing });
 		if (distance <= best) [closest, best] = [index, distance];
 	});
 	return closest;

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dartPose, dartShape, markSpot } from '../js/dart3d.js';
+import { dartPose, dartShape, markSpot, tapDistance } from '../js/dart3d.js';
 
 const straight = { lean: [0, 0], roll: 0 };
 // The middle of the shaft's far end.
@@ -56,4 +56,14 @@ test('dart: coming out of the board, more of its point shows', () => {
 	const extent = shape => Math.max(...shape.point.map(p => Math.hypot(p[0] - shape.point[0][0], p[1] - shape.point[0][1])));
 	const side = { lean: [0.4, 0], roll: 0 };
 	assert.ok(extent(dartShape(0.5, 0, side, { away: 6 })) > extent(dartShape(0.5, 0, side)) * 1.3);
+});
+
+test('dart: a tap on its body or marker reaches it; one well beside it does not', () => {
+	const [x, y] = [0.5, 0.2];
+	const { end } = dartShape(x, y, dartPose(x, y));
+	const onBody = [(x * 100 + end.cx) / 200, (y * 100 + end.cy) / 200];
+	assert.ok(tapDistance(x, y, onBody) < 0.01);
+	assert.ok(tapDistance(x, y, markSpot(x, y)) < 1e-9);
+	assert.ok(tapDistance(x, y, markSpot(x, y), { lifted: true }) > 0.02);
+	assert.ok(tapDistance(x, y, [x - 0.2, y + 0.2]) > 0.1);
 });
