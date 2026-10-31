@@ -2414,20 +2414,6 @@ td.back-score {
 		background: var(--hover-tint);
 	}
 
-	/* ✓ or Done for the input not in use, when it has something to send:
-	   amber under the pointer too, as it can still be used. */
-	:root:not(.touching) :is(.calc-tbl td.check-score, .btn-tbl td.done-btn):not(.disabled):hover {
-		--send-top: var(--edit);
-		--send-bottom: var(--edit-dark);
-	}
-
-	/* ...and the one in use steps back meanwhile: only one is ever amber. */
-	:root:not(.touching) body.keypad-input:has(.btn-tbl td.done-btn:not(.disabled):hover) .calc-tbl td.check-score,
-	:root:not(.touching) body.board-input:has(.calc-tbl td.check-score:not(.disabled):hover) .btn-tbl td.done-btn {
-		--send-top: transparent;
-		--send-bottom: transparent;
-	}
-
 	/* The player menu's name row lights as one; its pencil not on its own. */
 	:root:not(.touching) .player-menu:not(.renaming) .player-menu-head:hover {
 		background: var(--hover-tint);

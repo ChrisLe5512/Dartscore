@@ -975,16 +975,22 @@ scoreDisplay.addEventListener('animationend', event => {
 	if (event.animationName.startsWith('tip-')) scoreDisplay.classList.remove('tip-up', 'tip-down');
 });
 
+// The input whose send button (✓ or Done) the mouse is over: shown as the one
+// in use while it's there, as if it had been picked (see the Done listeners).
+let previewInput = null;
+
 /**
  * Dim the other players while a score is being entered, and show which way
  * it's going in: the keypad or the board (the one used last, if both have
- * something).
+ * something, or the one whose send button is under the mouse).
  */
 function renderInputting() {
 	const keypad = turn.keypad !== '';
 	const board = turn.darts.length > 0;
 	scoresTable.classList.toggle('inputting', keypad || board);
-	const using = keypad && board ? turn.input : keypad ? 'keypad' : board ? 'board' : null;
+	const has = { keypad, board };
+	const using = has[previewInput] ? previewInput
+		: keypad && board ? turn.input : keypad ? 'keypad' : board ? 'board' : null;
 	document.body.classList.toggle('keypad-input', using === 'keypad');
 	document.body.classList.toggle('board-input', using === 'board');
 }
@@ -1130,6 +1136,21 @@ dartsClearBtn.addEventListener('click', () => {
 doneBtn.addEventListener('click', () => {
 	if (turn.darts.length) submit(dartsTotal(), turn.darts);
 });
+
+// With the mouse over ✓ or Done, that input shows as the one in use (its
+// button amber, the board's darts grey or lit) until the mouse leaves.
+for (const [button, input] of [[checkBtn, 'keypad'], [doneBtn, 'board']]) {
+	button.addEventListener('pointerenter', event => {
+		if (event.pointerType !== 'mouse') return;
+		previewInput = input;
+		renderInputting();
+	});
+	button.addEventListener('pointerleave', () => {
+		if (previewInput !== input) return;
+		previewInput = null;
+		renderInputting();
+	});
+}
 
 // A quick way to a turn of 0 (three misses or a bust), with no darts kept.
 bustBtn.addEventListener('click', () => {
