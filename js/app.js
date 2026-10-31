@@ -1184,7 +1184,7 @@ function renderDarts(pop = []) {
 	renderMarks(pop);
 
 	const hasDarts = turn.darts.length > 0;
-	dartsClearBtn.hidden = !hasDarts;
+	dartsClearBtn.disabled = !hasDarts;
 	// Done is a ✓ like the keypad's, with what the darts make beside it.
 	doneTotal.textContent = hasDarts ? mode().dartsValue(game, turn.darts) : '';
 	doneBtn.classList.toggle('disabled', !hasDarts);
@@ -1258,10 +1258,15 @@ const NUMBER_RING = segmentKey(0, 'numberRing');
 
 function renderLights() {
 	const { hits, kind } = shownHits();
-	const lights = hits.map(({ x, y }) => locate(x, y, 1, rings))
-		.filter(Boolean)
-		.map(spot => segmentKey(spot.sector, spot.ring))
-		.map(key => ({ key, kind: key === NUMBER_RING ? 'miss' : kind === 'live' ? 'hit' : 'review' }));
+	// The dart picked up to move: its bed flashes in the moving yellow, with its marker.
+	const lightKind = (key, index) => kind === 'live' && index === turn.editing ? 'editing'
+		: key === NUMBER_RING ? 'miss' : kind === 'live' ? 'hit' : 'review';
+	const lights = hits.flatMap(({ x, y }, index) => {
+		const spot = locate(x, y, 1, rings);
+		if (!spot) return [];
+		const key = segmentKey(spot.sector, spot.ring);
+		return [{ key, kind: lightKind(key, index) }];
+	});
 	// The pointer's light only where a dart can still go (not with three down).
 	if (!canAim()) board.classList.remove('aiming');
 	else if (hovered && !lights.some(light => light.key === hovered)) lights.push({ key: hovered, kind: 'hover' });

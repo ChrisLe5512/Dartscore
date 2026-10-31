@@ -1391,17 +1391,17 @@ body.board-input td.calc-score > * {
 	background: linear-gradient(var(--send-top), var(--send-bottom)), linear-gradient(#808080, #484848);
 }
 
-.btn-tbl td.done-btn:not(.disabled) {
+.done-btn:not(.disabled) {
 	background: linear-gradient(var(--send-top), var(--send-bottom)), var(--button);
 }
 
 .calc-tbl td.check-score,
-.btn-tbl td.done-btn {
+.side-btn.done-btn {
 	transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium), box-shadow var(--hover-speed), --send-top var(--medium) var(--ease-out), --send-bottom var(--medium) var(--ease-out);
 }
 
 body.keypad-input .calc-tbl td.check-score,
-body.board-input .btn-tbl td.done-btn {
+body.board-input .done-btn {
 	--send-top: var(--edit);
 	--send-bottom: var(--edit-dark);
 }
@@ -1852,100 +1852,111 @@ td.back-score {
 
 /* BUTTONS */
 
-/* The controls beside the board, in two groups: undo and redo at the top;
-   the keypad, Settings and full screen at the bottom. Each group is one
-   rounded block whose buttons are parted by thin lines (the group's own
-   background, showing through the gaps). In landscape each row is exactly one
-   keypad row tall (the keypad is 40% of the height in four rows, with 5px
-   between and around them), so the bottom group lines up with the keypad's
-   bottom two rows at every screen size. */
-.ctrl-section {
-	--ctrl-row: 8.4vmin;
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	width: 0;
-	padding: 5px 0;
-	box-sizing: border-box;
-	pointer-events: none;
-	z-index: 1;
+/* Beside the board, buttons in the New game screen's style: each its own
+   rounded, white-edged button on the grey gradient, a little apart. Left:
+   undo and redo at the top; the keypad, Settings and full screen at the
+   bottom, the keypad on the left above Settings where the board leaves room.
+   Right: BUST, the turn's darts, and Done. */
+:root {
+	--side-pad: 1.2vmin; /* from the screen's edges, and between buttons */
+	--ctrl-size: 8vmin;
+	--side-w: 15vw; /* BUST and Done */
+	--card-w: 7.5vw; /* the darts card */
 }
 
-@media (orientation: landscape) {
-	.ctrl-section {
-		--ctrl-row: calc((40vmin - 5 * 5px) / 4);
-	}
-}
-
-.ctrl-group {
+.board-btn {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: var(--line);
-	box-sizing: border-box;
-	width: calc(12.5vw - 10px);
-	margin-left: 5px;
-	overflow: hidden;
-	background: white;
+	place-items: center;
+	padding: 0;
+	font-family: var(--font-condensed);
+	font-weight: 500;
+	color: var(--text);
+	text-shadow: 0 0 8px black;
+	background: var(--button);
 	border: var(--border);
 	border-radius: var(--radius);
+	cursor: pointer;
 	pointer-events: auto;
 }
 
-.ctrl-top {
-	height: var(--ctrl-row);
-}
-
-/* Two rows: as tall as the keypad's bottom two rows and the 5px between them. */
-.ctrl-bottom {
-	grid-template-rows: 1fr 1fr;
-	height: calc(2 * var(--ctrl-row) + 5px);
-}
-
-.ctrl-btn {
-	display: grid;
-	place-items: center;
-	min-width: 0;
-	padding: 0;
-	color: white;
-	background: var(--button);
-	border: none;
-	cursor: pointer;
-}
-
-.ctrl-btn.disabled {
+.board-btn.disabled {
 	color: var(--text-muted);
 	background: var(--button-disabled);
+	border: var(--border-muted);
 	cursor: default;
 }
 
-.ctrl-btn .icon {
-	width: 4.6vmin;
-	height: 4.6vmin;
+/* Line icons (the controls, the darts' Clear): drawn in the text colour. */
+.icon {
+	display: block;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2.2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	filter: drop-shadow(0 0 0.6vmin black);
 }
 
 .icon.flip {
 	transform: scaleX(-1);
 }
 
-/* Keypad show/hide, across the top of its group: a keypad, and an arrow that
-   points down to hide it, up to show it. */
+.ctrl-section {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: flex-start;
+	width: 0;
+	padding: var(--side-pad) 0;
+	box-sizing: border-box;
+	pointer-events: none;
+	z-index: 1;
+}
+
+.ctrl-top,
+.ctrl-bottom {
+	margin-left: var(--side-pad);
+}
+
+.ctrl-row,
+.ctrl-bottom {
+	display: flex;
+	gap: var(--side-pad);
+}
+
+.ctrl-bottom {
+	flex-direction: column;
+}
+
+.ctrl-btn {
+	width: var(--ctrl-size);
+	height: var(--ctrl-size);
+}
+
+.ctrl-btn .icon {
+	width: 4.4vmin;
+	height: 4.4vmin;
+}
+
+/* Keypad show/hide: a keypad, and an arrow that points down to hide it, up to show it. */
 .ctrl-btn.keypad-btn {
-	grid-column: 1 / -1;
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	gap: 0.6vmin;
+	gap: 0.2vmin;
 }
 
-.keypad-icon {
+.ctrl-btn .keypad-icon {
+	width: 3.6vmin;
+	height: 3.6vmin;
 	fill: currentColor;
 	stroke: none;
 }
 
 .ctrl-btn .keypad-arrow {
-	width: 3.4vmin;
-	height: 3.4vmin;
+	width: 2.6vmin;
+	height: 2.6vmin;
 	transition: transform var(--medium) var(--ease-out);
 }
 
@@ -1964,138 +1975,100 @@ td.back-score {
 	transform: rotate(180deg);
 }
 
+/* The right-hand column, its buttons lined up on the right edge (wider than
+   the column, they reach over the board's corners as the left ones do). */
 .btn-section {
-	font-family: var(--font-condensed);
-	font-weight: 500;
 	position: relative;
-	right: 7.9vw;
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
+	justify-content: space-between;
+	align-items: flex-end;
 	width: 8vw;
+	padding: var(--side-pad);
+	box-sizing: border-box;
 	pointer-events: none;
 }
 
-.btn-tbl {
-	table-layout: fixed;
-	border-spacing: 5px;
-	width: 296%;
-	height: 100%;
-	text-align: center;
-	text-shadow: 0 0 1vmin black;
-	color: white;
+.side-btn {
+	width: var(--side-w);
+	height: 13vmin;
+	font-size: 6vmin;
+	white-space: nowrap;
 }
 
-.btn-tbl td {
-	height: 7.5%;
-	overflow: hidden;
-	border: var(--border);
-	border-radius: var(--radius);
-	background: var(--button);
-	pointer-events: auto;
-}
-
-.btn-tbl td.disabled {
-	color: var(--text-muted);
-	background: var(--button-disabled);
-	border: var(--border-muted);
-	cursor: default;
-}
-
-.btn-tbl td.hidden {
-	visibility: hidden;
-	pointer-events: none;
-}
-
-/* The darts card: one panel for the turn's three darts (laid over it from
-   .darts), with ✕ in its corner to clear them once there are any. */
-.btn-tbl td.darts-btn {
-	position: relative;
-	background: linear-gradient(#262626, #161616);
-	border: var(--border-muted);
-}
-
-.darts-clear {
-	position: absolute;
-	top: calc(0.8 * var(--u));
-	right: calc(0.8 * var(--u));
-	display: grid;
-	place-items: center;
-	width: calc(4.4 * var(--u));
-	height: calc(4.4 * var(--u));
-	padding: 0;
-	color: var(--text);
-	background: none;
-	border: none;
-	border-radius: 50%;
-	cursor: pointer;
-	transition: background var(--hover-speed), transform var(--fast) var(--ease-out);
-}
-
-.darts-clear:active {
-	transform: scale(0.85);
-}
-
-.darts-clear .icon {
-	width: 62%;
-	height: 62%;
-}
-
-/* Line icons (the darts' ✕, the controls on the left): drawn in the text colour. */
-.icon {
-	display: block;
-	fill: none;
-	stroke: currentColor;
-	stroke-width: 2.2;
-	stroke-linecap: round;
-	stroke-linejoin: round;
-	filter: drop-shadow(0 0 0.6vmin black);
-}
-
-.large-btn {
-	font-size: calc(6 * var(--u));
-	cursor: pointer;
-}
-
-/* BUST scores nothing: a dark button edged and lettered in the bust red. */
-.btn-tbl td.bust-btn {
-	color: var(--bust);
-	background: linear-gradient(#3a1d18, #1c0e0b);
-	border-color: color-mix(in srgb, var(--bust) 80%, transparent);
+/* BUST: an ordinary button, its word in a soft red. */
+.bust-btn:not(.disabled) {
+	color: color-mix(in srgb, var(--bust) 65%, white);
 }
 
 /* Done: a ✓ like the keypad's, with what the darts make beside it. */
 .done-btn {
-	white-space: nowrap;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .done-total:not(:empty) {
-	margin-right: calc(1.2 * var(--u));
-	font-size: calc(5.2 * var(--u));
+	margin-right: 1.4vmin;
+	font-size: 5.4vmin;
 	font-weight: 600;
 	font-variant-numeric: tabular-nums;
 }
 
 .done-check {
 	font-family: var(--font);
-	font-size: calc(6 * var(--u));
-	font-weight: 500;
+	font-size: 6vmin;
 }
 
+/* The darts card: as tall as its three darts, with Clear across the top. */
 .darts {
-	position: absolute;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	width: 100%;
-	margin-left: calc(-0.25 * var(--u));
+	width: var(--card-w);
+	padding: calc(0.6 * var(--u)) 0 calc(0.8 * var(--u));
+	box-sizing: border-box;
 	font-size: calc(3 * var(--u));
 	text-align: center;
 	line-height: 1.05;
 	color: white;
-	top: 50%;
-	left: 150%;
-	transform: translate(-50%, -50%);
+	background: linear-gradient(#2a2a2a, #161616);
+	border: var(--border-muted);
+	border-radius: var(--radius);
+}
+
+.darts-clear {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: calc(0.4 * var(--u));
+	width: 90%;
+	padding: calc(0.8 * var(--u)) 0;
+	font-family: var(--font-condensed);
+	font-size: calc(2.8 * var(--u));
+	line-height: 1;
+	color: var(--text);
+	background: none;
+	border: none;
+	border-radius: calc(var(--radius) * 0.7);
+	cursor: pointer;
+	pointer-events: auto;
+	transition: background var(--hover-speed), color var(--medium), transform var(--fast) var(--ease-out);
+}
+
+.darts-clear:disabled {
+	color: var(--text-muted);
+	cursor: default;
+}
+
+.darts-clear:not(:disabled):active {
+	transform: scale(0.9);
+}
+
+.darts-clear .icon {
+	flex: none;
+	width: calc(2.4 * var(--u));
+	height: calc(2.4 * var(--u));
 }
 
 .darts span {
@@ -2486,7 +2459,7 @@ td.back-score {
 		.players-add,
 		.calc-tbl td:not(.disabled),
 		.ctrl-btn:not(.disabled),
-		.btn-tbl td:not(.disabled, .darts-btn),
+		.side-btn:not(.disabled),
 		.darts span:not(.empty),
 		.add-player td
 	):hover {
@@ -2494,7 +2467,7 @@ td.back-score {
 	}
 
 
-	:root:not(.touching) :is(.field-btn, .player-menu button):not(:disabled):hover {
+	:root:not(.touching) :is(.field-btn, .player-menu button, .darts-clear):not(:disabled):hover {
 		background: var(--hover-tint);
 	}
 
@@ -2541,7 +2514,7 @@ td.back-score {
 /* Buttons sink slightly when pressed, and their hover light fades. */
 .calc-tbl td,
 .ctrl-btn,
-.btn-tbl td,
+.side-btn,
 .darts span,
 .add-player td,
 .players-add,
@@ -2583,7 +2556,7 @@ td.back-score {
 
 .calc-tbl td:not(.disabled, .calc-score):active,
 .ctrl-btn:not(.disabled):active,
-.btn-tbl td:not(.disabled, .darts-btn):active,
+.side-btn:not(.disabled):active,
 .darts span:not(.empty):active,
 .add-player td:active,
 .players-add:active,
@@ -2766,10 +2739,6 @@ td.calc-score:not(.disabled) {
 		height: 100%;
 	}
 
-	.ctrl-group {
-		width: calc(20vmin - 10px);
-	}
-
 	.dartboard-section {
 		width: 100%;
 		max-width: none;
@@ -2783,16 +2752,13 @@ td.calc-score:not(.disabled) {
 		margin: 0;
 	}
 
-	/* Line the right-hand column up with the keypad below: each of its columns is one
-	   keypad key wide, so BUST and DONE are exactly two keys. The button table has
-	   three columns at 296% of this section, with 5px spacing. */
+	/* The right-hand column at the right edge; BUST and Done a little wider here. */
 	.btn-section {
-		--key: calc((var(--band) * 0.82 - 5 * 5px) / 4);
-		--section: calc((3 * var(--key) + 4 * 5px) / 2.96);
+		--side-w: 22vmin;
+		--card-w: 11vmin;
 		justify-self: end;
 		height: 100%;
-		width: var(--section);
-		right: calc(3 * 5px + 2 * var(--key) - var(--section));
+		width: auto;
 	}
 
 	aside {
@@ -2972,6 +2938,20 @@ td.calc-score:not(.disabled) {
 	}
 }
 
+/* The bed of a dart picked up to move: flashes in the moving yellow, in time
+   with its marker (whatever the highlight colour). */
+.light.editing {
+	fill: color-mix(in srgb, var(--dart-edit) 40%, transparent);
+	stroke: var(--dart-edit);
+	stroke-width: 0.9;
+	filter: drop-shadow(0 0 1.5px var(--dart-edit));
+	animation: editing-light 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes editing-light {
+	to { opacity: 0.35; }
+}
+
 /* Centred on where the dart landed. */
 .mark circle {
 	fill: rgba(0, 0, 0, 0.8);
@@ -3017,9 +2997,11 @@ td.calc-score:not(.disabled) {
 	position: relative;
 }
 
-/* A dart picked up to move: its slot and its marker pulse. */
+/* A dart picked up to move: its slot and its marker pulse, and its bed
+   flashes, in the moving yellow. The slot's edge is red: another tap
+   removes it. */
 .darts span.editing {
-	border-color: var(--dart-edit);
+	border-color: var(--bust);
 	animation: editing 0.9s ease-in-out infinite alternate;
 }
 

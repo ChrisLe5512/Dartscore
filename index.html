@@ -86,17 +86,19 @@
 			</section>
 		</aside>
 
-		<!-- The controls beside the board, in two groups: undo and redo at the top;
-		     the keypad, Settings and full screen at the bottom. -->
+		<!-- The controls beside the board: undo and redo at the top; the keypad,
+		     Settings and full screen at the bottom. -->
 		<section class="ctrl-section">
-			<div class="ctrl-group ctrl-top">
-				<button type="button" tabindex="-1" class="ctrl-btn undo disabled" aria-label="Undo" title="Undo (Ctrl+Z)"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
-				<button type="button" tabindex="-1" class="ctrl-btn redo disabled" aria-label="Redo" title="Redo (Ctrl+Y)"><svg class="icon flip" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+			<div class="ctrl-row ctrl-top">
+				<button type="button" tabindex="-1" class="board-btn ctrl-btn undo disabled" aria-label="Undo" title="Undo (Ctrl+Z)"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+				<button type="button" tabindex="-1" class="board-btn ctrl-btn redo disabled" aria-label="Redo" title="Redo (Ctrl+Y)"><svg class="icon flip" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
 			</div>
-			<div class="ctrl-group ctrl-bottom">
-				<button type="button" tabindex="-1" class="ctrl-btn keypad-btn" aria-label="Hide keypad" aria-expanded="true" title="Hide or show the keypad"><svg class="icon keypad-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="5" height="5" rx="1"/><rect x="9.5" y="3.5" width="5" height="5" rx="1"/><rect x="15.5" y="3.5" width="5" height="5" rx="1"/><rect x="3.5" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><rect x="15.5" y="9.5" width="5" height="5" rx="1"/><rect x="3.5" y="15.5" width="5" height="5" rx="1"/><rect x="9.5" y="15.5" width="5" height="5" rx="1"/><rect x="15.5" y="15.5" width="5" height="5" rx="1"/></svg><svg class="icon keypad-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></button>
-				<button type="button" tabindex="-1" class="ctrl-btn settings-btn" aria-label="Settings" title="Settings: players, board layout, new game"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.08 4.85L10.17 2.58L13.83 2.58L13.92 4.85L15.70 5.59L17.37 4.04L19.96 6.63L18.41 8.30L19.15 10.08L21.42 10.17L21.42 13.83L19.15 13.92L18.41 15.70L19.96 17.37L17.37 19.96L15.70 18.41L13.92 19.15L13.83 21.42L10.17 21.42L10.08 19.15L8.30 18.41L6.63 19.96L4.04 17.37L5.59 15.70L4.85 13.92L2.58 13.83L2.58 10.17L4.85 10.08L5.59 8.30L4.04 6.63L6.63 4.04L8.30 5.59Z"/><circle cx="12" cy="12" r="3"/></svg></button>
-				<button type="button" tabindex="-1" class="ctrl-btn full-screen" aria-label="Full screen" title="Full screen (F11)"><svg class="icon fs-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9V3h6"/><path d="M15 3h6v6"/><path d="M21 15v6h-6"/><path d="M9 21H3v-6"/></svg></button>
+			<div class="ctrl-bottom">
+				<button type="button" tabindex="-1" class="board-btn ctrl-btn keypad-btn" aria-label="Hide keypad" aria-expanded="true" title="Hide or show the keypad"><svg class="icon keypad-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="5" height="5" rx="1"/><rect x="9.5" y="3.5" width="5" height="5" rx="1"/><rect x="15.5" y="3.5" width="5" height="5" rx="1"/><rect x="3.5" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><rect x="15.5" y="9.5" width="5" height="5" rx="1"/><rect x="3.5" y="15.5" width="5" height="5" rx="1"/><rect x="9.5" y="15.5" width="5" height="5" rx="1"/><rect x="15.5" y="15.5" width="5" height="5" rx="1"/></svg><svg class="icon keypad-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></button>
+				<div class="ctrl-row">
+					<button type="button" tabindex="-1" class="board-btn ctrl-btn settings-btn" aria-label="Settings" title="Settings: players, board layout, new game"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.08 4.85L10.17 2.58L13.83 2.58L13.92 4.85L15.70 5.59L17.37 4.04L19.96 6.63L18.41 8.30L19.15 10.08L21.42 10.17L21.42 13.83L19.15 13.92L18.41 15.70L19.96 17.37L17.37 19.96L15.70 18.41L13.92 19.15L13.83 21.42L10.17 21.42L10.08 19.15L8.30 18.41L6.63 19.96L4.04 17.37L5.59 15.70L4.85 13.92L2.58 13.83L2.58 10.17L4.85 10.08L5.59 8.30L4.04 6.63L6.63 4.04L8.30 5.59Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+					<button type="button" tabindex="-1" class="board-btn ctrl-btn full-screen" aria-label="Full screen" title="Full screen (F11)"><svg class="icon fs-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9V3h6"/><path d="M15 3h6v6"/><path d="M21 15v6h-6"/><path d="M9 21H3v-6"/></svg></button>
+				</div>
 			</div>
 		</section>
 
@@ -104,32 +106,16 @@
 			<div class="board-frame"><svg id="dartboard" class="dartboard" role="img" aria-label="Dartboard"></svg></div>
 		</section>
 
+		<!-- Beside the board on the right: BUST, the turn's darts, and Done (✓). -->
 		<section class="btn-section">
-			<table class="btn-tbl">
-				<tbody>
-					<tr><td rowspan="2" colspan="2" class="large-btn bust-btn" role="button" aria-label="Bust: no score" title="No score: this visit counts as 0">BUST</td></tr>
-					<tr><td class="hidden"></td></tr>
-					<tr><td class="hidden"></td></tr>
-					<tr>
-						<td class="hidden"></td>
-						<td rowspan="7" class="darts-btn"><button type="button" tabindex="-1" class="darts-clear" aria-label="Clear the darts" title="Clear the darts and start the turn again" hidden><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></td>
-					</tr>
-					<tr><td class="hidden"></td></tr>
-					<tr><td class="hidden"></td></tr>
-					<tr><td class="hidden"></td></tr>
-					<tr><td class="hidden"></td></tr>
-					<tr><td class="hidden"></td></tr>
-					<tr><td class="hidden"></td></tr>
-					<tr><td class="hidden"></td></tr>
-					<tr><td rowspan="2" colspan="2" class="large-btn done-btn disabled" role="button" aria-label="Score the darts" title="Score the darts tapped on the board"><span class="done-total"></span><span class="done-check">&#10003;</span></td></tr>
-					<tr><td class="hidden"></td></tr>
-				</tbody>
-			</table>
+			<button type="button" tabindex="-1" class="board-btn side-btn bust-btn" aria-label="Bust: no score" title="No score: this visit counts as 0">BUST</button>
 			<div class="darts">
+				<button type="button" tabindex="-1" class="darts-clear" title="Clear the darts and start the turn again" disabled>Clear<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
 				<span class="empty" data-n="1"></span>
 				<span class="empty" data-n="2"></span>
 				<span class="empty" data-n="3"></span>
 			</div>
+			<button type="button" tabindex="-1" class="board-btn side-btn done-btn disabled" aria-label="Score the darts" title="Score the darts tapped on the board"><span class="done-total"></span><span class="done-check">&#10003;</span></button>
 		</section>
 
 		<span class="debug-span" hidden></span>
