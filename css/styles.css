@@ -898,7 +898,7 @@ body.visuals-open :is(.ctrl-section, .btn-section) {
 .visuals-controls {
 	display: flex;
 	flex-direction: column;
-	gap: 2.4vmin;
+	gap: 1.7vmin;
 	padding: 0 1vmin;
 }
 
@@ -927,6 +927,11 @@ body.visuals-open :is(.ctrl-section, .btn-section) {
 	width: 100%;
 	margin: 0;
 	accent-color: var(--checkout);
+}
+
+/* Not in use (wire thickness with the wires off): greyed, like a checkbox. */
+.range:has(input:disabled) {
+	opacity: 0.4;
 }
 
 .swatches {
@@ -2131,8 +2136,10 @@ td.back-score {
 .seg.green { fill: var(--board-green); }
 .seg.legend { fill: var(--board-legend); stroke: none; }
 
-/* Optional wires around every bed (Settings > Visuals). */
-.beds.wired .seg {
+/* Optional wires around every bed (Settings > Board layout). Not round the
+   number ring: its outer edge is the board's edge, where the outline is, and
+   a wire there thickened it. */
+.beds.wired .seg:not(.legend) {
 	stroke: var(--wire);
 	stroke-width: var(--wire-width);
 }

@@ -114,10 +114,10 @@ test('without double out any dart finishes, up to 180', () => {
 	}
 });
 
-test('board style: old wires on/off keep their thickness, new ones are a slider', () => {
-	assert.equal(boardStyle({}).wire, 0);
-	assert.equal(boardStyle({ outline: 1.5, wires: true }).wire, 0.9);
-	assert.equal(boardStyle({ wires: false }).wire, 0);
-	assert.equal(boardStyle({ wire: 0.4, wires: true }).wire, 0.4);
-	assert.equal('wires' in boardStyle({ wires: true }), false);
+test('board style: wires keep their on/off and thickness from older saves', () => {
+	assert.deepEqual([boardStyle({}).wires, boardStyle({}).wire], [false, 0.6]);
+	assert.deepEqual([boardStyle({ outline: 1.5, wires: true }).wires, boardStyle({ outline: 1.5, wires: true }).wire], [true, 0.9]);
+	assert.deepEqual([boardStyle({ wire: 0.8 }).wires, boardStyle({ wire: 0.8 }).wire], [true, 0.8]); // a thickness alone
+	assert.deepEqual([boardStyle({ wire: 0 }).wires, boardStyle({ wire: 0 }).wire], [false, 0.6]);
+	assert.deepEqual([boardStyle({ wires: false, wire: 1.2 }).wires, boardStyle({ wires: false, wire: 1.2 }).wire], [false, 1.2]);
 });

@@ -77,29 +77,33 @@ function fadeOut(node) {
 }
 
 /**
- * A saved board style with the defaults filled in. Wires used to be on or off
- * (wires: true, as thick as 60% of the outline); they keep that thickness.
+ * A saved board style with the defaults filled in. Wires saved before they had
+ * a thickness of their own were 60% of the outline, and keep that; saved as a
+ * thickness alone (0 for none), they are on where it is above 0.
  */
 export function boardStyle(saved = {}) {
 	const style = { ...BOARD_STYLE, ...saved };
 	if (saved.wire === undefined && saved.wires) style.wire = round((saved.outline ?? BOARD_STYLE.outline) * 0.6);
-	delete style.wires;
+	if (saved.wires === undefined && saved.wire !== undefined) {
+		style.wires = saved.wire > 0;
+		if (!style.wires) style.wire = BOARD_STYLE.wire;
+	}
 	return style;
 }
 
 /**
  * Draw the board into `svg` (replacing what was there).
- * style: { outline, wire, outlineColor } as in BOARD_STYLE.
+ * style: { outline, wires, wire, outlineColor } as in BOARD_STYLE.
  */
 export function drawBoard(svg, rings, style = BOARD_STYLE) {
-	const { outline, outlineColor, wire } = boardStyle(style);
+	const { outline, outlineColor, wires, wire } = boardStyle(style);
 	svg.setAttribute('viewBox', `${-VIEW} ${-VIEW} ${VIEW * 2} ${VIEW * 2}`);
 	svg.replaceChildren();
 	const defs = el('defs', {}, svg);
 
-	const beds = el('g', { class: wire > 0 ? 'beds wired' : 'beds' }, svg);
-	if (wire > 0) beds.style.setProperty('--wire', outlineColor);
-	if (wire > 0) beds.style.setProperty('--wire-width', wire);
+	const beds = el('g', { class: wires ? 'beds wired' : 'beds' }, svg);
+	if (wires) beds.style.setProperty('--wire', outlineColor);
+	if (wires) beds.style.setProperty('--wire-width', wire);
 	for (const { key, d, color } of segments(rings)) {
 		el('path', { d, class: `seg ${color}`, 'data-key': key }, beds);
 	}
