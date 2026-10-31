@@ -77,7 +77,7 @@ export const DART_VIEW = Object.freeze({
 });
 
 // How close (as a fraction of the board radius) a tap must be to a dart's
-// marker to pick that dart up. The marker itself is 0.036 across the middle.
+// marker or its point to pick that dart up. The marker is 0.03 from its middle to its edge.
 export const MARK_REACH = 0.05;
 
 // How long a status toast stays on screen.

@@ -2962,7 +2962,7 @@ td.calc-score:not(.disabled) {
 
 /* Centred on where the dart landed. */
 .mark circle {
-	fill: rgba(0, 0, 0, 0.8);
+	fill: rgba(0, 0, 0, 0.55);
 	stroke: white;
 	stroke-width: var(--line);
 	vector-effect: non-scaling-stroke;
@@ -2971,26 +2971,16 @@ td.calc-score:not(.disabled) {
 .mark text {
 	fill: white;
 	font-family: var(--font-condensed);
-	font-size: 4.6px;
+	font-size: 3.9px;
 	font-weight: 600;
 	text-anchor: middle;
 	dominant-baseline: central;
 }
 
-/* The marker's line to its dart's point: white on a dark edge, like the marker. */
-.mark-leader line {
-	stroke: white;
-	stroke-width: 0.45;
+/* The marker's line to its dart's point, fading towards it (a gradient from dartboard.js). */
+.mark-leader {
+	stroke-width: 0.4;
 	stroke-linecap: round;
-}
-
-.mark-leader .under {
-	stroke: rgba(0, 0, 0, 0.8);
-	stroke-width: 1.1;
-}
-
-.mark-leader.editing line:not(.under) {
-	stroke: var(--dart-edit);
 }
 
 .mark-leader.pop {
@@ -3025,47 +3015,42 @@ td.calc-score:not(.disabled) {
 	--dart-flight: #2f7de1;
 }
 
-/* Its shadow on the board, darkest at the point (a gradient from dartboard.js). */
+/* Its shadow on the board, faded along its length by a mask (dartboard.js). */
 .dart-shadow {
-	stroke-width: 2.6;
-	stroke-linecap: round; /* no blur: a blurred gradient line vanishes in Chrome */
+	fill: black;
+	opacity: 0.4;
 }
 
-.dart-point,
-.dart-barrel {
-	stroke: rgba(0, 0, 0, 0.55);
-	stroke-width: 0.15;
+/* Soft edges, a darker tone of each part rather than a hard line. */
+.dart-steel,
+.dart-face {
+	stroke: rgba(0, 0, 0, 0.35);
+	stroke-width: 0.12;
 	stroke-linejoin: round;
-}
-
-.dart-barrel {
-	opacity: 0.92;
 }
 
 /* Grip rings round the barrel. */
 .dart-grip {
-	stroke: #1e2125;
+	stroke: #050607;
 	stroke-dasharray: 0.7 1.1;
-	opacity: 0.45;
+	opacity: 0.4;
 }
 
 .dart-shaft {
-	stroke: rgba(0, 0, 0, 0.6);
-	stroke-width: 0.12;
+	stroke: rgba(0, 0, 0, 0.4);
+	stroke-width: 0.1;
 	opacity: 0.6;
 }
 
-.dart-vane {
-	fill: var(--dart-flight);
-	stroke: color-mix(in srgb, var(--dart-flight) 40%, black);
-	stroke-width: 0.3;
-	stroke-linejoin: round;
-	opacity: 0.32;
+.dart-flight {
+	opacity: 0.38;
 }
 
-.dart.editing .dart-vane {
-	fill: var(--dart-edit);
-	opacity: 0.5;
+.dart-flight polygon {
+	stroke: color-mix(in srgb, var(--dart-flight) 55%, black);
+	stroke-width: 0.25;
+	stroke-opacity: 0.5;
+	stroke-linejoin: round;
 }
 
 /* A past turn being looked back at: its darts fainter. */
@@ -3121,8 +3106,8 @@ td.calc-score:not(.disabled) {
 }
 
 @keyframes editing-mark {
-	from { r: 3.6px; }
-	to { r: 4.5px; }
+	from { r: 3px; }
+	to { r: 3.8px; }
 }
 
 /* Corner number on each dart slot, matching its marker on the board. */

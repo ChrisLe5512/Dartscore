@@ -3,15 +3,20 @@ import assert from 'node:assert/strict';
 import { dartPose, dartShape, markSpot } from '../js/dart3d.js';
 
 const straight = { lean: [0, 0], roll: 0 };
-const mid = ([a, b]) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-// The shaft's far end, midway across.
-const tailEnd = shape => mid(shape.shaft[0].slice(1, 3));
+// The middle of the shaft's far end.
+const tailEnd = shape => [shape.end.cx, shape.end.cy];
 const barrelWidth = shape => Math.hypot(shape.across.to[0] - shape.across.from[0], shape.across.to[1] - shape.across.from[1]);
 
 test('dart: in the bull and straight, you look down its tail', () => {
 	const shape = dartShape(0, 0, straight);
-	assert.ok(Math.hypot(...mid([shape.point[0][0], shape.point[0][3]])) < 1e-9);
 	assert.ok(Math.hypot(...tailEnd(shape)) < 1e-9);
+	// Seen end-on, its round parts look round.
+	assert.ok(Math.abs(shape.face.rx - shape.face.ry) < 1e-9);
+});
+
+test('dart: seen from the side, its round ends look flattened', () => {
+	const { face } = dartShape(0.8, 0, straight);
+	assert.ok(face.ry < face.rx * 0.97);
 });
 
 test('dart: further out, its tail splays away from the bull', () => {

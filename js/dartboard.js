@@ -183,44 +183,64 @@ export function lightSegments(svg, lights) {
 
 const points = list => list.map(p => p.map(round).join(',')).join(' ');
 let gradients = 0; // numbers the darts' own gradients
+const MARK_R = 3; // a marker's radius
 
-/** A gradient along a line on the board, [offset, colour, opacity] stops, for one dart. */
-function gradient(parent, [x1, y1], [x2, y2], stops) {
+/**
+ * A gradient for one dart, [offset, colour, opacity] stops (colours may be
+ * CSS variables). Linear along a line on the board, or radial over an ellipse.
+ */
+function gradient(parent, stops, line = null) {
 	const id = `dart-${++gradients}`;
-	const node = el('linearGradient', { id, gradientUnits: 'userSpaceOnUse', x1: round(x1), y1: round(y1), x2: round(x2), y2: round(y2) }, parent);
-	for (const [offset, color, opacity = 1] of stops) el('stop', { offset, 'stop-color': color, 'stop-opacity': opacity }, node);
+	const node = line
+		? el('linearGradient', { id, gradientUnits: 'userSpaceOnUse', x1: round(line[0][0]), y1: round(line[0][1]), x2: round(line[1][0]), y2: round(line[1][1]) }, parent)
+		: el('radialGradient', { id, cx: 0.5, cy: 0.5, fx: 0.38, fy: 0.3, r: 0.5 }, parent);
+	for (const [offset, color, opacity = 1] of stops) el('stop', { offset, style: `stop-color: ${color}; stop-opacity: ${opacity}` }, node);
 	return `url(#${id})`;
 }
 
+const ellipse = ({ cx, cy, rx, ry, angle }, attrs, parent) =>
+	el('ellipse', { cx: round(cx), cy: round(cy), rx: round(rx), ry: round(Math.max(ry, 0.01)), transform: `rotate(${round(angle)} ${round(cx)} ${round(cy)})`, ...attrs }, parent);
+
 /**
  * Draw a dart into its group (emptied first), back to front: its shadow,
- * point, barrel, shaft, then the flight, nearest the eye. The barrel and
- * shaft are shaded as cylinders lit from the top left.
+ * point, barrel, shaft, then the flight, nearest the eye. No outlines: the
+ * steel is shaded as cylinders lit from the top left, the barrel's end
+ * facing you as a shaded disc, and each vane from its root out.
  */
 function paintDart(group, { x, y }, motion = {}) {
 	const shape = dartShape(x, y, dartPose(x, y), motion);
 	group.replaceChildren();
 	const defs = el('defs', {}, group);
+	const polygons = (list, attrs) => list.forEach(piece => el('polygon', { points: points(piece), ...attrs }, group));
 	if (shape.shadow) {
-		// Darkest at the point, gone before the flight.
-		const fill = gradient(defs, shape.shadow.from, shape.shadow.to, [[0, 'black', 0.6], [0.6, 'black', 0.25], [1, 'black', 0]]);
-		el('line', { class: 'dart-shadow', stroke: fill, x1: round(shape.shadow.from[0]), y1: round(shape.shadow.from[1]), x2: round(shape.shadow.to[0]), y2: round(shape.shadow.to[1]) }, group);
+		// The dart's own shape as one flat layer (no darker overlaps), faded
+		// by a mask from the point to nothing before the flight.
+		const fade = gradient(defs, [[0, 'white'], [0.55, '#777'], [1, 'black']], [shape.shadow.from, shape.shadow.to]);
+		const mask = el('mask', { id: `dart-${++gradients}`, maskUnits: 'userSpaceOnUse', x: -300, y: -300, width: 600, height: 600 }, defs);
+		el('rect', { x: -300, y: -300, width: 600, height: 600, fill: fade }, mask);
+		const shadow = el('g', { class: 'dart-shadow', mask: `url(#${mask.id})` }, group);
+		for (const piece of shape.shadow.parts) el('polygon', { points: points(piece) }, shadow);
 	}
-	const { from, to } = shape.across;
-	const steel = gradient(defs, from, to, [[0, '#30343a'], [0.4, '#7d838c'], [0.72, '#e4e7eb'], [0.86, '#aeb3ba'], [1, '#5a6068']]);
-	const shaft = gradient(defs, from, to, [[0, '#050505'], [0.55, '#2a2a2c'], [0.75, '#6a6c70'], [1, '#141414']]);
-	for (const piece of shape.point) el('polygon', { class: 'dart-point', fill: steel, points: points(piece) }, group);
-	for (const piece of shape.barrel) el('polygon', { class: 'dart-barrel', fill: steel, points: points(piece) }, group);
-	// Grip rings round the middle of the barrel.
-	const [, body] = shape.barrel;
-	const ring = (a, b) => [a[0] + (b[0] - a[0]) * 0.5, a[1] + (b[1] - a[1]) * 0.5];
-	const spine = [ring(body[0], body[3]), ring(body[1], body[2])];
-	const span = (t, u) => [spine[0].map((v, i) => v + (spine[1][i] - v) * t), spine[0].map((v, i) => v + (spine[1][i] - v) * u)];
-	const [g1, g2] = span(0.15, 0.85);
-	const width = Math.hypot(body[0][0] - body[3][0], body[0][1] - body[3][1]);
-	el('line', { class: 'dart-grip', 'stroke-width': round(width * 0.92), x1: round(g1[0]), y1: round(g1[1]), x2: round(g2[0]), y2: round(g2[1]) }, group);
-	for (const piece of shape.shaft) el('polygon', { class: 'dart-shaft', fill: shaft, points: points(piece) }, group);
-	for (const vane of shape.vanes) el('polygon', { class: 'dart-vane', points: points(vane) }, group);
+	const across = [shape.across.from, shape.across.to];
+	const steel = gradient(defs, [[0, '#121417'], [0.42, '#3d4249'], [0.72, '#a3a9b1'], [0.86, '#5e646c'], [1, '#202328']], across);
+	const black = gradient(defs, [[0, '#030303'], [0.55, '#18181a'], [0.76, '#4a4c50'], [1, '#0b0b0b']], across);
+	polygons([shape.point, shape.nose, shape.barrel], { class: 'dart-steel', fill: steel });
+	// Grip rings round the barrel.
+	const [g1, g2] = shape.grip;
+	const grip = [0.12, 0.88].map(t => [g1[0] + (g2[0] - g1[0]) * t, g1[1] + (g2[1] - g1[1]) * t]);
+	const width = Math.hypot(shape.across.to[0] - shape.across.from[0], shape.across.to[1] - shape.across.from[1]);
+	el('line', { class: 'dart-grip', 'stroke-width': round(width * 0.94), x1: round(grip[0][0]), y1: round(grip[0][1]), x2: round(grip[1][0]), y2: round(grip[1][1]) }, group);
+	polygons([shape.tail], { class: 'dart-steel', fill: steel });
+	// The barrel's end, facing you: a shaded disc, the shaft coming out of it.
+	ellipse(shape.face, { class: 'dart-face', fill: gradient(defs, [[0, '#8d939b'], [0.55, '#3a3f45'], [1, '#141619']]) }, group);
+	polygons([shape.shaft], { class: 'dart-shaft', fill: black });
+	ellipse(shape.end, { class: 'dart-shaft', fill: '#0d0d0d' }, group);
+	// The flight: one see-through layer, so where the vanes meet doesn't darken.
+	const flight = el('g', { class: 'dart-flight' }, group);
+	for (const { points: vane, root, edge } of shape.vanes) {
+		const fill = gradient(defs, [[0, 'color-mix(in srgb, var(--dart-flight) 45%, black)'], [0.5, 'var(--dart-flight)'], [1, 'color-mix(in srgb, var(--dart-flight) 70%, white)']], [root, edge]);
+		el('polygon', { points: points(vane), fill }, flight);
+	}
 	group.style.opacity = motion.opacity ?? '';
 }
 
@@ -289,13 +309,13 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 		const toTip = [(hit.x - mx) * 100, (hit.y - my) * 100];
 		const reach = Math.hypot(...toTip);
 		const unit = toTip.map(v => v / reach);
-		const lead = { x1: round(unit[0] * 3.6), y1: round(unit[1] * 3.6), x2: round(unit[0] * (reach - 0.9)), y2: round(unit[1] * (reach - 0.9)) };
-		const leader = el('g', { class: ['mark-leader', ...state(index)].filter(Boolean).join(' ') }, place);
-		el('line', { class: 'under', ...lead }, leader);
-		el('line', lead, leader);
+		// It fades towards the dart, so it doesn't sit on it.
+		const [from, to] = [MARK_R, reach - 1].map(d => unit.map(v => v * d));
+		const fade = gradient(place, [[0, 'white', 0.75], [1, 'white', 0]], [from, to]);
+		el('line', { class: ['mark-leader', ...state(index)].filter(Boolean).join(' '), stroke: fade, x1: round(from[0]), y1: round(from[1]), x2: round(to[0]), y2: round(to[1]) }, place);
 		const mark = el('g', { class: ['mark', ...state(index)].filter(Boolean).join(' ') }, place);
 		// Dashes are measured along a pathLength of 25: always five, at any size.
-		el('circle', { r: 3.6, pathLength: 25 }, mark);
+		el('circle', { r: MARK_R, pathLength: 25 }, mark);
 		el('text', {}, mark).textContent = index + 1;
 		return place;
 	});
