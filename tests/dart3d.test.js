@@ -51,3 +51,9 @@ test('dart: its marker sits beside the point, up and left of the shadow', () => 
 	assert.ok(off > 0.05 && off < 0.12);
 	assert.ok(mx < 0.4 + 0.02);
 });
+
+test('dart: coming out of the board, more of its point shows', () => {
+	const extent = shape => Math.max(...shape.point.map(p => Math.hypot(p[0] - shape.point[0][0], p[1] - shape.point[0][1])));
+	const side = { lean: [0.4, 0], roll: 0 };
+	assert.ok(extent(dartShape(0.5, 0, side, { away: 6 })) > extent(dartShape(0.5, 0, side)) * 1.3);
+});

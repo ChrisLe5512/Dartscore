@@ -6,15 +6,17 @@
 import { DART_VIEW } from './config.js';
 
 // Along the dart from where it goes into the board (fractions of its length;
-// half its point is in the board): [from, to, radius at from, radius at to],
+// as much point again is in the board): [from, to, radius at from, radius at to],
 // radii in board units. The barrel tapers into the point and into the shaft.
 const PARTS = {
 	point: [0, 0.1, 0.18, 0.4],
 	nose: [0.1, 0.13, 0.45, 1.8],
 	barrel: [0.13, 0.4, 1.8, 1.8],
 	tail: [0.4, 0.44, 1.8, 0.85],
-	shaft: [0.44, 0.66, 0.85, 0.75],
+	shaft: [0.44, 0.6, 0.85, 0.75], // ends where the flight starts, so it doesn't show through it
 };
+// How much of the point is in the board: it shows as the dart comes out.
+const BURIED = 0.1;
 // One vane of the flight: [along, out] corners, fractions of the length.
 // Its leading edge curves out from the shaft.
 const VANE = [[0.6, 0], [0.64, 0.06], [0.69, 0.12], [0.75, 0.16], [0.8, 0.17], [0.9, 0.17], [0.91, 0]];
@@ -25,7 +27,7 @@ const LIGHT = [0.35, 0.5];
 const SHADOW_END = 0.72;
 // How far the numbered marker sits from the point, beside the dart.
 const MARK_OFF = 8;
-const ROUND = 20; // points round each end of a part
+const ROUND = 14; // points round each end of a part
 
 /** The same random numbers for the same spot every time: a dart keeps its pose when redrawn. */
 function seeded(x, y) {
@@ -113,7 +115,8 @@ export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = D
 		return add(add([cx, cy], side, rx * Math.cos(a)), lengthwise, ry * Math.sin(a));
 	});
 	const part = ([from, to, r1, r2]) => hull([...outline(ring(from, r1)), ...outline(ring(to, r2))]);
-	const parts = Object.fromEntries(Object.entries(PARTS).map(([name, piece]) => [name, part(piece)]));
+	const pieces = { ...PARTS, point: [-Math.min(away / view.length, BURIED), ...PARTS.point.slice(1)] };
+	const parts = Object.fromEntries(Object.entries(pieces).map(([name, piece]) => [name, part(piece)]));
 
 	const middle = ring((PARTS.barrel[0] + PARTS.barrel[1]) / 2, PARTS.barrel[2]);
 	const across = { from: add([middle.cx, middle.cy], side, -middle.rx), to: add([middle.cx, middle.cy], side, middle.rx) };
@@ -140,7 +143,7 @@ export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = D
 	const shadow = {
 		from: cast(along(0)),
 		to: cast(along(SHADOW_END)),
-		parts: Object.values(PARTS).map(([from, to, r1, r2]) => hull([...section(from, r1), ...section(to, r2)])),
+		parts: Object.values(pieces).map(([from, to, r1, r2]) => hull([...section(from, r1), ...section(to, r2)])),
 	};
 	return {
 		...parts,
