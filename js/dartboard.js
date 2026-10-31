@@ -179,9 +179,26 @@ export function lightSegments(svg, lights) {
 }
 
 /**
- * Numbered markers where darts landed: [{ x, y }] as fractions of the radius.
- * kind: 'live' or 'review'; pop: indexes to animate in; editing: index of
- * the dart being moved.
+ * A dart stuck in the board, its point at 0 0 and its flight up and a little
+ * to the right, as a dart hangs in a real board. The flight is drawn in the
+ * highlight colour (CSS).
+ */
+function drawDart(parent) {
+	const lean = el('g', { transform: 'rotate(18)' }, parent);
+	const body = el('g', { class: 'dart-body' }, lean);
+	el('path', { class: 'dart-shadow', d: 'M0.6 0.4 L1.6 -15' }, body);
+	el('path', { class: 'dart-point', d: 'M0 0 L0 -3.4' }, body);
+	el('rect', { class: 'dart-barrel', x: -1.05, y: -9.2, width: 2.1, height: 6, rx: 0.9 }, body);
+	el('path', { class: 'dart-grip', d: 'M-1 -7.6 H1 M-1 -6.6 H1 M-1 -5.6 H1 M-1 -4.6 H1' }, body);
+	el('rect', { class: 'dart-shaft', x: -0.45, y: -12.6, width: 0.9, height: 3.6, rx: 0.3 }, body);
+	el('path', { class: 'dart-flight', d: 'M0 -11.6 L3.3 -14.6 L3.1 -17.6 L0 -16.8 L-3.1 -17.6 L-3.3 -14.6 Z' }, body);
+	el('path', { class: 'dart-flight-fold', d: 'M0 -11.6 V-16.8' }, body);
+}
+
+/**
+ * Darts where they landed, each with a numbered marker at its point:
+ * [{ x, y }] as fractions of the radius. kind: 'live' or 'review'; pop:
+ * indexes to fly in; editing: index of the dart being moved.
  */
 export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null } = {}) {
 	const layer = svg.querySelector('.marks');
@@ -190,13 +207,21 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 		for (const place of [...layer.children]) fadeOut(place);
 		return;
 	}
-	layer.replaceChildren(...hits.map(({ x, y }, index) => {
-		const place = el('g', { transform: `translate(${round(x * 100)} ${round(y * 100)})` });
-		const classes = ['mark', kind, pop.includes(index) && 'pop', editing === index && 'editing'];
-		const mark = el('g', { class: classes.filter(Boolean).join(' ') }, place);
+	const at = ({ x, y }) => ({ transform: `translate(${round(x * 100)} ${round(y * 100)})` });
+	const state = index => [kind, pop.includes(index) && 'pop', editing === index && 'editing'];
+	// All the darts first, then all the markers, so no dart covers a number.
+	const darts = hits.map((hit, index) => {
+		const place = el('g', at(hit));
+		drawDart(el('g', { class: ['dart', ...state(index)].filter(Boolean).join(' ') }, place));
+		return place;
+	});
+	const marks = hits.map((hit, index) => {
+		const place = el('g', at(hit));
+		const mark = el('g', { class: ['mark', ...state(index)].filter(Boolean).join(' ') }, place);
 		// Dashes are measured along a pathLength of 25: always five, at any size.
 		el('circle', { r: 3.6, pathLength: 25 }, mark);
 		el('text', {}, mark).textContent = index + 1;
 		return place;
-	}));
+	});
+	layer.replaceChildren(...darts, ...marks);
 }
