@@ -46,6 +46,7 @@
 	--board-seam: rgba(0, 0, 0, 0.6);
 	--board-hit: #ffd24d;
 	--dart-edit: #ffd24d; /* a dart picked up to move: always this yellow, whatever the highlight colour */
+	--dart-flight: #2f7de1; /* blue for now: one day, your own darts */
 	--ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 	--ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
 	--fast: 120ms;
@@ -170,27 +171,6 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	vertical-align: bottom;
 }
 
-.settings-tbl label {
-	display: block;
-	margin-bottom: 0.75vmin;
-	font-family: var(--font-condensed);
-	color: var(--text-soft);
-}
-
-.settings-tbl input,
-.settings-tbl select {
-	width: 100%;
-	box-sizing: border-box;
-	padding: 0.5vmin;
-	font-family: inherit;
-	font-size: 2.5vmin;
-	background: #242424;
-	border: 1px solid var(--text-muted);
-	color: var(--text);
-	border-radius: var(--radius);
-}
-
-.settings-tbl .settings-check,
 .new-game-section .settings-check {
 	display: flex;
 	align-items: center;
@@ -200,7 +180,6 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	cursor: pointer;
 }
 
-.settings-tbl .settings-check input,
 .new-game-section .settings-check input {
 	flex: none;
 	width: 3vmin;
@@ -221,25 +200,6 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	overflow: hidden;
 }
 
-/* Game settings: one row, so the player list gets the room. */
-.game-tbl {
-	table-layout: fixed;
-}
-
-.game-tbl td {
-	padding-top: 0;
-	padding-bottom: 0;
-}
-
-.game-tbl label {
-	white-space: nowrap;
-}
-
-.game-tbl .settings-check {
-	height: 4vmin;
-}
-
-.settings-tbl input:disabled,
 .new-game-section .settings-check:has(input:disabled) {
 	opacity: 0.4;
 }
@@ -287,23 +247,30 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	   they lost a sliver at fractional screen scaling. */
 	margin: 1vmin calc(2vmin - 3px) 0;
 	padding: 0 3px;
-	overflow-y: auto;
 	overscroll-behavior: contain;
+}
+
+/* Names scrolled out of view fade out at that edge. */
+.players-scroll,
+.draft-list {
+	overflow-y: auto;
 	scrollbar-width: none;
-	/* Players scrolled out of view fade out at that edge. */
 	mask-image: linear-gradient(transparent, black var(--fade-top), black calc(100% - var(--fade-bottom)), transparent);
 	transition: --fade-top var(--medium), --fade-bottom var(--medium);
 }
 
-.players-scroll::-webkit-scrollbar {
+.players-scroll::-webkit-scrollbar,
+.draft-list::-webkit-scrollbar {
 	display: none;
 }
 
-.players-scroll.fade-top {
+.players-scroll.fade-top,
+.draft-list.fade-top {
 	--fade-top: 5vmin;
 }
 
-.players-scroll.fade-bottom {
+.players-scroll.fade-bottom,
+.draft-list.fade-bottom {
 	--fade-bottom: 5vmin;
 }
 
@@ -366,8 +333,7 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	outline: none;
 }
 
-/* Three lines: the field can be dragged. */
-/* The handle to drag a player by (see pressPlayer). */
+/* The handle to drag a player by, three lines (see pressPlayer). */
 .grip {
 	align-self: stretch;
 	touch-action: none; /* a drag here moves the player, not the list */
@@ -397,7 +363,6 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	border: none;
 	border-left: 1px solid #3a3a3a;
 	cursor: pointer;
-	transition: transform var(--fast) var(--ease-out);
 }
 
 .field-btn:active {
@@ -493,7 +458,6 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	border-radius: var(--radius);
 	background: var(--button);
 	cursor: pointer;
-	transition: transform var(--fast) var(--ease-out), border-color var(--medium), background var(--medium);
 }
 
 .game-tile:active {
@@ -517,7 +481,7 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 
 .game-tile[aria-checked="true"] {
 	border-color: var(--checkout);
-	background: linear-gradient(#2e8a22, #1a5212);
+	background: linear-gradient(var(--go-top), var(--go-bottom));
 }
 
 /* Under the tiles, only what the picked game has: the match, with legs and
@@ -525,8 +489,7 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 .match-row {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: flex-start;
-	gap: 1.6vmin 4vmin;
+	align-items: flex-end;
 	margin: 2vmin 1vmin 0;
 	color: var(--text);
 	font-size: 3vmin;
@@ -538,14 +501,8 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 }
 
 /* First to: the legs and sets slide out beside the match picker; Endless
-   (no winner) folds them away. */
-.match-row {
-	align-items: flex-end;
-	gap: 0;
-}
-
-/* It takes the rest of the row, so 0fr really is nothing: sized to its
-   content, the column never folded and only the fade showed. */
+   (no winner) folds them away. It takes the rest of the row, so 0fr really is
+   nothing: sized to its content, the column never folded and only the fade showed. */
 .counts-reveal {
 	flex: 1 1 0;
 	min-width: 0;
@@ -602,7 +559,6 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	border-radius: var(--radius);
 	background: var(--button);
 	cursor: pointer;
-	transition: transform var(--fast) var(--ease-out), opacity var(--medium);
 }
 
 .stepper-btn:active {
@@ -751,7 +707,6 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	border: none;
 	background: var(--button-disabled);
 	cursor: pointer;
-	transition: background var(--medium);
 }
 
 .segmented button + button {
@@ -759,7 +714,7 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 }
 
 .segmented button[aria-checked="true"] {
-	background: linear-gradient(#2e8a22, #1a5212);
+	background: linear-gradient(var(--go-top), var(--go-bottom));
 }
 
 /* Who's playing: Solo is one name; otherwise a list to add to and reorder. */
@@ -800,24 +755,7 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	max-height: 42vmin;
 	margin: 0;
 	padding: 0;
-	overflow-y: auto;
 	list-style: none;
-	scrollbar-width: none;
-	/* Names scrolled out of view fade out at that edge, as in Settings. */
-	mask-image: linear-gradient(transparent, black var(--fade-top), black calc(100% - var(--fade-bottom)), transparent);
-	transition: --fade-top var(--medium), --fade-bottom var(--medium);
-}
-
-.draft-list::-webkit-scrollbar {
-	display: none;
-}
-
-.draft-list.fade-top {
-	--fade-top: 5vmin;
-}
-
-.draft-list.fade-bottom {
-	--fade-bottom: 5vmin;
 }
 
 .draft-list .player-field input {
@@ -1739,9 +1677,7 @@ body.dismissing * {
 .scrollable {
 	overflow-x: auto;
 	white-space: nowrap;
-	-webkit-overflow-scrolling: touch;
 	scrollbar-width: none;
-	-ms-overflow-style: none;
 }
 
 .scrollable::-webkit-scrollbar {
@@ -1751,7 +1687,6 @@ body.dismissing * {
 /* CALCULATOR */
 
 .calc-section {
-	position: relative;
 	height: 40%;
 	flex: none;
 	overflow: hidden;
@@ -1791,7 +1726,6 @@ body.dismissing * {
 }
 
 .calc-tbl td.back-score:active {
-	background: var(--button-pressed);
 	font-size: calc(4.2 * var(--u));
 }
 
@@ -1811,7 +1745,6 @@ td.calc-score {
 	font-weight: 500;
 	line-height: calc(5.25 * var(--u));
 	background: none;
-	border-color: transparent;
 	text-shadow: 0 0 calc(1 * var(--u)) black;
 }
 
@@ -1836,8 +1769,6 @@ td.calc-score::before {
 
 td.calc-score.disabled {
 	background: none;
-	border-color: transparent;
-	pointer-events: none;
 }
 
 td.calc-score.disabled::before {
@@ -1958,7 +1889,6 @@ td.back-score {
 }
 
 .ctrl-section {
-	position: relative;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
@@ -2029,7 +1959,6 @@ td.back-score {
 /* The right-hand column, its buttons lined up on the right edge (wider than
    the column, they reach over the board's corners as the left ones do). */
 .btn-section {
-	position: relative;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
@@ -2324,37 +2253,33 @@ td.back-score {
 	text-underline-offset: calc(0.5 * var(--u));
 }
 
-.darts .black {
+.darts :is(.black, .white, .red, .green, .zero) {
 	border-color: white;
-	line-height: calc(8 * var(--u));
-	background: linear-gradient(#646464, #161616);
 	cursor: pointer;
+}
+
+.darts :is(.black, .white, .zero) {
+	line-height: calc(8 * var(--u));
+}
+
+.darts .black {
+	background: linear-gradient(#646464, #161616);
 }
 
 .darts .white {
-	border-color: white;
-	line-height: calc(8 * var(--u));
 	background: linear-gradient(#c8c8c8, #808080);
-	cursor: pointer;
 }
 
 .darts .red {
-	border-color: white;
 	background: linear-gradient(#ff3216, #962412);
-	cursor: pointer;
 }
 
 .darts .green {
-	border-color: white;
 	background: linear-gradient(#48c832, #368024);
-	cursor: pointer;
 }
 
 .darts .zero {
-	border-color: white;
-	line-height: calc(8 * var(--u));
 	background: black;
-	cursor: pointer;
 }
 
 /* A dart still to throw takes no room: its slot unfolds as it lands. */
@@ -2368,7 +2293,7 @@ td.back-score {
 
 
 /* DARTBOARD */
-  
+
 .dartboard-section {
 	display: flex;
 	align-items: center;
@@ -2376,7 +2301,7 @@ td.back-score {
 	width: 62%;
 	max-width: 62%;
 }
-  
+
 /* Over a dart's marker (once they can be tapped): a pointer. */
 #dartboard.on-mark {
 	cursor: pointer;
@@ -2529,7 +2454,6 @@ td.back-score {
 	border-bottom: 2px solid var(--edit);
 	border-radius: 0.4vmin 0.4vmin 0 0;
 	outline: none;
-	user-select: text;
 }
 
 .player-menu .player-menu-rename {
@@ -2797,10 +2721,13 @@ td.back-score {
 .calc-tbl td,
 .ctrl-btn,
 .side-btn,
-.darts span,
 .players-add,
 .settings-btn-action {
 	transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium), box-shadow var(--hover-speed);
+}
+
+.darts span {
+	transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium), box-shadow var(--hover-speed), height var(--medium) var(--ease-out), margin var(--medium) var(--ease-out);
 }
 
 /* The other hover lights fade too, with each one's own transitions. */
@@ -2873,10 +2800,6 @@ td.back-score {
 .history span.enter,
 .history .leg-dot.enter {
 	animation: history-enter var(--medium) var(--ease-out);
-}
-
-.history span.enter {
-	display: inline-block;
 }
 
 /* A leg opening out of its dot: its turns slide out of it in turn. Folding
@@ -3420,23 +3343,19 @@ td.calc-score:not(.disabled) {
 }
 
 .mark.review circle {
-	fill: rgba(0, 0, 0, 0.55);
 	stroke-dasharray: 3 2;
 }
 
+/* The marker pops as its dart lands (--dart-flight-time is set from config.js). */
 .mark.pop {
 	transform-box: fill-box;
 	transform-origin: center;
-	animation: mark-pop var(--medium) var(--ease-back);
+	animation: mark-pop var(--medium) var(--ease-back) calc(var(--dart-flight-time, 0ms) * 0.8) backwards;
 }
 
 /* A dart in the board, in perspective (dart3d.js): solid at its point,
    fading towards its tail so the board shows through. Its barrel and shaft
-   are shaded in dartboard.js; its flight is blue for now (one day, your own
-   darts), the moving yellow while it's picked up. */
-:root {
-	--dart-flight: #2f7de1;
-}
+   are shaded in dartboard.js. */
 
 /* Its shadow on the board, faded along its length by a mask (dartboard.js). */
 .dart-shadow {
@@ -3485,12 +3404,6 @@ td.calc-score:not(.disabled) {
 	stroke-linejoin: round;
 }
 
-/* The marker pops as its dart lands (--dart-flight-time is set from config.js). */
-.mark.pop {
-	animation-delay: calc(var(--dart-flight-time, 0ms) * 0.8);
-	animation-fill-mode: backwards;
-}
-
 /* Lit beds and markers on their way out. */
 .dartboard .leaving {
 	animation: fade-out var(--medium) var(--ease-out) forwards;
@@ -3498,10 +3411,6 @@ td.calc-score:not(.disabled) {
 
 @keyframes mark-pop {
 	from { opacity: 0; transform: scale(2); }
-}
-
-.darts span {
-	transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium), box-shadow var(--hover-speed), height var(--medium) var(--ease-out), margin var(--medium) var(--ease-out);
 }
 
 /* A dart picked up to move: its slot and its marker pulse, and its bed
@@ -3611,7 +3520,6 @@ td.calc-score:not(.disabled) {
 	display: flex;
 	align-items: center;
 	padding: 0 calc(0.9vmin * var(--s)) 0 calc(0.4vmin * var(--s));
-	cursor: pointer;
 }
 
 .history .leg-dot::before {
