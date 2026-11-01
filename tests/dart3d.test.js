@@ -113,3 +113,17 @@ test('dart: markers in a tight group do not overlap', () => {
 		assert.ok(Math.hypot(p[0] - q[0], p[1] - q[1]) >= 0.06, `markers ${a} and ${b}`);
 	}
 });
+
+test('an almost straight dart keeps its shading through the wobble', () => {
+	const pose = { lean: [0.002, 0], roll: 0 };
+	const direction = sway => {
+		const { across } = dartShape(0.01, 0, pose, { sway });
+		const [dx, dy] = [across.to[0] - across.from[0], across.to[1] - across.from[1]];
+		return [dx, dy].map(v => v / Math.hypot(dx, dy));
+	};
+	const rest = direction([0, 0]);
+	for (const sway of [[0.05, 0], [-0.05, 0], [0, 0.05], [0, -0.05]]) {
+		const swung = direction(sway);
+		assert.ok(rest[0] * swung[0] + rest[1] * swung[1] > 0.99);
+	}
+});

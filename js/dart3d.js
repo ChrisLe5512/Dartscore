@@ -115,13 +115,17 @@ export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = D
 	const scale = ([, , z]) => view.eye / (view.eye - z);
 	const flat = p => [p[0] * scale(p), p[1] * scale(p)];
 
-	// Which way is across the dart on screen; the lit side towards the light.
-	const back = flat(along(1));
-	const ahead = norm(add(back, flat(tip), -1));
-	let side = [-ahead[1], ahead[0]];
-	if (!side[0] && !side[1]) side = [-0.6, -0.8];
-	if (dot(side, lightAt(tip[0], tip[1])) > 0) side = side.map(v => -v);
+	// Which way is across a dart on screen, along a given axis.
+	const sideAlong = line => {
+		const ahead = norm(add(flat(add(tip, line, view.length)), flat(tip), -1));
+		return ahead[0] || ahead[1] ? [-ahead[1], ahead[0]] : [-0.6, -0.8];
+	};
+	const side = sideAlong(axis);
 	const lengthwise = [side[1], -side[0]];
+	// Its lit side, towards the light, goes by how it comes to rest: an almost
+	// straight dart's line swings right round in the wobble, its shading mustn't.
+	let lit = sideAlong(norm([...pose.lean, 1]));
+	if (dot(lit, lightAt(tip[0], tip[1])) > 0) lit = lit.map(v => -v);
 
 	// A round section of the dart at t, radius r: on screen an ellipse, as
 	// wide as the circle across the dart and as deep as it is turned to the eye.
@@ -140,7 +144,7 @@ export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = D
 	const parts = Object.fromEntries(Object.entries(pieces).map(([name, piece]) => [name, part(piece)]));
 
 	const middle = ring((PARTS.barrel[0] + PARTS.barrel[1]) / 2, PARTS.barrel[2]);
-	const across = { from: add([middle.cx, middle.cy], side, -middle.rx), to: add([middle.cx, middle.cy], side, middle.rx) };
+	const across = { from: add([middle.cx, middle.cy], lit, -middle.rx), to: add([middle.cx, middle.cy], lit, middle.rx) };
 
 	// Four vanes round the shaft, turned by the pose's roll; the nearest the eye drawn last.
 	const right = norm(cross([0, 1, 0], axis));
