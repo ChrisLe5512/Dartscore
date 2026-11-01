@@ -67,10 +67,11 @@ export const MAX_UNDO_STEPS = 200;
 // The darts drawn in the board, in perspective from an eye in front of the
 // bull. Lengths in % of the board radius (100 = the number ring's edge).
 export const DART_VIEW = Object.freeze({
-	eye: 300,      // how far the eye is from the board: nearer, the darts splay out more
+	eye: 380,      // how far the eye is from the board: nearer, the darts splay out more
 	length: 76,    // point to the end of the flights (a real dart, to the board's scale)
-	tilt: 0.09,    // how far a dart leans any way at random (tan of the angle)
-	droop: -0.1,   // the usual lean: tails a little up (negative is up)
+	thrower: 520,  // where darts are thrown from, straight out from the bull: each leans back towards it
+	tilt: 0.07,    // how far a dart leans any way at random besides (tan of the angle)
+	droop: -0.15,  // the usual lean: tails a little up, from their fall (negative is up)
 	flightIn: 120, // how far in front of the board a thrown dart comes from
 	flightMs: 170, // in the air
 	wobbleMs: 380, // the wobble as it lands

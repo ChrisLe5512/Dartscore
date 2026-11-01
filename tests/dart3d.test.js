@@ -15,7 +15,7 @@ test('dart: in the bull and straight, you look down its tail', () => {
 });
 
 test('dart: seen from the side, its round ends look flattened', () => {
-	const { face } = dartShape(0.8, 0, straight);
+	const { face } = dartShape(0.8, 0, { lean: [0.5, 0], roll: 0 });
 	assert.ok(face.ry < face.rx * 0.97);
 });
 
@@ -72,4 +72,12 @@ test('dart: shadows fall away from one lamp, so they fan out across the board', 
 	const left = dartShape(-0.7, 0.5, straight).shadow;
 	const right = dartShape(0.7, 0.5, straight).shadow;
 	assert.ok(angle(right) < angle(left));
+});
+
+test('dart: it leans back towards the player, so outer darts splay out less', () => {
+	assert.ok(dartPose(0.85, 0).lean[0] < 0);
+	assert.ok(dartPose(-0.85, 0).lean[0] > 0);
+	assert.ok(dartPose(0, 0.85).lean[1] < 0); // a low dart's tail up, towards the player
+	const splay = x => tailEnd(dartShape(x, 0, dartPose(x, 0)))[0] - x * 100;
+	assert.ok(splay(0.85) < tailEnd(dartShape(0.85, 0, straight))[0] - 85);
 });

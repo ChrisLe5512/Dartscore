@@ -50,12 +50,15 @@ function seeded(x, y) {
 
 /**
  * How a dart that landed at x, y (fractions of the radius) sits: its lean
- * (tan of the angle across and up) and how its flight is turned.
+ * (tan of the angle across and up) and how its flight is turned. It points
+ * back the way it came, towards the player in front of the bull, tail a
+ * little up from its fall, give or take a little.
  */
 export function dartPose(x, y, view = DART_VIEW) {
 	const random = seeded(x, y);
 	const spread = () => (random() * 2 - 1) * view.tilt;
-	return { lean: [spread(), view.droop + spread()], roll: random() * Math.PI / 2 };
+	const back = [-x * 100 / view.thrower, -y * 100 / view.thrower];
+	return { lean: [back[0] + spread(), back[1] + view.droop + spread()], roll: random() * Math.PI / 2 };
 }
 
 const add = (a, b, k = 1) => a.map((v, i) => v + b[i] * k);
