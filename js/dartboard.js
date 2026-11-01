@@ -243,8 +243,9 @@ function paintDart(group, { x, y }, motion = {}) {
 	polygons([shape.tail], { class: 'dart-steel', fill: steel });
 	// The barrel's end, facing you: a shaded disc, the shaft coming out of it.
 	ellipse(shape.face, { class: 'dart-face', fill: gradient(defs, [[0, '#8d939b'], [0.55, '#3a3f45'], [1, '#141619']]) }, body);
-	// The shaft fades out before the flight, so its top doesn't show through the fins.
-	const fade = fadeMask(defs, [[0, 'white'], [0.35, '#bbb'], [1, 'black']], [[shape.face.cx, shape.face.cy], [shape.end.cx, shape.end.cy]]);
+	// The shaft thins out towards the flight: its top doesn't stand out through
+	// the fins, but still reaches them, so they don't float.
+	const fade = fadeMask(defs, [[0, 'white'], [0.5, '#ccc'], [1, '#777']], [[shape.face.cx, shape.face.cy], [shape.end.cx, shape.end.cy]]);
 	el('polygon', { class: 'dart-shaft', fill: black, mask: fade, points: points(shape.shaft) }, body);
 	// The flight: one see-through layer, so where the vanes meet doesn't darken.
 	const flight = el('g', { class: 'dart-flight' }, group);
