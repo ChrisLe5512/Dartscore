@@ -1998,8 +1998,11 @@ td.back-score {
 	line-height: 1;
 }
 
-.done-total:not(:empty) {
+.done-btn:not(.disabled) .done-score {
 	margin-right: 1.4vmin;
+}
+
+.done-total:not(:empty) {
 	font-size: 5.4vmin;
 	font-weight: 600;
 	font-variant-numeric: tabular-nums;
@@ -2009,14 +2012,15 @@ td.back-score {
 .done-bust {
 	display: grid;
 	grid-template-rows: 0fr;
-	margin-right: 1.4vmin;
+	width: 0; /* takes no room until it shows, so the score and ✓ stay put */
 	overflow: hidden;
 	font-size: 2.8vmin;
 	font-weight: 600;
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
 	color: color-mix(in srgb, var(--bust) 40%, white);
-	transition: grid-template-rows var(--medium) var(--ease-out);
+	white-space: nowrap;
+	transition: grid-template-rows var(--medium) var(--ease-out), width var(--medium) var(--ease-out);
 }
 
 .done-bust > span {
@@ -2027,6 +2031,7 @@ td.back-score {
 
 .done-btn.busting .done-bust {
 	grid-template-rows: 1fr;
+	width: 6.8vmin;
 }
 
 .done-btn.busting .done-bust > span {
@@ -2107,7 +2112,7 @@ td.back-score {
 	overflow: hidden;
 	opacity: 0;
 	font-family: var(--font-condensed);
-	font-size: calc(2.3 * var(--u));
+	font-size: min(calc(2.3 * var(--u)), calc(var(--card-w) * 0.21)); /* two lines, even on the narrower 4:3 card */
 	line-height: 1.1;
 	color: color-mix(in srgb, var(--bust) 40%, white);
 	transition: height var(--medium) var(--ease-out), opacity var(--medium) var(--ease-out);
