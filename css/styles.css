@@ -1864,6 +1864,7 @@ td.back-score {
 	/* The right column's one width, a keypad key's (four across the panel, five 5px gaps
 	   and its edge): the darts card and Bust are this wide, Done two keys and the gap between. */
 	--card-w: calc((30vw - 26px) / 4);
+	--hint-h: calc(6.6 * var(--u)); /* the darts card's Tap again to remove */
 }
 
 .board-btn {
@@ -2132,10 +2133,6 @@ td.back-score {
 
 /* The card's own margin takes back what the hint adds, so it grows down only:
    the slots stay under the finger for the second tap. */
-.darts {
-	--hint-h: calc(6.6 * var(--u));
-}
-
 .darts.moving {
 	margin-bottom: calc(-1 * var(--hint-h));
 }
@@ -2939,6 +2936,22 @@ td.calc-score:not(.disabled) {
 		justify-self: end;
 		height: 100%;
 		width: auto;
+	}
+
+	/* Less height here: the darts card goes in the middle of the room between
+	   Settings and Bust (Bust is held clear of it, darts or not), not the column's. */
+	.btn-section .settings-btn {
+		margin-bottom: 0;
+	}
+
+	.side-btn.done-btn {
+		margin-top: calc(var(--ctrl-size) + var(--side-pad));
+		transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium), box-shadow var(--hover-speed), --send-top var(--medium) var(--ease-out), --send-bottom var(--medium) var(--ease-out), margin-top var(--medium) var(--ease-out);
+	}
+
+	/* With darts down Bust is away: only the card's hint needs the room. */
+	.darts.has-darts ~ .side-btn.done-btn {
+		margin-top: var(--hint-h);
 	}
 
 	aside {
