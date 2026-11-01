@@ -2023,7 +2023,10 @@ td.back-score {
 	bottom: calc(2 * var(--side-pad) + var(--done-h));
 	width: var(--card-w);
 	height: var(--ctrl-size);
-	font-size: 3.6vmin;
+	padding: 0;
+	font-size: 3vmin;
+	line-height: 1;
+	white-space: normal;
 }
 
 .side-btn.bust-btn.away {
