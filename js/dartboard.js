@@ -4,7 +4,7 @@
 
 import { BOARD_SECTORS, BOARD_STYLE, DART_VIEW } from './config.js';
 import { dartColor, RINGS } from './board.js';
-import { dartLayout, dartOrder, dartSee, dartShape, lastTouched, spotTurns } from './dart3d.js';
+import { dartLayout, dartOrder, dartSee, dartShape, drawOrder, lastTouched, spotTurns } from './dart3d.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -428,7 +428,9 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 
 	const layout = dartLayout(hits);
 	const order = dartOrder(hits, layout);
-	const see = dartSee(hits, layout, order, lastTouched(hits));
+	const touched = lastTouched(hits);
+	const see = dartSee(hits, layout, order, touched);
+	const drawn = drawOrder(order, touched);
 	// A dart on its way in changes nothing until it lands.
 	const seeFrom = hits.some((_, index) => landing(index)) && !still() ? now + DART_VIEW.flightMs : now;
 	// All the darts first, then all the markers, so no dart covers a number.
@@ -438,7 +440,7 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 		group.hit = hit;
 		group.pose = layout[index].pose;
 		group.index = index;
-		group.rank = order.indexOf(index);
+		group.rank = drawn.indexOf(index);
 		if (landing(index) && !still()) thrown.set(id, now);
 		// Picked up: out a little; put back: in again.
 		const lift = editing === index ? DART_VIEW.lift : 0;
