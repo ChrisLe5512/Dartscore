@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
 	addPlayer, createGame, isValidTurnScore, movePlayer, movePlayerTo, newMatch, removePlayer,
-	currentLeg, renamePlayer, restoreGame, setActive, submitTurn,
+	renamePlayer, restoreGame, setActive, submitTurn,
 } from '../js/game.js';
 import { makeDart } from '../js/board.js';
 
@@ -78,7 +78,7 @@ test('each turn records the leg it was thrown in, counting on across sets', () =
 	const { state } = play(twoPlayers({ legs: 1, sets: 3 }), 180, 0, 121, 60, 100);
 	assert.deepEqual(state.players[0].turns.map(t => t.leg), [0, 0, 1]);
 	assert.deepEqual(state.players[1].turns.map(t => t.leg), [0, 1]);
-	assert.equal(currentLeg(state), 1);
+	assert.equal(state.leg, 1);
 });
 
 test('winning a set resets everyone\'s legs, not just the winner\'s', () => {
@@ -197,9 +197,9 @@ test('restoreGame keeps valid hits and drops broken ones', () => {
 
 test('the leg number stays put when a leg winner is removed', () => {
 	let { state } = play(addPlayer(twoPlayers(), 'Cy'), 180, 10, 10, 121, 10, 10, 180); // Ann wins leg 0
-	assert.equal(currentLeg(state), 1);
+	assert.equal(state.leg, 1);
 	state = removePlayer(state, 0);
-	assert.equal(currentLeg(state), 1);
+	assert.equal(state.leg, 1);
 	({ state } = submitTurn(state, 20));
 	assert.deepEqual(state.players[0].turns.map(t => t.leg), [0, 1, 1]);
 });
@@ -222,7 +222,7 @@ test('practice never ends: legs count on, no sets, no winner', () => {
 	assert.equal(s.winner, null);
 	assert.equal(s.players[0].legs, 3);
 	assert.equal(s.players[0].sets, 0);
-	assert.equal(currentLeg(s), 3);
+	assert.equal(s.leg, 3);
 	assert.equal(restoreGame(JSON.parse(JSON.stringify(s))).players[0].legs, 3);
 });
 

@@ -62,14 +62,6 @@ export const createGame = () => X01.createGame();
 /** Repair anything loaded from storage, whichever mode it is; null if it is unusable. */
 export const restoreGame = raw => modeOf(raw).restoreGame(raw);
 
-/** A new match of `mode` with the same players (names and order), all back to the start. */
-export function startMatch(state, mode, settings) {
-	const rules = MODES[mode] ?? X01;
-	if (rules === modeOf(state)) return rules.newMatch(state, settings);
-	const players = state.players.map(({ id, name }) => ({ id, name }));
-	return rules.newMatch({ ...rules.createGame(settings), players, nextId: state.nextId }, settings);
-}
-
 /** The legs a player won (for the history's dots), or null where the visit that won a leg says so. */
 export const wonLegs = (state, player) => modeOf(state).wonLegs?.(state, player) ?? null;
 

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { GAME_CHOICES, MODES, choiceOf, createGame, modeOf, newGame, restoreGame, startMatch, wonLegs } from '../js/modes.js';
+import { GAME_CHOICES, MODES, choiceOf, createGame, modeOf, newGame, restoreGame, wonLegs } from '../js/modes.js';
 import { describeTravel, describeTurn, historyLegs, undoWarning } from '../js/feedback.js';
 import * as Game from '../js/game.js';
 import { createHistory, record, undo } from '../js/history.js';
@@ -29,26 +29,29 @@ test('a game without a mode is X01, and every mode has the same parts', () => {
 test('switching mode keeps the players and their order, nothing else', () => {
 	let s = withPlayers(Game.createGame({ startScore: 301 }));
 	s = Game.submitTurn(s, 60).state;
-	const clock = startMatch(s, 'clock', { ring: 'double', legs: 2 });
+	const names = ['Ann', 'Bob'];
+	const clock = newGame('clock', { ring: 'double', legs: 2 }, names, s);
 	assert.equal(clock.mode, 'clock');
 	assert.deepEqual(clock.players, [
 		{ id: 1, name: 'Ann', step: 0, legs: 0, sets: 0, turns: [] },
 		{ id: 2, name: 'Bob', step: 0, legs: 0, sets: 0, turns: [] },
 	]);
-	assert.equal(clock.nextId, 3);
 	assert.deepEqual(clock.settings, { ring: 'double', skip: false, legs: 2, sets: 1, practice: false });
 	assert.equal(choiceOf(clock).value, 'clock');
 
 	// And back: an X01 game as if it had never been anything else.
-	const x01 = startMatch(clock, 'x01', { startScore: 701 });
-	assert.deepEqual(x01, Game.newMatch(Game.addPlayer(Game.addPlayer(Game.createGame(), 'Ann'), 'Bob'), { startScore: 701 }));
+	const x01 = newGame('x01', { startScore: 701 }, names, clock);
+	const plain = Game.newMatch(Game.addPlayer(Game.addPlayer(Game.createGame(), 'Ann'), 'Bob'), { startScore: 701 });
+	assert.deepEqual({ ...x01, nextId: 0 }, { ...plain, nextId: 0 });
+	assert.deepEqual(x01.players.map(p => p.id), [1, 2]);
 	assert.equal(choiceOf(x01).value, '701');
 	assert.equal(GAME_CHOICES.filter(c => c.mode === 'x01').length, 3);
 });
 
 test('saves of every mode load back, packed undo steps included', () => {
 	for (const mode of ['x01', 'clock', 'doubles', '121']) {
-		let game = withPlayers(startMatch(createGame(), mode, {}));
+		const names = ['Ann', 'Bob'];
+		let game = newGame(mode, {}, names);
 		let history = createHistory();
 		for (let i = 0; i < 40; i++) {
 			history = record(history, game);
@@ -57,7 +60,7 @@ test('saves of every mode load back, packed undo steps included', () => {
 			game = next;
 		}
 		history = record(history, game);
-		game = startMatch(game, mode, {});
+		game = newGame(mode, {}, names, game);
 		({ state: game, history } = undo(history, game)); // a redo step too
 		const json = JSON.stringify(packSession(game, history));
 		const loaded = unpackSession(JSON.parse(json));
@@ -88,7 +91,7 @@ test('messages for the practice modes', () => {
 	const out = One21.submitTurn(t, 121, null);
 	assert.deepEqual(describeTurn(t, out.event, 121, out.state), { kind: 'win', title: 'Checkout', detail: 'Ann · 122 next' });
 	assert.deepEqual(describeTurn(t, 'draw', 0, t), { kind: 'info', title: 'Leg', detail: 'Drawn' });
-	assert.equal(describeTravel(startMatch(t, 'clock', {}), t, 'undo').detail, 'Settings changed');
+	assert.equal(describeTravel(newGame('clock', {}, ['Ann', 'Bob'], t), t, 'undo').detail, 'Settings changed');
 });
 
 test('a new game with chosen players, in order, all at the start', () => {

@@ -29,7 +29,7 @@ export function matchSettings(settings = {}) {
 }
 
 // A board position: x, y as a fraction of the board radius from the centre.
-export const isHit = d => Number.isFinite(d?.x) && Number.isFinite(d?.y) && Math.hypot(d.x, d.y) <= 1.5;
+const isHit = d => Number.isFinite(d?.x) && Number.isFinite(d?.y) && Math.hypot(d.x, d.y) <= 1.5;
 const round3 = n => Math.round(n * 1000) / 1000;
 
 /** A turn as recorded: its score, the darts' labels, and where they landed when every dart was tapped on the board. */

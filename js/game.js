@@ -6,8 +6,6 @@ import { isDouble } from './board.js';
 import { canCheckout } from './checkout.js';
 import { clampInt, cleanName, endLeg, makeTurn, matchSettings, nextIndex, restoreMatch } from './match.js';
 
-export { cleanName };
-
 /**
  * State shape:
  * {
@@ -188,11 +186,6 @@ export function submitTurn(state, score, darts = null) {
 
 	// Leg won. Next leg: scores back to the start.
 	return endLeg(state, players, state.active, p => ({ ...p, score: state.settings.startScore }));
-}
-
-/** The leg being played, counting from 0 across the whole match (every set). */
-export function currentLeg(state) {
-	return state.leg;
 }
 
 // ---- Persistence ------------------------------------------------------------

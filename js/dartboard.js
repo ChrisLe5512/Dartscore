@@ -10,7 +10,7 @@ const NS = 'http://www.w3.org/2000/svg';
 
 // The viewBox runs from -VIEW to VIEW; the board edge is at 100, the rest is
 // room for the outline. Callers convert taps with boardRadius().
-export const VIEW = 101;
+const VIEW = 101;
 
 /** The board's radius in px for an SVG drawn at `width` px. */
 export const boardRadius = width => width / 2 * 100 / VIEW;

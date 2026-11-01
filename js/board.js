@@ -16,8 +16,6 @@ export function makeDart(sector, multiplier) {
 	return { sector, multiplier, value, label, color: dartColor(sector, multiplier) };
 }
 
-export const MISS = Object.freeze(makeDart(0, 0));
-
 // Matches the colours of the real board: singles alternate black/white,
 // doubles, trebles and bulls alternate red/green.
 export function dartColor(sector, multiplier) {
