@@ -2215,8 +2215,9 @@ td.back-score {
 	align-items: center;
 	justify-content: center;
 	gap: calc(0.4 * var(--u));
-	width: 90%;
-	padding: calc(0.8 * var(--u)) 0;
+	width: 100%;
+	margin-top: calc(-0.6 * var(--u)); /* up to the card's edge: all of it is there to tap */
+	padding: calc(2 * var(--u)) 0 calc(1.4 * var(--u));
 	font-family: var(--font-condensed);
 	font-size: calc(2.8 * var(--u));
 	line-height: 1;
