@@ -20,9 +20,9 @@
 	--checkout: #00c800;
 	--go-top: #2e8a22; /* the main button (Start) and the button that sends a score */
 	--go-bottom: #1a5212;
-	--active-row: linear-gradient(#6fb4ff, #2f6fb0); /* the player throwing */
-	--active-row-big: linear-gradient(#6fb4ff, #3f80c4); /* the same, 1-2 players */
-	--active-stats-big: linear-gradient(#3f80c4, #2f6fb0);
+	--active-top: #6fb4ff; /* the player throwing */
+	--active-bottom: #2f6fb0;
+	--active-big-middle: #3f80c4; /* the same, 1-2 players: where their name and stats meet */
 	--active-line: #173450; /* their history and stats lines */
 	--dim: brightness(0.5); /* players out of focus while a score is entered or a player edited */
 	--edit: #e6b84a; /* a player whose menu is open, and the menu */
@@ -1091,24 +1091,37 @@ body.visuals-open :is(.ctrl-section, .btn-section) {
 
 .scores-tbl .active {
 	color: white;
-	background: var(--active-row);
 }
 
 /* Chrome paints a row's background cell by cell, which leaves faint seams
    where the cells meet. Instead the first cell draws one layer behind the
-   whole row, in --row-bg. The layer goes under the whole table, not just this
+   whole row. The layer goes under the whole table, not just this
    row, so text shadows from the line below aren't cut off at the row's edge;
    and it reaches a pixel into that line, so no hairline of the dark page shows
-   between the two where the edge falls between screen pixels. */
+   between the two where the edge falls between screen pixels. Its two colours
+   are registered, so the turn passing fades them (a gradient itself can't). */
+@property --row-top {
+	syntax: "<color>";
+	inherits: true;
+	initial-value: transparent;
+}
+
+@property --row-bottom {
+	syntax: "<color>";
+	inherits: true;
+	initial-value: transparent;
+}
+
 .player-row {
-	--row-bg: linear-gradient(#484848, #242424);
+	--row-top: #484848;
+	--row-bottom: #242424;
 	position: relative;
 	height: calc(10vmin * var(--s));
 }
 
 .scores-tbl .player-row.active {
-	--row-bg: var(--active-row);
-	background: none;
+	--row-top: var(--active-top);
+	--row-bottom: var(--active-bottom);
 }
 
 .player-wins::before,
@@ -1117,7 +1130,7 @@ body.visuals-open :is(.ctrl-section, .btn-section) {
 	position: absolute;
 	inset: 0 0 -1px;
 	z-index: -1;
-	background: var(--row-bg);
+	background: linear-gradient(var(--row-top), var(--row-bottom));
 }
 
 /* The menu tint, over the row's own background so it can fade in and out. */
@@ -1262,7 +1275,7 @@ body.visuals-open :is(.ctrl-section, .btn-section) {
    lit) or a player's menu is open (that player stays lit). JS sets .inputting.
    On the rows, not their cells: see .player-row. */
 .scores-tbl tr {
-	transition: filter var(--medium) var(--ease-out), background-color var(--medium) var(--ease-out);
+	transition: filter var(--medium) var(--ease-out), background-color var(--slow) var(--ease-out), --row-top var(--slow) var(--ease-out), --row-bottom var(--slow) var(--ease-out);
 }
 
 .scores-tbl.inputting:not(:has(tr.menu-open)) tr:not(.active),
@@ -1648,21 +1661,25 @@ body.dismissing * {
 }
 
 .big .player-row {
-	--row-bg: linear-gradient(#484848, #363636);
+	--row-bottom: #363636;
 }
 
 .big .player-row.active {
-	--row-bg: var(--active-row-big);
+	--row-bottom: var(--active-big-middle);
 }
 
 .big .stats-row {
+	--row-top: #363636;
+	--row-bottom: #242424;
 	height: calc(15vmin * var(--s));
-	background: linear-gradient(#363636, #242424);
+	background: linear-gradient(var(--row-top), var(--row-bottom));
 }
 
 .scores-tbl.big .stats-row.active {
+	--row-top: var(--active-big-middle);
+	--row-bottom: var(--active-bottom);
 	color: white;
-	background: var(--active-stats-big);
+	background: linear-gradient(var(--row-top), var(--row-bottom));
 }
 
 /* A thin line between the name and the big score, short of the sides so it
@@ -2919,7 +2936,7 @@ td.calc-score:not(.disabled) {
 }
 
 @keyframes row-activate {
-	from { filter: brightness(1.4); }
+	40% { filter: brightness(1.25); }
 }
 
 @keyframes score-bump {
