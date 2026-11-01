@@ -2624,7 +2624,7 @@ td.back-score {
 	border-radius: var(--radius);
 	cursor: pointer;
 	pointer-events: auto;
-	transition: background var(--hover-speed);
+	transition: box-shadow var(--hover-speed);
 }
 
 .toast.review .toast-close {
@@ -2695,8 +2695,12 @@ td.back-score {
 		--slot-veil: var(--hover-veil);
 	}
 
-	:root:not(.touching) :is(.field-btn, .player-menu button, .darts-clear, .toast-close):not(:disabled):hover {
+	:root:not(.touching) :is(.field-btn, .player-menu button, .darts-clear):not(:disabled):hover {
 		background: var(--hover-tint);
+	}
+
+	:root:not(.touching) .toast-close:hover {
+		box-shadow: var(--hover-veil);
 	}
 
 	/* The player menu's name row lights as one; its pencil not on its own. */
