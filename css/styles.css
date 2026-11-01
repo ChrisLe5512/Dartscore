@@ -1546,8 +1546,12 @@ body.dismissing * {
 	padding: 0 1vw 0 2vmin;
 	font-size: calc(3vmin * var(--s));
 	white-space: nowrap;
-	color: var(--checkout);
+	color: var(--text-soft); /* the thrower's is green: what to throw now */
 	cursor: pointer;
+}
+
+.history-row.active .checkout:not(.muted) {
+	color: var(--checkout);
 }
 
 /* What's been thrown of the finish being followed. */
@@ -2788,7 +2792,7 @@ td.back-score {
 }
 
 .checkout {
-	transition: filter var(--hover-speed);
+	transition: filter var(--hover-speed), color var(--medium) var(--ease-out);
 }
 
 .player-wins::before,
