@@ -27,13 +27,14 @@ const X01 = {
 	turnLabel: t => t.score,
 	historyMarks,
 	matchStats: (player, state) => matchStats(player, state.settings),
-	// The average and checkout rate (CO) are over the match; the darts, as it says, this leg's.
+	// The average and checkout rate are over the match; the darts, this leg's.
+	// [label, value, its short form for when the stats sit side by side].
 	statsLine(player, state) {
 		const { average, visits, finishes, chances } = matchStats(player, state.settings);
 		return [
-			['Avg', visits ? average.toFixed(1) : '–'],
-			['CO', chances ? percent(finishes / chances) : '–'],
-			['Leg darts', legDarts(player, state.leg)],
+			['Average', visits ? average.toFixed(1) : '–', 'Avg'],
+			['Checkout', chances ? percent(finishes / chances) : '–', 'CO'],
+			['Leg darts', legDarts(player, state.leg), 'Darts'],
 		];
 	},
 	// One line per stat. value: the number (null for none yet); show: how it

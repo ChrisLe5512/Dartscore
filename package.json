@@ -1,6 +1,6 @@
 {
   "name": "dartscore",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "private": true,
   "description": "Darts X01 scoreboard web app",
   "type": "module",

@@ -457,7 +457,7 @@ function renderScoreboard() {
  * players the rows shrink and the list scrolls.
  */
 function layoutScores() {
-	const { rows, stats, bigRows, minScale, maxScale, bigMaxScale, roomyFrom, bigFrom } = phone.matches ? SCORES_LAYOUT_PHONE : SCORES_LAYOUT;
+	const { rows, stats, bigRows, minScale, maxScale, bigMaxScale, roomyFrom, bigFrom, fullLabelsFrom } = phone.matches ? SCORES_LAYOUT_PHONE : SCORES_LAYOUT;
 	const count = game.players.length;
 	// Inside the border, so the rows never overflow it.
 	const available = scoresSection.clientHeight / (Math.min(innerWidth, innerHeight) / 100); // in vmin
@@ -470,6 +470,10 @@ function layoutScores() {
 	scoresTable.style.setProperty('--s', Math.floor(clamped * 1000) / 1000); // round down: never a pixel too tall
 	scoresTable.classList.toggle('roomy', roomy);
 	scoresTable.classList.toggle('big', big);
+	// Stacked beside the big score, in full if the card's wide enough for that.
+	const line = $('.stats-line', scoresTable);
+	const lineWidth = line ? line.clientWidth / (Math.min(innerWidth, innerHeight) / 100 * clamped) : 0;
+	scoresTable.classList.toggle('full-labels', big && lineWidth >= fullLabelsFrom);
 	// Only rows too many to fit (at the smallest size) make the list scroll.
 	scoresSection.classList.toggle('overflowing', scale < minScale);
 	updateListFades(scoresSection);
@@ -662,9 +666,18 @@ function renderCheckout(historyRow, player, index, isActive) {
 
 function renderStats(statsRow, player) {
 	const line = mode().statsLine(player, game);
-	$$('.stats span', statsRow).forEach((span, i) => {
-		const [label, value] = line[i];
-		if (span.firstChild?.textContent !== `${label} `) span.replaceChildren(`${label} `, document.createElement('b'));
+	$$('.stats > span', statsRow).forEach((span, i) => {
+		const [label, value, short = label] = line[i];
+		// Both forms are there: the CSS shows the one the layout has room for.
+		if (span.firstChild?.textContent !== `${label} `) {
+			const forms = [['stat-full', label], ['stat-short', short]].map(([name, text]) => {
+				const form = document.createElement('span');
+				form.className = name;
+				form.textContent = `${text} `;
+				return form;
+			});
+			span.replaceChildren(...forms, document.createElement('b'));
+		}
 		span.lastChild.textContent = value;
 	});
 }

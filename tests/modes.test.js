@@ -116,7 +116,7 @@ test('players who play again keep their id; newcomers get new ones', () => {
 
 test('X01 stats line: average and checkout over the match, darts for this leg', () => {
 	const line = (turns, leg) => MODES.x01.statsLine({ turns }, { leg, settings: { startScore: 101, doubleOut: true } });
-	assert.deepEqual(line([], 0), [['Avg', '–'], ['CO', '–'], ['Leg darts', 0]]);
+	assert.deepEqual(line([], 0), [['Average', '–', 'Avg'], ['Checkout', '–', 'CO'], ['Leg darts', 0, 'Darts']]);
 	// A leg won in 2 visits (5 darts), then a second begun: 161 points in 8 darts; all
 	// 3 visits started on a finish (from 101), and 1 of them went out.
 	const turns = [
@@ -124,6 +124,6 @@ test('X01 stats line: average and checkout over the match, darts for this leg', 
 		{ score: 40, leg: 0, checkout: true, darts: ['20', 'D10'] },
 		{ score: 60, leg: 1 },
 	];
-	assert.deepEqual(line(turns, 1), [['Avg', '60.4'], ['CO', '33%'], ['Leg darts', 3]]);
-	assert.deepEqual(line(turns, 0), [['Avg', '60.4'], ['CO', '33%'], ['Leg darts', 5]]);
+	assert.deepEqual(line(turns, 1), [['Average', '60.4', 'Avg'], ['Checkout', '33%', 'CO'], ['Leg darts', 3, 'Darts']]);
+	assert.deepEqual(line(turns, 0), [['Average', '60.4', 'Avg'], ['Checkout', '33%', 'CO'], ['Leg darts', 5, 'Darts']]);
 });

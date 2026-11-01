@@ -1626,6 +1626,16 @@ body.dismissing * {
 	font-weight: 500;
 }
 
+/* The labels' short forms, unless stacked on a card wide enough for them in full. */
+.stat-full,
+.full-labels .stat-short {
+	display: none;
+}
+
+.full-labels .stat-full {
+	display: inline;
+}
+
 .big-score {
 	display: none;
 }

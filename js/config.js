@@ -111,6 +111,7 @@ export const SCORES_LAYOUT = Object.freeze({
 	rows: 15, stats: 5, bigRows: 30,
 	minScale: 0.7, maxScale: 1, bigMaxScale: 1.25,
 	roomyFrom: 0.97, bigFrom: 0.97,
+	fullLabelsFrom: 35.5, // how wide a card (vmin at scale 1) has room for full stat labels beside the big score
 });
 // On a phone the cards have the screen's whole width, and vmin is small: everything
 // can and must be larger, and an extra line isn't worth smaller text.
