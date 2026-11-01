@@ -17,9 +17,10 @@ const PARTS = {
 };
 // How much of the point is in the board: it shows as the dart comes out.
 const BURIED = 0.1;
-// One vane of the flight: [along, out] corners, fractions of the length.
-// Its leading edge curves out from the shaft.
-const VANE = [[0.6, 0], [0.64, 0.06], [0.69, 0.12], [0.75, 0.16], [0.8, 0.17], [0.9, 0.17], [0.91, 0]];
+// One vane of the flight: [along, out] corners, fractions of the length. Its
+// leading edge curves out from the shaft and sweeps back to a rounded outer
+// corner; its back edge slants in and forward, for the notch in a real flight.
+const VANE = [[0.6, 0], [0.64, 0.06], [0.69, 0.115], [0.75, 0.155], [0.82, 0.18], [0.885, 0.195], [0.905, 0.185], [0.9, 0.16], [0.875, 0.09], [0.85, 0.03], [0.84, 0]];
 // The light: one lamp, above and to the left of the board, in front of it
 // (as a board's light is near it, not far off like the sun): every dart's
 // shadow falls away from the same point.
