@@ -864,8 +864,9 @@ playerMenu.addEventListener('keydown', event => {
 });
 
 // While the menu or a past turn is open, a tap anywhere else only closes it:
-// the tap doesn't also press, type or throw on whatever is underneath. The one
-// exception: a tap on another player's card moves the menu straight to them.
+// the tap doesn't also press, type or throw on whatever is underneath. The
+// exceptions, with the menu open: a tap on another player's card moves the menu
+// straight to them, and a tap on a history's board turn or leg dot opens it.
 // The tap's click can come a while after the finger lifts (touch), so it is
 // swallowed whenever it comes, unless a new tap starts first (a drag has none).
 let swallowClick = false;
@@ -874,9 +875,14 @@ document.addEventListener('pointerdown', event => {
 	swallowClick = false;
 	if (menuFor !== null) {
 		if (playerMenu.contains(event.target)) return;
+		// A board turn or a leg's dot in any history: the menu closes and the tap counts.
+		if (event.target.closest('.leg-dot, .history span.has-hits') && scoresBody.contains(event.target)) {
+			closePlayerMenu();
+			return;
+		}
 		const card = event.target.closest('[data-id]');
 		if (card && scoresBody.contains(card) && Number(card.dataset.id) !== menuFor
-			&& !event.target.closest('.leg-dot, span.has-hits, .checkout:not(.hint)')) return; // its click opens their menu
+			&& !event.target.closest('.checkout:not(.hint)')) return; // its click opens their menu
 		closePlayerMenu();
 	} else if (review !== null) {
 		// Another of the same player's board turns: the tap just switches to it.
