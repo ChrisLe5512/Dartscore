@@ -80,11 +80,11 @@ function seeded(x, y, spotTurn) {
  * back the way it came, towards the player in front of the bull, tail a
  * little up from its fall, give or take a little. spotTurn: see spotTurns.
  */
-export function dartPose(x, y, view = DART_VIEW, spotTurn = 0) {
+export function dartPose(x, y, spotTurn = 0) {
 	const random = seeded(x, y, spotTurn);
-	const spread = () => (random() * 2 - 1) * view.tilt;
-	const back = [-x * 100 / view.thrower, -y * 100 / view.thrower];
-	return { lean: [back[0] + spread(), back[1] + view.droop + spread()], roll: random() * Math.PI / 2 };
+	const spread = () => (random() * 2 - 1) * DART_VIEW.tilt;
+	const back = [-x * 100 / DART_VIEW.thrower, -y * 100 / DART_VIEW.thrower];
+	return { lean: [back[0] + spread(), back[1] + DART_VIEW.droop + spread()], roll: random() * Math.PI / 2 };
 }
 
 const add = (a, b, k = 1) => a.map((v, i) => v + b[i] * k);
@@ -94,6 +94,9 @@ const norm = v => {
 	return length ? v.map(n => n / length) : v;
 };
 const cross = ([a, b, c], [d, e, f]) => [b * f - c * e, c * d - a * f, a * e - b * d];
+/** How much bigger things look at height z above the board, and where a point in space shows on screen. */
+const scaleAt = z => DART_VIEW.eye / (DART_VIEW.eye - z);
+const flat = ([x, y, z]) => [x * scaleAt(z), y * scaleAt(z)];
 
 /** The smallest convex outline round some points (monotone chain). */
 function hull(points) {
@@ -123,18 +126,16 @@ function hull(points) {
  * - shadow: on the board, its parts' outlines, from (the point) to where it
  *   has faded out.
  */
-export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = DART_VIEW) {
+export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}) {
 	const tip = [x * 100, y * 100, 0];
 	const axis = norm([pose.lean[0] + sway[0], pose.lean[1] + sway[1], 1]);
 	const start = add(tip, axis, away);
-	const along = t => add(start, axis, t * view.length);
-	const eye = [0, 0, view.eye];
-	const scale = ([, , z]) => view.eye / (view.eye - z);
-	const flat = p => [p[0] * scale(p), p[1] * scale(p)];
+	const along = t => add(start, axis, t * DART_VIEW.length);
+	const eye = [0, 0, DART_VIEW.eye];
 
 	// Which way is across a dart on screen, along a given axis.
 	const sideAlong = line => {
-		const ahead = norm(add(flat(add(tip, line, view.length)), flat(tip), -1));
+		const ahead = norm(add(flat(add(tip, line, DART_VIEW.length)), flat(tip), -1));
 		return ahead[0] || ahead[1] ? [-ahead[1], ahead[0]] : [-0.6, -0.8];
 	};
 	const side = sideAlong(axis);
@@ -150,14 +151,14 @@ export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = D
 		const centre = along(t);
 		const facing = Math.abs(dot(axis, norm(add(eye, centre, -1))));
 		const [cx, cy] = flat(centre);
-		return { cx, cy, rx: r * scale(centre), ry: r * scale(centre) * facing, angle: Math.atan2(side[1], side[0]) * 180 / Math.PI };
+		return { cx, cy, rx: r * scaleAt(centre[2]), ry: r * scaleAt(centre[2]) * facing, angle: Math.atan2(side[1], side[0]) * 180 / Math.PI };
 	};
 	const outline = ({ cx, cy, rx, ry }) => Array.from({ length: ROUND }, (_, i) => {
 		const a = i / ROUND * 2 * Math.PI;
 		return add(add([cx, cy], side, rx * Math.cos(a)), lengthwise, ry * Math.sin(a));
 	});
 	const part = ([from, to, r1, r2]) => hull([...outline(ring(from, r1)), ...outline(ring(to, r2))]);
-	const pieces = { ...PARTS, point: [-Math.min(away / view.length, BURIED), ...PARTS.point.slice(1)] };
+	const pieces = { ...PARTS, point: [-Math.min(away / DART_VIEW.length, BURIED), ...PARTS.point.slice(1)] };
 	const parts = Object.fromEntries(Object.entries(pieces).map(([name, piece]) => [name, part(piece)]));
 
 	const middle = ring((PARTS.barrel[0] + PARTS.barrel[1]) / 2, PARTS.barrel[2]);
@@ -169,10 +170,10 @@ export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = D
 	const vanes = [0, 1, 2, 3].map(k => {
 		const angle = pose.roll + k * Math.PI / 2;
 		const out = add(right.map(v => v * Math.cos(angle)), up, Math.sin(angle));
-		const corners = VANE.map(([t, w]) => add(along(t), out, w * view.length));
+		const corners = VANE.map(([t, w]) => add(along(t), out, w * DART_VIEW.length));
 		const depth = corners.reduce((sum, p) => sum + p[2], 0);
 		const root = flat(along(FLIGHT_AT));
-		const edge = flat(add(along(0.785), out, 0.162 * view.length));
+		const edge = flat(add(along(0.785), out, 0.162 * DART_VIEW.length));
 		return { points: corners.map(flat), root, edge, depth };
 	}).sort((a, b) => a.depth - b.depth);
 
@@ -204,11 +205,10 @@ function fromSegment(p, a, b) {
 }
 
 /** A dart stuck in the board, on screen: its point and a place along it (by default the end of its shaft). */
-function bodyLine(x, y, pose, view, along = PARTS.shaft[1]) {
+function bodyLine(x, y, pose, along = PARTS.shaft[1]) {
 	const tip = [x * 100, y * 100, 0];
-	const end = add(tip, norm([...pose.lean, 1]), along * view.length);
-	const scale = view.eye / (view.eye - end[2]);
-	return [[tip[0], tip[1]], [end[0] * scale, end[1] * scale]];
+	const end = add(tip, norm([...pose.lean, 1]), along * DART_VIEW.length);
+	return [[tip[0], tip[1]], flat(end)];
 }
 
 /** How clear two darts are on screen, each a line from its point to its flight: the nearer of either flight to the other dart. */
@@ -221,17 +221,17 @@ const clearance = (a, b) => Math.min(fromSegment(a[1], ...b), fromSegment(b[1], 
  * it can get, if nothing is). Only the look: where a dart scores doesn't change.
  * lines: the darts already in, from point to flight.
  */
-function leanIntoGap({ lean }, hit, lines, view) {
+function leanIntoGap({ lean }, hit, lines) {
 	const room = candidate => {
-		const line = bodyLine(hit.x, hit.y, { lean: candidate }, view, FLIGHT_AT);
+		const line = bodyLine(hit.x, hit.y, { lean: candidate }, FLIGHT_AT);
 		return Math.min(Infinity, ...lines.map(other => clearance(line, other)));
 	};
 	let best = lean;
 	let bestRoom = room(lean);
-	for (let step = 1; step <= GAP_STEPS && bestRoom < view.gapRoom; step++) {
+	for (let step = 1; step <= GAP_STEPS && bestRoom < DART_VIEW.gapRoom; step++) {
 		for (let turn = 0; turn < GAP_TURNS; turn++) {
 			const angle = turn / GAP_TURNS * 2 * Math.PI;
-			const candidate = add(lean, [Math.cos(angle), Math.sin(angle)], view.gapLean * step / GAP_STEPS);
+			const candidate = add(lean, [Math.cos(angle), Math.sin(angle)], DART_VIEW.gapLean * step / GAP_STEPS);
 			const candidateRoom = room(candidate);
 			if (candidateRoom > bestRoom) [best, bestRoom] = [candidate, candidateRoom];
 		}
@@ -247,18 +247,18 @@ function leanIntoGap({ lean }, hit, lines, view) {
  * its way round the others. One with a `pose` already keeps it: a dart stays
  * as it went in, whatever becomes of the others. Returns [{ pose, mark: [x, y] }].
  */
-export function dartLayout(hits, view = DART_VIEW) {
+export function dartLayout(hits) {
 	const turns = spotTurns(hits);
 	const poses = [];
 	const lines = [];
 	const arrived = hits.map((_, index) => index).sort((a, b) => (hits[a].touched ?? 0) - (hits[b].touched ?? 0));
 	for (const index of arrived) {
 		const hit = hits[index];
-		const pose = dartPose(hit.x, hit.y, view, turns[index]);
-		poses[index] = hit.pose ?? { ...pose, lean: leanIntoGap(pose, hit, lines, view) };
-		lines.push(bodyLine(hit.x, hit.y, poses[index], view, FLIGHT_AT));
+		const pose = dartPose(hit.x, hit.y, turns[index]);
+		poses[index] = hit.pose ?? { ...pose, lean: leanIntoGap(pose, hit, lines) };
+		lines.push(bodyLine(hit.x, hit.y, poses[index], FLIGHT_AT));
 	}
-	const bodies = hits.map(({ x, y }, index) => bodyLine(x, y, poses[index], view));
+	const bodies = hits.map(({ x, y }, index) => bodyLine(x, y, poses[index]));
 	const marks = [];
 	hits.forEach(({ x, y }, index) => {
 		const tip = [x * 100, y * 100];
@@ -296,13 +296,12 @@ export function lastTouched(hits) {
  * dart's tail passes in front of the point of the dart above it. Otherwise,
  * the later thrown goes in front.
  */
-export function dartOrder(hits, layout, view = DART_VIEW) {
-	const scale = z => view.eye / (view.eye - z);
+export function dartOrder(hits, layout) {
 	const lines = hits.map(({ x, y }, index) => {
 		const axis = norm([...layout[index].pose.lean, 1]);
 		return Array.from({ length: DEPTH_STEPS + 1 }, (_, step) => {
-			const p = add([x * 100, y * 100, 0], axis, step / DEPTH_STEPS * view.length);
-			return { at: [p[0] * scale(p[2]), p[1] * scale(p[2])], z: p[2] };
+			const p = add([x * 100, y * 100, 0], axis, step / DEPTH_STEPS * DART_VIEW.length);
+			return { at: flat(p), z: p[2] };
 		});
 	});
 	/** Whether dart a is nearer the eye than dart b where they come closest on screen. */
@@ -324,9 +323,9 @@ export function dartOrder(hits, layout, view = DART_VIEW) {
  * it counts as further: taps beside it still reach the board. place: the
  * dart's entry from dartLayout.
  */
-export function tapDistance({ x, y }, { pose, mark }, [px, py], view = DART_VIEW) {
+export function tapDistance({ x, y }, { pose, mark }, [px, py]) {
 	const tap = [px * 100, py * 100];
-	const [tip, end] = bodyLine(x, y, pose, view);
+	const [tip, end] = bodyLine(x, y, pose);
 	return Math.min(
 		Math.hypot(...add(tap, [x * 100, y * 100], -1)),
 		Math.hypot(...add(tap, mark.map(v => v * 100), -1)),

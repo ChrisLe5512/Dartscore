@@ -102,7 +102,7 @@ test('dart: three in one spot fan out: each finds a gap, not far off its own ang
 			assert.ok(Math.hypot(flights[a].cx - flights[b].cx, flights[a].cy - flights[b].cy) >= 8, `flights ${a} and ${b} at ${i}`);
 		}
 		layout.forEach(({ pose }, turn) => {
-			const own = dartPose(spot.x, spot.y, DART_VIEW, turn).lean;
+			const own = dartPose(spot.x, spot.y, turn).lean;
 			assert.ok(Math.hypot(pose.lean[0] - own[0], pose.lean[1] - own[1]) <= DART_VIEW.gapLean + 1e-9);
 		});
 	}
