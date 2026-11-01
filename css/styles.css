@@ -2010,6 +2010,7 @@ td.back-score {
 
 /* Settings, as far from the darts card as Done is, so the card stays centred. */
 .btn-section .settings-btn {
+	width: var(--card-w);
 	margin-bottom: calc(13vmin - var(--ctrl-size));
 }
 
@@ -2547,7 +2548,7 @@ td.back-score {
 
 .toast {
 	position: absolute;
-	top: 2.5vmin;
+	top: calc(var(--side-pad) + var(--ctrl-size) / 2); /* level with the middle of undo, redo and Settings */
 	left: 61%;
 	z-index: 50;
 	max-width: 40vw;
@@ -2566,7 +2567,7 @@ td.back-score {
 	border-radius: var(--radius);
 	box-shadow: 0 1vmin 3vmin rgba(0, 0, 0, 0.6);
 	pointer-events: none;
-	transform: translateX(-50%);
+	transform: translate(-50%, -50%);
 	animation: toast-in var(--medium) var(--ease-back);
 }
 
@@ -2610,11 +2611,11 @@ td.back-score {
 }
 
 @keyframes toast-in {
-	from { opacity: 0; transform: translate(-50%, -2vmin) scale(0.9); }
+	from { opacity: 0; transform: translate(-50%, calc(-50% - 2vmin)) scale(0.9); }
 }
 
 @keyframes toast-out {
-	to { opacity: 0; transform: translate(-50%, -1.5vmin) scale(0.95); }
+	to { opacity: 0; transform: translate(-50%, calc(-50% - 1.5vmin)) scale(0.95); }
 }
 
 /* HOVER: with a mouse, whatever can be pressed lights up a little under the
