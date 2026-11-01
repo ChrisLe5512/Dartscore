@@ -1482,7 +1482,9 @@ body.dismissing * {
 	flex: none;
 	align-self: stretch;
 	display: flex;
-	align-items: center;
+	flex-wrap: wrap; /* never wraps (it is as wide as its content): lets one baseline-aligned line be centred */
+	align-content: center;
+	align-items: baseline;
 	padding: 0 1vw 0 2vmin;
 	font-size: calc(3vmin * var(--s));
 	white-space: nowrap;
@@ -1505,7 +1507,10 @@ body.dismissing * {
 	margin-left: 0;
 	overflow: hidden;
 	opacity: 0;
-	font-size: 0.75em;
+	font-size: 0.68em;
+	/* On the finish's baseline, then up so the digits' middle meets the finish's. */
+	position: relative;
+	bottom: 0.167em;
 	font-style: normal;
 	color: var(--text-soft);
 	transition: max-width var(--medium) var(--ease-out), margin-left var(--medium) var(--ease-out), opacity var(--medium) var(--ease-out);
@@ -2697,6 +2702,12 @@ td.back-score {
 
 	:root:not(.touching) .checkout:not(.hint):hover {
 		filter: brightness(1.25);
+	}
+
+	:root:not(.touching) .checkout:not(.hint):hover .checkout-count {
+		max-width: 3.2em;
+		margin-left: 0.35em;
+		opacity: 1;
 	}
 
 	:root:not(.touching) .history span.has-hits:not(.reviewing):hover b {
