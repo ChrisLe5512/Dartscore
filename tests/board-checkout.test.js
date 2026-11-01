@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { boardRings, DEFAULT_RINGS, hitTest, locate, makeDart, randomDart } from '../js/board.js';
-import { canCheckout, getCheckouts } from '../js/checkout.js';
+import { canCheckout, followCheckout, getCheckouts } from '../js/checkout.js';
 import { boardStyle } from '../js/dartboard.js';
 
 const R = 100; // board radius in px for these tests
@@ -135,4 +135,22 @@ test('randomDart lands in a scoring bed, where it says it did', () => {
 		assert.ok(dart.value > 0);
 		assert.equal(hitTest(dart.x, dart.y, 1).label, dart.label);
 	}
+});
+
+test('a finish stays as its darts follow it, and changes when one goes off it', () => {
+	const d = (label, value) => ({ label, value });
+	const route = getCheckouts(100)[0]; // T20 D20
+	assert.deepEqual(followCheckout(100, []), { route, done: 0 });
+	assert.deepEqual(followCheckout(100, [d('T20', 60)]), { route, done: 1 });
+	assert.deepEqual(followCheckout(100, [d('T20', 60), d('D20', 40)]), { route, done: 2 });
+	// Off the route: a new one from what's left, nothing done of it.
+	assert.deepEqual(followCheckout(100, [d('20', 20)]), { route: getCheckouts(80, 2)[0], done: 0 });
+	// Back on after going off: the new route's progress.
+	const next = getCheckouts(80, 2)[0];
+	assert.deepEqual(followCheckout(100, [d('20', 20), d(next[0], 60)]).done, 1);
+	// No way out left, or a bust.
+	assert.equal(followCheckout(100, [d('1', 1), d('1', 1), d('1', 1)]), null);
+	assert.equal(followCheckout(40, [d('T20', 60)]), null);
+	// The choice picks among the ways out.
+	assert.deepEqual(followCheckout(100, [], true, 1).route, getCheckouts(100)[1]);
 });

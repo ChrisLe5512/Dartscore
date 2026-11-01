@@ -7,7 +7,7 @@ import {
 	DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, TEST_DART_GAP_MS, TOAST_CLOSE_ROOM, TOAST_MS,
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate, randomDart } from './board.js';
-import { getCheckouts } from './checkout.js';
+import { followCheckout } from './checkout.js';
 import { dartLayout, tapDistance } from './dart3d.js';
 import { boardRadius, boardStyle as savedBoardStyle, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
 import { describeTravel, describeTurn, historyLegs, OUTCOME_WORDS, undoWarning } from './feedback.js';
@@ -628,24 +628,35 @@ function renderHistory(cell, player) {
 function renderCheckout(historyRow, player, index, isActive) {
 	// The thrower's suggestion follows the darts already on the board.
 	const from = mode().checkoutFrom(player, game);
-	const dartsLeft = isActive ? DARTS_PER_TURN - turn.darts.length : DARTS_PER_TURN;
-	const remaining = isActive ? from - dartsTotal() : from;
-	const routes = game.winner === null && from !== null ? getCheckouts(remaining, dartsLeft, game.settings.doubleOut) : [];
-	const hint = game.winner === null && !routes.length ? mode().hint(game, index) : null;
+	const plan = game.winner === null && from !== null
+		? followCheckout(from, isActive ? turn.darts : [], game.settings.doubleOut, checkoutChoice.get(player.id) ?? 0)
+		: null;
+	const hint = game.winner === null && !plan ? mode().hint(game, index) : null;
 	const checkoutCell = $('.history-line > .checkout', historyRow);
 	checkoutCell.classList.toggle('hint', Boolean(hint));
 	checkoutCell.classList.toggle('muted', Boolean(hint?.muted));
 	checkoutCell.title = hint ? '' : 'Tap for another way to check out';
-	if (routes.length) {
-		const route = routes[(checkoutChoice.get(player.id) ?? 0) % routes.length];
+	if (plan) {
 		checkoutCell.classList.remove('hidden');
-		checkoutCell.textContent = `\u{1F3AF} ${route.join(' ')}`;
+		// Only rebuilt for a new route, so a dart thrown fades (.done) where it is.
+		const key = plan.route.join(' ');
+		if (checkoutCell.dataset.route !== key) {
+			checkoutCell.dataset.route = key;
+			checkoutCell.replaceChildren('\u{1F3AF}', ...plan.route.flatMap(label => {
+				const step = document.createElement('span');
+				step.textContent = label;
+				return [' ', step];
+			}));
+		}
+		$$('span', checkoutCell).forEach((step, i) => step.classList.toggle('done', i < plan.done));
 	} else if (hint) {
 		checkoutCell.classList.remove('hidden');
+		delete checkoutCell.dataset.route;
 		checkoutCell.textContent = hint.text;
 		checkoutChoice.delete(player.id);
 	} else {
 		checkoutCell.classList.add('hidden');
+		delete checkoutCell.dataset.route;
 		checkoutCell.textContent = '';
 		checkoutChoice.delete(player.id);
 	}

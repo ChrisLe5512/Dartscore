@@ -90,6 +90,26 @@ export function getCheckouts(score, dartsLeft = 3, doubleOut = true) {
 	return routes;
 }
 
+/**
+ * The finish to show as the darts land: the suggestion stays while the darts
+ * follow it, with `done` of it thrown; a dart off it means a new one from what's
+ * left. choice: which of the ranked ways out. Null when there is none (or a bust).
+ */
+export function followCheckout(score, thrown, doubleOut = true, choice = 0) {
+	const pick = (left, darts) => {
+		const routes = getCheckouts(left, darts, doubleOut);
+		return routes.length ? { route: routes[choice % routes.length], done: 0 } : null;
+	};
+	let left = score;
+	let plan = pick(left, 3);
+	thrown.forEach((dart, index) => {
+		left -= dart.value;
+		if (plan?.route[plan.done] === dart.label) plan = { ...plan, done: plan.done + 1 };
+		else plan = pick(left, 3 - index - 1);
+	});
+	return plan;
+}
+
 export function canCheckout(score, dartsLeft = 3, doubleOut = true) {
 	return getCheckouts(score, dartsLeft, doubleOut).length > 0;
 }

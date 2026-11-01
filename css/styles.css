@@ -1545,6 +1545,15 @@ body.dismissing * {
 	cursor: pointer;
 }
 
+/* What's been thrown of the finish being followed. */
+.checkout span {
+	transition: opacity var(--medium) var(--ease-out);
+}
+
+.checkout span.done {
+	opacity: 0.35;
+}
+
 .checkout.hint.muted {
 	color: var(--history-muted);
 }
