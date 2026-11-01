@@ -2141,6 +2141,7 @@ td.back-score {
 
 .dart-behind {
 	filter: brightness(0.6);
+	opacity: 0.5;
 }
 
 /* The darts left: side by side, one fewer with each dart thrown. */
