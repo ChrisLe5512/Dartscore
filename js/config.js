@@ -32,31 +32,24 @@ export const BOARD_SECTORS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 
 // Board layout in % of the board radius (100 = outer edge of the number ring).
 // Adjustable in Settings > Visuals; hit detection always follows what is drawn.
 export const BOARD_LAYOUT = Object.freeze({
-	bull: 6,        // bullseye radius
-	outerBull: 16,  // outer bull radius
-	trebleAt: 40,   // where the treble ring starts
-	treble: 10,     // treble ring width
-	double: 10,     // double ring width
+	ring: 10,       // treble and double ring width; the bulls grow with it
 	legend: 15,     // number ring width (counts as a miss)
 });
+// The bulls' radii, as a share of the ring width.
+export const BOARD_BULLS = Object.freeze({ bull: 0.6, outerBull: 1.6 });
 
 // [min, max] for each layout value.
 export const BOARD_LAYOUT_LIMITS = Object.freeze({
-	bull: [3, 12],
-	outerBull: [8, 28],
-	trebleAt: [20, 70],
-	treble: [4, 20],
-	double: [4, 20],
+	ring: [5, 18],
 	legend: [8, 25],
 });
 
-// The white rings around the doubles and the board edge (width in % of the radius).
+// The rings around the doubles and the board edge (width in % of the radius).
 // wire: the wires round every bed, how thick (0: none), in the outline's colour.
 // hitColor: the beds lit where darts landed (and everything else in that colour).
-export const BOARD_STYLE = Object.freeze({ outline: 1, wire: 0, outlineColor: '#ffffff', hitColor: '#ffd24d' });
-export const BOARD_OUTLINE_LIMITS = Object.freeze([0, 2.5]);
+export const BOARD_STYLE = Object.freeze({ outline: 0.7, wire: 0, outlineColor: '#c8c8c8', hitColor: '#ffd24d' });
 export const BOARD_WIRE_LIMITS = Object.freeze([0, 1.5]);
-export const BOARD_OUTLINE_COLORS = Object.freeze(['#ffffff', '#c8c8c8', '#808080', '#d4af37', '#000000']);
+export const BOARD_OUTLINE_COLORS = Object.freeze(['#c8c8c8', '#808080', '#d4af37', '#000000']);
 export const BOARD_HIT_COLORS = Object.freeze(['#ffd24d', '#ff8a3d', '#ff5cd6', '#4dd2ff', '#ffffff']);
 
 export const STORAGE_KEY = 'dartscore:v2';

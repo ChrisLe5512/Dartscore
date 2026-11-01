@@ -1,4 +1,4 @@
-import { BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_SECTORS } from './config.js';
+import { BOARD_BULLS, BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_SECTORS } from './config.js';
 
 /**
  * A single dart: { sector, multiplier, value, label, color }
@@ -30,8 +30,6 @@ export const isDouble = dart => dart.multiplier === 2;
 
 // ---- Geometry ----------------------------------------------------------------
 
-const MIN_SINGLE = 4; // the single beds never get thinner than this (% of radius)
-
 /** A layout value clamped to its limits, or the default when missing. */
 function layoutValue(layout, key) {
 	const [min, max] = BOARD_LAYOUT_LIMITS[key];
@@ -41,20 +39,17 @@ function layoutValue(layout, key) {
 
 /**
  * Ring edges (outer radius of each ring, in % of the board radius) from a
- * layout like BOARD_LAYOUT. Values are clamped and kept in order, with room
- * left for the single beds.
+ * layout like BOARD_LAYOUT. Values are clamped. One ring width sets the treble,
+ * the double and the bulls alike, and the treble sits midway between the outer
+ * bull and the double, so the two single beds match.
  */
 export function boardRings(layout = BOARD_LAYOUT) {
+	const width = layoutValue(layout, 'ring');
 	const double = 100 - layoutValue(layout, 'legend');
-	const outerSingle = double - layoutValue(layout, 'double');
-	const bull = layoutValue(layout, 'bull');
-	const outerBull = Math.max(bull + 2, layoutValue(layout, 'outerBull'));
-	const width = layoutValue(layout, 'treble');
-	const trebleAt = Math.max(outerBull + 1, Math.min(
-		outerSingle - width - MIN_SINGLE,
-		Math.max(outerBull + MIN_SINGLE, layoutValue(layout, 'trebleAt')),
-	));
-	return { bull, outerBull, innerSingle: trebleAt, treble: trebleAt + width, outerSingle, double, numberRing: 100 };
+	const outerSingle = double - width;
+	const outerBull = width * BOARD_BULLS.outerBull;
+	const trebleAt = (outerBull + outerSingle - width) / 2;
+	return { bull: width * BOARD_BULLS.bull, outerBull, innerSingle: trebleAt, treble: trebleAt + width, outerSingle, double, numberRing: 100 };
 }
 
 export const DEFAULT_RINGS = Object.freeze(boardRings());

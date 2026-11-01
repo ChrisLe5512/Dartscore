@@ -63,14 +63,9 @@
 			<section class="visuals-panel" aria-label="Board layout" tabindex="-1" hidden>
 				<h2 class="settings-heading">Board layout</h2>
 				<div class="visuals-controls">
-					<label class="range">Bullseye <output></output><input type="range" data-layout="bull" step="0.5"></label>
-					<label class="range">Outer bull <output></output><input type="range" data-layout="outerBull" step="0.5"></label>
-					<label class="range">Treble position <output></output><input type="range" data-layout="trebleAt" step="0.5"></label>
-					<label class="range">Treble width <output></output><input type="range" data-layout="treble" step="0.5"></label>
-					<label class="range">Double width <output></output><input type="range" data-layout="double" step="0.5"></label>
+					<label class="range"><span class="range-name">Ring width <button type="button" class="info-btn" aria-label="About ring width" data-info="The trebles, the doubles and the bulls, all together. The trebles stay centred.">i</button></span><output></output><input type="range" data-layout="ring" step="0.5"></label>
 					<label class="range"><span class="range-name">Number ring <button type="button" class="info-btn" aria-label="About the number ring" data-info="The outer black ring with the numbers. A dart there scores 0.">i</button></span><output></output><input type="range" data-layout="legend" step="0.5"></label>
-					<label class="range"><span class="range-name">Outline <button type="button" class="info-btn" aria-label="About the outline" data-info="The rings drawn round the doubles and the board&#39;s edge: how thick. Their colour is below.">i</button></span><output></output><input type="range" data-style="outline" step="0.1"></label>
-					<label class="range"><span class="range-name">Wires <button type="button" class="info-btn" aria-label="About wires" data-info="A thin wire round every bed, like the metal spider on a real board: how thick (0 for none). The same colour as the outline.">i</button></span><output></output><input type="range" data-style="wire" step="0.1"></label>
+					<label class="range"><span class="range-name">Wires <button type="button" class="info-btn" aria-label="About wires" data-info="A thin wire round every bed, like the metal spider on a real board: how thick (0 for none). The rings round the doubles and the board&#39;s edge take the same colour.">i</button></span><output></output><input type="range" data-style="wire" step="0.1"></label>
 					<div class="swatches outline-swatches" role="group" aria-label="Outline and wires colour"></div>
 					<div class="swatch-group">
 						<span class="range-name">Highlight <button type="button" class="info-btn" aria-label="About the highlight" data-info="The colour of the beds lit where darts landed, and of a past visit on show.">i</button></span>

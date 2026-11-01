@@ -3,7 +3,7 @@
 // state into DOM.
 
 import {
-	BOARD_HIT_COLORS, BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_OUTLINE_LIMITS, BOARD_WIRE_LIMITS,
+	BOARD_HIT_COLORS, BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_WIRE_LIMITS,
 	CHECKOUT_COUNT_MS, DARTS_PER_TURN, DEFAULT_SETTINGS, DRAG_FROM, INFO_HOVER_MS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, SCORES_LAYOUT_PHONE, TEST_DART_GAP_MS, TOAST_CLOSE_ROOM, TOAST_MS,
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate, randomDart } from './board.js';
@@ -1975,7 +1975,6 @@ newGameDialog.addEventListener('click', event => {
 // Done goes back to Settings as it was left.
 const visualsPanel = $('.visuals-panel');
 const layoutInputs = $$('[data-layout]', visualsPanel);
-const outlineInput = $('[data-style="outline"]', visualsPanel);
 const wireInput = $('[data-style="wire"]', visualsPanel);
 // A row of colours for each colour setting: { key in BOARD_STYLE: its row }.
 const swatchRows = {
@@ -1984,7 +1983,6 @@ const swatchRows = {
 };
 
 for (const input of layoutInputs) [input.min, input.max] = BOARD_LAYOUT_LIMITS[input.dataset.layout];
-[outlineInput.min, outlineInput.max] = BOARD_OUTLINE_LIMITS;
 [wireInput.min, wireInput.max] = BOARD_WIRE_LIMITS;
 for (const [key, colors] of [['outlineColor', BOARD_OUTLINE_COLORS], ['hitColor', BOARD_HIT_COLORS]]) {
 	swatchRows[key].append(...colors.map(color => {
@@ -2060,9 +2058,8 @@ function renderVisuals() {
 	const layout = boardLayout();
 	const style = boardStyle();
 	for (const input of layoutInputs) input.value = layout[input.dataset.layout];
-	outlineInput.value = style.outline;
 	wireInput.value = style.wire;
-	for (const input of [...layoutInputs, outlineInput, wireInput]) input.previousElementSibling.textContent = Number(input.value).toFixed(1);
+	for (const input of [...layoutInputs, wireInput]) input.previousElementSibling.textContent = Number(input.value).toFixed(1);
 	for (const [key, row] of Object.entries(swatchRows)) {
 		for (const swatch of row.children) swatch.setAttribute('aria-pressed', String(swatch.dataset.color === style[key]));
 	}
@@ -2072,13 +2069,13 @@ function renderVisuals() {
 function changeVisuals(colors = {}) {
 	const { outlineColor, hitColor } = boardStyle();
 	prefs.boardLayout = Object.fromEntries(layoutInputs.map(input => [input.dataset.layout, Number(input.value)]));
-	prefs.boardStyle = { outline: Number(outlineInput.value), wire: Number(wireInput.value), outlineColor, hitColor, ...colors };
+	prefs.boardStyle = { wire: Number(wireInput.value), outlineColor, hitColor, ...colors };
 	savePrefs(prefs);
 	redrawBoard();
 	renderVisuals();
 }
 
-for (const input of [...layoutInputs, outlineInput, wireInput]) input.addEventListener('input', () => changeVisuals());
+for (const input of [...layoutInputs, wireInput]) input.addEventListener('input', () => changeVisuals());
 
 // ---- Winner -----------------------------------------------------------------
 

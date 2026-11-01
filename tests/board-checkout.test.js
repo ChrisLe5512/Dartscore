@@ -34,25 +34,41 @@ test('sectors go clockwise from 20', () => {
 });
 
 test('default layout ring edges', () => {
-	assert.deepEqual({ ...DEFAULT_RINGS }, { bull: 6, outerBull: 16, innerSingle: 40, treble: 50, outerSingle: 75, double: 85, numberRing: 100 });
+	assert.deepEqual({ ...DEFAULT_RINGS }, { bull: 6, outerBull: 16, innerSingle: 40.5, treble: 50.5, outerSingle: 75, double: 85, numberRing: 100 });
 });
 
 test('custom layouts move the rings and hit detection follows', () => {
-	const rings = boardRings({ bull: 4, outerBull: 10, trebleAt: 55, treble: 6, double: 6, legend: 12 });
-	assert.deepEqual(rings, { bull: 4, outerBull: 10, innerSingle: 55, treble: 61, outerSingle: 82, double: 88, numberRing: 100 });
-	assert.equal(hitTest(...at(58, 0), R, rings).label, 'T20');
-	assert.equal(hitTest(...at(40, 0), R, rings).label, '20'); // inner single with this layout
+	const rings = boardRings({ ring: 5, legend: 12 });
+	assert.deepEqual(rings, { bull: 3, outerBull: 8, innerSingle: 43, treble: 48, outerSingle: 83, double: 88, numberRing: 100 });
+	assert.equal(hitTest(...at(45, 0), R, rings).label, 'T20');
+	assert.equal(hitTest(...at(30, 0), R, rings).label, '20'); // inner single with this layout
 	assert.equal(hitTest(...at(85, 0), R, rings).label, 'D20');
 	assert.equal(hitTest(...at(90, 0), R, rings).label, '0');
-	assert.deepEqual(locate(...at(8, 0), R, rings), { sector: 25, ring: 'outerBull' });
+	assert.deepEqual(locate(...at(5, 0), R, rings), { sector: 25, ring: 'outerBull' });
 	assert.deepEqual(locate(...at(95, 0), R, rings), locate(...at(95, 123), R, rings)); // the number ring is one zone
 });
 
 test('layouts are clamped and keep the rings in order', () => {
-	const rings = boardRings({ bull: 99, outerBull: 1, trebleAt: 99, treble: 99, double: 99, legend: 99 });
-	const order = [rings.bull, rings.outerBull, rings.innerSingle, rings.treble, rings.outerSingle, rings.double, rings.numberRing];
-	order.slice(1).forEach((edge, i) => assert.ok(edge > order[i], `ring ${i + 1} is outside ring ${i}`));
-	assert.deepEqual(boardRings({ bull: 'x' }), boardRings());
+	for (const layout of [{ ring: 99, legend: 99 }, { ring: 0, legend: 0 }]) {
+		const rings = boardRings(layout);
+		const order = [rings.bull, rings.outerBull, rings.innerSingle, rings.treble, rings.outerSingle, rings.double, rings.numberRing];
+		order.slice(1).forEach((edge, i) => assert.ok(edge > order[i], `ring ${i + 1} is outside ring ${i}`));
+	}
+	assert.deepEqual(boardRings({ ring: 'x' }), boardRings());
+	// A save from before the one ring width: only its number ring still counts.
+	assert.deepEqual(boardRings({ bull: 3, outerBull: 28, trebleAt: 70, treble: 4, double: 20, legend: 15 }), boardRings());
+});
+
+test('one ring width sets the treble, double and bulls alike, the treble centred', () => {
+	const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} is ${b}`);
+	const narrow = boardRings({ ring: 6 }), wide = boardRings({ ring: 14 });
+	for (const [rings, width] of [[narrow, 6], [wide, 14]]) {
+		near(rings.treble - rings.innerSingle, width);
+		near(rings.double - rings.outerSingle, width);
+		near(rings.innerSingle - rings.outerBull, rings.outerSingle - rings.treble);
+	}
+	near(wide.bull / narrow.bull, 14 / 6);
+	near(wide.outerBull / narrow.outerBull, 14 / 6);
 });
 
 test('colours match the real board', () => {
@@ -121,6 +137,12 @@ test('board style: wires are a thickness (0 for none); older on/off saves keep w
 	assert.equal(boardStyle({ wires: true, wire: 1.2 }).wire, 1.2);
 	assert.equal(boardStyle({ wires: false, wire: 1.2 }).wire, 0); // switched off
 	assert.equal('wires' in boardStyle({ wires: true }), false);
+});
+
+test('board style: the outline is fixed, and a colour no longer offered goes back to the default', () => {
+	assert.equal(boardStyle({ outline: 2 }).outline, 0.7);
+	assert.equal(boardStyle({ outlineColor: '#ffffff' }).outlineColor, '#c8c8c8');
+	assert.equal(boardStyle({ outlineColor: '#808080' }).outlineColor, '#808080');
 });
 
 test('randomDart lands in a scoring bed, where it says it did', () => {
