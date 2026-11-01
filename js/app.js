@@ -1160,7 +1160,6 @@ bustBtn.addEventListener('click', () => {
 function renderDarts(pop = []) {
 	dartSpans.forEach((span, index) => {
 		const dart = turn.darts[index];
-		// An empty slot shows its number faintly (data-n), so the darts left show.
 		span.className = dart ? dart.color : 'empty';
 		span.classList.toggle('editing', turn.editing === index);
 		if (dart && pop.includes(index)) replay(span, 'pop');
@@ -1179,6 +1178,7 @@ function renderDarts(pop = []) {
 
 	const hasDarts = turn.darts.length > 0;
 	dartsCard.classList.toggle('has-darts', hasDarts);
+	dartsCard.dataset.left = DARTS_PER_TURN - turn.darts.length;
 	dartsCard.classList.toggle('moving', turn.editing !== null);
 	dartsClearBtn.disabled = !hasDarts;
 	bustBtn.classList.toggle('away', hasDarts);

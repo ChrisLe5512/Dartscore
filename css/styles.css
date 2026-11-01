@@ -2058,8 +2058,9 @@ td.back-score {
 	font-size: 6vmin;
 }
 
-/* The darts card: as tall as what's in it. The player's dart until the first
-   one lands; then Clear across the top and the three slots. */
+/* The darts card: as tall as what's in it. The player's three darts until the
+   first one lands; then Clear across the top, a slot for each dart thrown, and
+   small darts under them for those left. */
 .darts {
 	display: flex;
 	flex-direction: column;
@@ -2138,10 +2139,44 @@ td.back-score {
 	opacity: 1;
 }
 
+.dart-behind {
+	filter: brightness(0.6);
+}
+
+/* The darts left: side by side, one fewer with each dart thrown. */
+.darts-left {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: calc(14 * var(--u));
+	transition: height var(--medium) var(--ease-out), opacity var(--medium) var(--ease-out);
+}
+
+.darts[data-left="0"] .darts-left {
+	height: 0;
+	opacity: 0;
+}
+
+.left-dart {
+	flex: none;
+	width: calc(3.2 * var(--u));
+	height: calc(12 * var(--u));
+	margin: 0 calc(0.4 * var(--u));
+	filter: drop-shadow(0 0 calc(0.3 * var(--u)) black);
+	transition: width var(--medium) var(--ease-out), margin var(--medium) var(--ease-out), opacity var(--medium) var(--ease-out);
+}
+
+.darts[data-left="1"] .left-dart:nth-child(2),
+.darts[data-left="0"] .left-dart:nth-child(2) {
+	width: 0;
+	margin: 0;
+	opacity: 0;
+}
+
 .idle-dart {
 	display: block;
 	flex: none;
-	height: calc(30 * var(--u));
+	height: min(calc(30 * var(--u)), calc(var(--card-w) * 2.6)); /* the fan fits the narrower 4:3 card */
 	margin: calc(1.2 * var(--u)) 0 calc(0.8 * var(--u));
 	filter: drop-shadow(0 0 calc(0.5 * var(--u)) black);
 }
@@ -2249,20 +2284,13 @@ td.back-score {
 	cursor: pointer;
 }
 
-/* A dart still to throw: a dashed outline with its number, faint. */
+/* A dart still to throw takes no room: its slot unfolds as it lands. */
 .darts span.empty {
-	display: grid;
-	place-items: center;
-	border-style: dashed;
-	border-color: color-mix(in srgb, var(--text-muted) 70%, transparent);
-	color: var(--text-muted);
-	text-shadow: none;
+	height: 0;
+	margin: 0;
+	border-width: 0;
+	opacity: 0;
 	pointer-events: none;
-}
-
-.darts span.empty::before {
-	content: attr(data-n);
-	font-size: calc(3.6 * var(--u));
 }
 
 
@@ -3204,6 +3232,10 @@ td.calc-score:not(.disabled) {
 
 @keyframes mark-pop {
 	from { opacity: 0; transform: scale(2); }
+}
+
+.darts span {
+	transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium), box-shadow var(--hover-speed), height var(--medium) var(--ease-out), margin var(--medium) var(--ease-out);
 }
 
 /* A dart picked up to move: its slot and its marker pulse, and its bed
