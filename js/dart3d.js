@@ -167,7 +167,7 @@ export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = D
 		const out = add(right.map(v => v * Math.cos(angle)), up, Math.sin(angle));
 		const corners = VANE.map(([t, w]) => add(along(t), out, w * view.length));
 		const depth = corners.reduce((sum, p) => sum + p[2], 0);
-		const root = flat(along((VANE[0][0] + VANE.at(-1)[0]) / 2));
+		const root = flat(along(FLIGHT_AT));
 		const edge = flat(add(along(0.785), out, 0.162 * view.length));
 		return { points: corners.map(flat), root, edge, depth };
 	}).sort((a, b) => a.depth - b.depth);

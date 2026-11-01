@@ -396,6 +396,7 @@ function startMoving(layer) {
 function takeOut(layer, darts) {
 	if (!darts.length) return;
 	const now = performance.now();
+	const forget = ({ dataset: { dart } }) => [thrown, lifted, covering].forEach(map => map.delete(dart));
 	// A dart in two groups (its body and flight) goes as one.
 	const going = [...new Set(darts.map(group => group.index))].sort((a, b) => a - b);
 	darts.forEach(group => {
@@ -404,13 +405,12 @@ function takeOut(layer, darts) {
 		if (group.classList.contains('review') || still()) {
 			fadeOut(group);
 			if (mark) fadeOut(mark);
+			forget(group);
 			return;
 		}
 		const delay = order * DART_VIEW.pullGap;
 		group.pulled = { since: now + delay, from: liftAt(group.dataset.dart, now), cover: coverAt(group.dataset.dart, now) };
-		lifted.delete(group.dataset.dart);
-		covering.delete(group.dataset.dart);
-		thrown.delete(group.dataset.dart);
+		forget(group);
 		if (mark) {
 			mark.style.animationDelay = `${delay}ms`;
 			fadeOut(mark);
@@ -431,6 +431,11 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 	const now = performance.now();
 	const shown = [...layer.querySelectorAll('.dart')].filter(group => !group.pulled && !group.classList.contains('leaving'));
 	const idList = dartIds(hits);
+	const touched = lastTouched(hits);
+	// Nothing new to show (most redraws are for the rest of the screen): leave them be.
+	const drawn = `${kind} ${editing} ${touched} ${idList}`;
+	if (layer.drawn === drawn && !pop.length) return;
+	layer.drawn = drawn;
 	const ids = new Set(idList);
 	// Darts no longer listed are taken out.
 	takeOut(layer, shown.filter(group => !ids.has(group.dataset.dart)));
@@ -443,7 +448,6 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 
 	const layout = dartLayout(hits);
 	const order = dartOrder(hits, layout);
-	const touched = lastTouched(hits);
 	const see = dartSee(hits, layout, order, touched);
 	// A dart on its way in changes nothing until it lands.
 	const seeFrom = hits.some((_, index) => landing(index)) && !still() ? now + DART_VIEW.flightMs : now;
@@ -474,7 +478,6 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 			return group;
 		});
 	});
-	for (const map of [lifted, covering]) for (const id of map.keys()) if (!ids.has(id)) map.delete(id);
 	layer.style.setProperty('--dart-flight-time', `${DART_VIEW.flightMs}ms`);
 
 	// Each marker beside its dart's point, a short line pointing at it, so
@@ -484,8 +487,8 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 	const marks = hits.map((hit, index) => {
 		const [mx, my] = layout[index].mark;
 		const id = idList[index];
-		const lifted = editing === index;
-		const step = lifted ? `lifted${wasLifted.has(id) ? '' : ' lifting'}` : wasLifted.has(id) ? 'landing' : '';
+		const up = editing === index;
+		const step = up ? `lifted${wasLifted.has(id) ? '' : ' lifting'}` : wasLifted.has(id) ? 'landing' : '';
 		const place = el('g', { class: `mark-place ${step}`.trim(), 'data-dart': id, ...at({ x: mx, y: my }) });
 		const toTip = [(hit.x - mx) * 100, (hit.y - my) * 100];
 		const reach = Math.hypot(...toTip);
