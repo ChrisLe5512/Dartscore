@@ -2555,8 +2555,6 @@ td.back-score {
 	font-size: 3.5vmin;
 	line-height: 1.2;
 	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
 	color: var(--text);
 	text-shadow: 0 0 1vmin black;
 	background: var(--panel);
@@ -2570,6 +2568,12 @@ td.back-score {
 
 .toast.leaving {
 	animation: toast-out var(--medium) var(--ease-out) forwards;
+}
+
+.toast-text {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .toast-title {
@@ -2595,6 +2599,41 @@ td.back-score {
 
 .toast.win .toast-title {
 	color: var(--checkout);
+}
+
+/* Beside a past turn's toast, which stays centred: Close, in the room on its
+   right. Any tap closes a past turn (the pointerdown listener in app.js), this
+   one included: it's there to show that it can be closed. */
+.toast-close {
+	display: none;
+	position: absolute;
+	top: calc(-1 * var(--line));
+	bottom: calc(-1 * var(--line));
+	left: 100%;
+	margin-left: var(--side-pad);
+	align-items: center;
+	gap: 0.6vmin;
+	padding: 0 1.6vmin;
+	box-sizing: border-box;
+	font: inherit;
+	font-size: 3vmin;
+	color: var(--text);
+	background: linear-gradient(#2a2a2a, #161616);
+	border: var(--border-muted);
+	border-radius: var(--radius);
+	cursor: pointer;
+	pointer-events: auto;
+	transition: background var(--hover-speed);
+}
+
+.toast.review .toast-close {
+	display: flex;
+}
+
+.toast-close .icon {
+	flex: none;
+	width: 2.6vmin;
+	height: 2.6vmin;
 }
 
 /* A past turn on show, in the board's highlight colour. */
@@ -2647,7 +2686,7 @@ td.back-score {
 		--slot-veil: var(--hover-veil);
 	}
 
-	:root:not(.touching) :is(.field-btn, .player-menu button, .darts-clear):not(:disabled):hover {
+	:root:not(.touching) :is(.field-btn, .player-menu button, .darts-clear, .toast-close):not(:disabled):hover {
 		background: var(--hover-tint);
 	}
 
@@ -3017,6 +3056,11 @@ td.calc-score:not(.disabled) {
 	.toast {
 		left: 50%;
 		max-width: 80vw;
+	}
+
+	/* Leaves room for Close before Settings. */
+	.toast.review {
+		max-width: 46vw;
 	}
 
 	.settings-section {
