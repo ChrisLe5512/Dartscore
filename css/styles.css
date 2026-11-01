@@ -2005,18 +2005,32 @@ td.back-score {
 	font-variant-numeric: tabular-nums;
 }
 
+/* The word slides out from under the score, and back up. */
 .done-bust {
-	display: none;
+	display: grid;
+	grid-template-rows: 0fr;
 	margin-right: 1.4vmin;
+	overflow: hidden;
 	font-size: 2.8vmin;
 	font-weight: 600;
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
 	color: color-mix(in srgb, var(--bust) 40%, white);
+	transition: grid-template-rows var(--medium) var(--ease-out);
+}
+
+.done-bust > span {
+	min-height: 0;
+	transform: translateY(-100%);
+	transition: transform var(--medium) var(--ease-out);
 }
 
 .done-btn.busting .done-bust {
-	display: block;
+	grid-template-rows: 1fr;
+}
+
+.done-btn.busting .done-bust > span {
+	transform: none;
 }
 
 .done-check {
