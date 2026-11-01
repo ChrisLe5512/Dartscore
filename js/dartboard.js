@@ -225,7 +225,7 @@ function paintDart(group, { x, y }, motion = {}) {
 	if (!motion.inAir) {
 		// The dart's own shape as one flat layer (no darker overlaps), faded
 		// by a mask from the point to nothing before the flight.
-		const fade = fadeMask(defs, [[0, 'white'], [0.55, '#777'], [1, 'black']], [shape.shadow.from, shape.shadow.to]);
+		const fade = fadeMask(defs, [[0, 'white'], [0.4, '#999'], [0.75, '#444'], [1, 'black']], [shape.shadow.from, shape.shadow.to]);
 		const shadow = el('g', { class: 'dart-shadow', mask: fade }, group);
 		for (const piece of shape.shadow.parts) el('polygon', { points: points(piece) }, shadow);
 	}

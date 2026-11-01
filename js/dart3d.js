@@ -31,8 +31,9 @@ const cast = ([px, py, height]) => {
 };
 /** Which way the lamp's light falls across the board at x, y (board units). */
 const lightAt = (x, y) => norm([x - LAMP[0], y - LAMP[1]]);
-// The shadow fades out by this far along the dart: its flight casts none, which would hide the board.
-const SHADOW_END = 0.72;
+// The shadow has faded out by this far along the dart, just before the shaft's
+// end, so no edge shows there: its flight casts none, which would hide the board.
+const SHADOW_END = 0.56;
 // How far the numbered marker sits from the point, beside the dart.
 const MARK_OFF = 8;
 const ROUND = 14; // points round each end of a part
