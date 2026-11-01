@@ -2,7 +2,6 @@
 // so the UI can keep snapshots for undo/redo and save them as JSON.
 
 import { DEFAULT_SETTINGS, IMPOSSIBLE_TURN_SCORES, MAX_PLAYERS, MAX_TURN_SCORE, START_SCORES } from './config.js';
-import { isDouble } from './board.js';
 import { canCheckout } from './checkout.js';
 import { clampInt, cleanName, endLeg, makeTurn, matchSettings, nextIndex, restoreMatch } from './match.js';
 
@@ -151,7 +150,7 @@ export function isBust(state, score, darts) {
 	if (remaining === 1) return true;
 	if (remaining === 0) {
 		const finishingDart = darts?.findLast(d => d.value > 0);
-		if (finishingDart) return !isDouble(finishingDart);
+		if (finishingDart) return finishingDart.multiplier !== 2;
 		return !canCheckout(player.score); // keypad: only finishes that are possible on a double
 	}
 	return false;

@@ -4,19 +4,6 @@
 import { canCheckout } from './checkout.js';
 import { dartsIn } from './match.js';
 
-/** Three-dart average, darts thrown, visits and best visit, over the whole match. */
-export function playerStats(player) {
-	let points = 0;
-	let darts = 0;
-	let best = 0;
-	for (const t of player.turns) {
-		points += t.score;
-		darts += dartsIn(t);
-		best = Math.max(best, t.score);
-	}
-	return { average: darts ? points / darts * 3 : 0, darts, visits: player.turns.length, best };
-}
-
 /** Darts the player has thrown in a leg. */
 export const legDarts = (player, leg) => player.turns.filter(t => t.leg === leg).reduce((sum, t) => sum + dartsIn(t), 0);
 
@@ -48,7 +35,8 @@ function legsOf(turns) {
  * - tons: visits of 100-139, 140-179 and 180
  */
 export function matchStats(player, settings) {
-	const line = playerStats(player);
+	let points = 0;
+	let darts = 0;
 	let first9Points = 0;
 	let first9Darts = 0;
 	let finishes = 0;
@@ -59,18 +47,20 @@ export function matchStats(player, settings) {
 
 	for (const leg of legsOf(player.turns)) {
 		let remaining = settings.startScore;
-		let darts = 0;
+		let inLeg = 0;
 		leg.turns.forEach((t, i) => {
 			if (i < 3) {
 				first9Points += t.score;
 				first9Darts += dartsIn(t);
 			}
 			if (canCheckout(remaining, 3, settings.doubleOut)) chances++;
+			inLeg += dartsIn(t);
+			points += t.score;
 			darts += dartsIn(t);
 			remaining -= t.score;
 			if (t.checkout) {
 				finishes++;
-				bestLeg = Math.min(bestLeg ?? Infinity, darts);
+				bestLeg = Math.min(bestLeg ?? Infinity, inLeg);
 				highFinish = Math.max(highFinish ?? 0, t.score);
 			}
 			if (t.score === 180) tons[180]++;
@@ -80,7 +70,8 @@ export function matchStats(player, settings) {
 	}
 
 	return {
-		...line,
+		average: darts ? points / darts * 3 : 0,
+		visits: player.turns.length,
 		first9: first9Darts ? first9Points / first9Darts * 3 : 0,
 		finishes,
 		chances,

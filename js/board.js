@@ -26,8 +26,6 @@ export function dartColor(sector, multiplier) {
 	return odd ? 'green' : 'red';
 }
 
-export const isDouble = dart => dart.multiplier === 2;
-
 // ---- Geometry ----------------------------------------------------------------
 
 /** A layout value clamped to its limits, or the default when missing. */
@@ -96,8 +94,4 @@ export function randomDart(rings = DEFAULT_RINGS, random = Math.random) {
 		const dart = hitTest(x, y, 1, rings);
 		if (dart?.value > 0) return { ...dart, x, y };
 	}
-}
-
-export function isOnBoard(dx, dy, radius) {
-	return Math.hypot(dx, dy) / radius * 100 <= 100;
 }

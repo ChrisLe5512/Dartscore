@@ -6,7 +6,7 @@ import {
 	BOARD_HIT_COLORS, BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_WIRE_LIMITS,
 	CHECKOUT_COUNT_MS, DARTS_PER_TURN, DEFAULT_SETTINGS, DRAG_FROM, INFO_HOVER_MS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, SCORES_LAYOUT_PHONE, TEST_DART_GAP_MS, TOAST_CLOSE_ROOM, TOAST_MS,
 } from './config.js';
-import { boardRings, hitTest, isOnBoard, locate, randomDart } from './board.js';
+import { boardRings, hitTest, locate, randomDart } from './board.js';
 import { canCheckout, followCheckout } from './checkout.js';
 import { dartLayout, tapDistance } from './dart3d.js';
 import { boardRadius, boardStyle as savedBoardStyle, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
@@ -18,6 +18,7 @@ import { loadPrefs, loadSession, savePrefs, saveSession } from './storage.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+const vmin = () => Math.min(innerWidth, innerHeight) / 100; // 1vmin in px
 const actionOf = event => event.target.closest('[data-action]')?.dataset.action;
 
 // ---- State ------------------------------------------------------------------
@@ -448,9 +449,8 @@ function renderScoreboard() {
 	if (activeRows) {
 		const [first, , last] = activeRows;
 		const box = scoresSection.getBoundingClientRect();
-		const vmin = Math.min(innerWidth, innerHeight) / 100;
-		const top = first.getBoundingClientRect().top - box.top - SCORE_FADES.top * vmin;
-		const bottom = last.getBoundingClientRect().bottom - box.top + SCORE_FADES.bottom * vmin;
+		const top = first.getBoundingClientRect().top - box.top - SCORE_FADES.top * vmin();
+		const bottom = last.getBoundingClientRect().bottom - box.top + SCORE_FADES.bottom * vmin();
 		const by = top < 0 ? top : Math.min(top, Math.max(0, bottom - scoresSection.clientHeight));
 		if (by) scoresSection.scrollBy({ top: by, behavior: 'smooth' });
 	}
@@ -466,7 +466,7 @@ function layoutScores() {
 	const { rows, stats, bigRows, minScale, maxScale, bigMaxScale, roomyFrom, bigFrom, fullLabelsFrom } = phone.matches ? SCORES_LAYOUT_PHONE : SCORES_LAYOUT;
 	const count = game.players.length;
 	// Inside the border, so the rows never overflow it.
-	const available = scoresSection.clientHeight / (Math.min(innerWidth, innerHeight) / 100); // in vmin
+	const available = scoresSection.clientHeight / vmin();
 	const fit = block => (count ? available / (count * block) : 1);
 	// A layout is used when it fits at (nearly) full size; the scale below makes it fit exactly.
 	const big = count > 0 && fit(bigRows) >= bigFrom;
@@ -478,7 +478,7 @@ function layoutScores() {
 	scoresTable.classList.toggle('big', big);
 	// Stacked beside the big score, in full if the card's wide enough for that.
 	const line = $('.stats-line', scoresTable);
-	const lineWidth = line ? line.clientWidth / (Math.min(innerWidth, innerHeight) / 100 * clamped) : 0;
+	const lineWidth = line ? line.clientWidth / (vmin() * clamped) : 0;
 	scoresTable.classList.toggle('full-labels', big && lineWidth >= fullLabelsFrom);
 	// Only rows too many to fit (at the smallest size) make the list scroll.
 	scoresSection.classList.toggle('overflowing', scale < minScale);
@@ -1069,9 +1069,9 @@ board.addEventListener('pointermove', event => {
 	if (event.pointerType !== 'mouse') return;
 	const { dx, dy, radius } = boardOffset(event);
 	const onMark = markAt(dx, dy, radius) >= 0;
-	board.classList.toggle('aiming', canAim() && !onMark && isOnBoard(dx, dy, radius));
-	board.classList.toggle('on-mark', onMark);
 	const spot = locate(dx, dy, radius, rings);
+	board.classList.toggle('aiming', canAim() && !onMark && spot !== null);
+	board.classList.toggle('on-mark', onMark);
 	const key = spot && segmentKey(spot.sector, spot.ring);
 	if (key === hovered) return;
 	hovered = key;
@@ -2005,7 +2005,6 @@ for (const [key, colors] of [['outlineColor', BOARD_OUTLINE_COLORS], ['hitColor'
 	});
 }
 
-const boardLayout = () => ({ ...BOARD_LAYOUT, ...prefs.boardLayout });
 const boardStyle = () => savedBoardStyle(prefs.boardStyle);
 
 // The board stays live as a test: darts can be thrown at it to see the
@@ -2060,7 +2059,7 @@ visualsPanel.addEventListener('click', event => {
 });
 
 function renderVisuals() {
-	const layout = boardLayout();
+	const layout = { ...BOARD_LAYOUT, ...prefs.boardLayout };
 	const style = boardStyle();
 	for (const input of layoutInputs) input.value = layout[input.dataset.layout];
 	wireInput.value = style.wire;

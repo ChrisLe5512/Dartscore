@@ -43,10 +43,10 @@ const { moveOn } = rules;
 export const { createGame, addPlayer, newMatch, removePlayer, setActive, restoreGame, wonLegs } = rules;
 
 /** The double a player is throwing at (25: the bullseye), or undefined when they are done. */
-export const targetOf = p => (canThrow(p) ? CLOCK_TARGETS[p.round] : undefined);
+const targetOf = p => (canThrow(p) ? CLOCK_TARGETS[p.round] : undefined);
 
 /** Points for a visit at `target` that hit `made` doubles. */
-export const visitPoints = (target, made) => (made ? made * target * 2 : -target * 2);
+const visitPoints = (target, made) => (made ? made * target * 2 : -target * 2);
 
 const doublesHit = (darts, target) => darts.filter(d => d.sector === target && d.multiplier === 2).length;
 

@@ -43,7 +43,7 @@ function annulus(inner, outer) {
 }
 
 /** Every segment of the board: { key, d, color } (key matches segmentKey). */
-export function segments(rings) {
+function segments(rings) {
 	const list = [];
 	const inner = name => {
 		const index = RINGS.findIndex(([ring]) => ring === name);

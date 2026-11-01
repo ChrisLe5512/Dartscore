@@ -1,22 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { matchStats, playerStats } from '../js/stats.js';
+import { matchStats } from '../js/stats.js';
 
 const SETTINGS = { startScore: 301, doubleOut: true };
 
-test('playerStats gives the three-dart average, darts thrown, visits and best turn', () => {
-	assert.deepEqual(playerStats({ turns: [] }), { average: 0, darts: 0, visits: 0, best: 0 });
+test('matchStats gives the three-dart average and visits', () => {
+	const none = matchStats({ turns: [] }, SETTINGS);
+	assert.equal(none.average, 0);
+	assert.equal(none.visits, 0);
 	const player = { turns: [{ score: 100 }, { score: 0, bust: true }, { score: 41, darts: ['T7', 'D10'], checkout: true }] };
-	const stats = playerStats(player);
-	assert.equal(stats.darts, 8);
+	const stats = matchStats(player, SETTINGS);
 	assert.equal(stats.visits, 3);
-	assert.equal(stats.best, 100);
 	assert.equal(stats.average.toFixed(2), (141 / 8 * 3).toFixed(2));
 });
 
 test('a visit that doesn\'t win the leg is three darts, however many were tapped', () => {
-	const stats = playerStats({ turns: [{ score: 40, darts: ['20', '20'] }] });
-	assert.equal(stats.darts, 3);
+	const stats = matchStats({ turns: [{ score: 40, darts: ['20', '20'] }] }, SETTINGS);
 	assert.equal(stats.average, 40);
 });
 
