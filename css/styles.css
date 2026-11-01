@@ -12,6 +12,8 @@
 	--text: white;
 	--text-muted: #969696;
 	--text-soft: #c8c8c8;
+	--value: white; /* the thrower's stats and past visits */
+	--value-idle: #e0e0e0; /* everyone else's: lighter than their labels (--text-soft at most) */
 	--panel: linear-gradient(#484848, #161616);
 	--button: linear-gradient(#808080, #404040);
 	--button-disabled: linear-gradient(#404040, #202020);
@@ -1492,7 +1494,7 @@ body.dismissing * {
 }
 
 .history span b {
-	color: white;
+	color: var(--value);
 	transition: color var(--medium) var(--ease-out), background-color var(--medium) var(--ease-out), box-shadow var(--medium) var(--ease-out);
 }
 
@@ -1636,8 +1638,14 @@ body.dismissing * {
 }
 
 .stats b {
-	color: white;
+	color: var(--value);
 	font-weight: 500;
+	transition: color var(--slow) var(--ease-out);
+}
+
+.stats-row:not(.active),
+.history-row:not(.active) {
+	--value: var(--value-idle);
 }
 
 /* The labels' short forms, unless stacked on a card wide enough for them in full. */
