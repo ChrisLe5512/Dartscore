@@ -1847,8 +1847,9 @@ td.back-score {
 :root {
 	--side-pad: 1.2vmin; /* from the screen's edges, and between buttons */
 	--ctrl-size: 8vmin;
-	--side-w: 15vw; /* Done */
-	--card-w: calc(8vw - var(--side-pad) - 0.4vmin); /* the darts card: the right column, as close to the board as the board is to the scoreboard */
+	/* The right column's one width, a keypad key's (four across the panel, five 5px gaps
+	   and its edge): the darts card and Bust are this wide, Done twice it. */
+	--card-w: calc((30vw - 26px) / 4);
 }
 
 .board-btn {
@@ -1972,7 +1973,7 @@ td.back-score {
 }
 
 .side-btn {
-	width: var(--side-w);
+	width: calc(2 * var(--card-w));
 	height: 13vmin;
 	font-size: 6vmin;
 	white-space: nowrap;
@@ -1983,7 +1984,7 @@ td.back-score {
 	position: absolute;
 	right: var(--side-pad);
 	bottom: calc(2 * var(--side-pad) + 13vmin);
-	width: calc(var(--side-w) / 2);
+	width: var(--card-w);
 	height: var(--ctrl-size);
 	font-size: 3.6vmin;
 }
@@ -2912,10 +2913,9 @@ td.calc-score:not(.disabled) {
 		margin: 0;
 	}
 
-	/* The right-hand column at the right edge; Done a little wider here. */
+	/* The right-hand column at the right edge; a key's width here too (the keypad is the band's). */
 	.btn-section {
-		--side-w: 22vmin;
-		--card-w: 11vmin;
+		--card-w: calc((var(--band) * 0.82 - 26px) / 4);
 		justify-self: end;
 		height: 100%;
 		width: auto;
