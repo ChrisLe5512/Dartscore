@@ -13,7 +13,7 @@
 	--text-muted: #969696;
 	--text-soft: #c8c8c8;
 	--value: white; /* the thrower's stats and past visits */
-	--value-idle: #e0e0e0; /* everyone else's: lighter than their labels (--text-soft at most) */
+	--value-idle: #d4d4d4; /* everyone else's: lighter than their labels (--text-soft at most) */
 	--panel: linear-gradient(#484848, #161616);
 	--button: linear-gradient(#808080, #404040);
 	--button-disabled: linear-gradient(#404040, #202020);
