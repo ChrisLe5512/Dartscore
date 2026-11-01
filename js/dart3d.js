@@ -17,10 +17,10 @@ const PARTS = {
 };
 // How much of the point is in the board: it shows as the dart comes out.
 const BURIED = 0.1;
-// One vane of the flight: [along, out] corners, fractions of the length. Its
-// leading edge curves out from the shaft and sweeps back to a rounded outer
-// corner; its back edge slants in and forward, for the notch in a real flight.
-const VANE = [[0.6, 0], [0.64, 0.06], [0.69, 0.115], [0.75, 0.155], [0.82, 0.18], [0.885, 0.195], [0.905, 0.185], [0.9, 0.16], [0.875, 0.09], [0.85, 0.03], [0.84, 0]];
+// One vane of the flight: [along, out] corners, fractions of the length. A kite
+// like a real flight: a long straight edge out from the shaft to a rounded
+// shoulder about 60% back, then a shorter one in to a point on the centre line.
+const VANE = [[0.6, 0], [0.74, 0.125], [0.77, 0.15], [0.795, 0.162], [0.82, 0.158], [0.84, 0.14], [0.92, 0]];
 // The light: one lamp, above and to the left of the board, in front of it
 // (as a board's light is near it, not far off like the sun): every dart's
 // shadow falls away from the same point.
@@ -151,7 +151,7 @@ export function dartShape(x, y, pose, { away = 0, sway = [0, 0] } = {}, view = D
 		const corners = VANE.map(([t, w]) => add(along(t), out, w * view.length));
 		const depth = corners.reduce((sum, p) => sum + p[2], 0);
 		const root = flat(along((VANE[0][0] + VANE.at(-1)[0]) / 2));
-		const edge = flat(add(along(0.85), out, 0.17 * view.length));
+		const edge = flat(add(along(0.8), out, 0.16 * view.length));
 		return { points: corners.map(flat), root, edge, depth };
 	}).sort((a, b) => a.depth - b.depth);
 
