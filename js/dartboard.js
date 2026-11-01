@@ -270,7 +270,16 @@ function paintDart(group, { x, y }, motion = {}) {
 // element (`pulled`), as they're no longer in the list.
 const thrown = new Map();
 const lifted = new Map();
-const dartId = ({ x, y }) => `${x},${y}`;
+/** Each dart's id: where it landed, and which of the darts there it is. */
+export function dartIds(hits) {
+	const atSpot = new Map();
+	return hits.map(({ x, y }) => {
+		const spot = `${x},${y}`;
+		const count = atSpot.get(spot) ?? 0;
+		atSpot.set(spot, count + 1);
+		return `${spot},${count}`;
+	});
+}
 const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const moving = new WeakSet(); // board layers with darts on the move
 
@@ -399,13 +408,14 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 	if (!layer) return;
 	const now = performance.now();
 	const shown = [...layer.querySelectorAll('.dart')].filter(group => !group.pulled && !group.classList.contains('leaving'));
-	const ids = new Set(hits.map(dartId));
+	const idList = dartIds(hits);
+	const ids = new Set(idList);
 	// Darts no longer listed are taken out.
 	takeOut(layer, shown.filter(group => !ids.has(group.dataset.dart)));
 	if (!hits.length) return;
 
 	const before = new Set(shown.map(group => group.dataset.dart));
-	const landing = index => (kind === 'review' ? !before.has(dartId(hits[index])) : pop.includes(index));
+	const landing = index => (kind === 'review' ? !before.has(idList[index]) : pop.includes(index));
 	const state = index => [kind, landing(index) && 'pop', editing === index && 'editing'];
 	const at = ({ x, y }) => ({ transform: `translate(${round(x * 100)} ${round(y * 100)})` });
 
@@ -413,7 +423,7 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 	const order = dartOrder(hits, layout);
 	// All the darts first, then all the markers, so no dart covers a number.
 	const darts = hits.map((hit, index) => {
-		const id = dartId(hit);
+		const id = idList[index];
 		const group = el('g', { class: ['dart', ...state(index)].filter(Boolean).join(' '), 'data-dart': id });
 		group.hit = hit;
 		group.pose = layout[index].pose;
@@ -440,7 +450,7 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 	const wasLifted = new Set([...layer.querySelectorAll('.mark-place.lifted')].map(place => place.dataset.dart));
 	const marks = hits.map((hit, index) => {
 		const [mx, my] = layout[index].mark;
-		const id = dartId(hit);
+		const id = idList[index];
 		const lifted = editing === index;
 		const step = lifted ? `lifted${wasLifted.has(id) ? '' : ' lifting'}` : wasLifted.has(id) ? 'landing' : '';
 		const place = el('g', { class: `mark-place ${step}`.trim(), 'data-dart': id, ...at({ x: mx, y: my }) });

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { boardRings, DEFAULT_RINGS, hitTest, locate, makeDart, randomDart } from '../js/board.js';
 import { canCheckout, followCheckout, getCheckouts } from '../js/checkout.js';
-import { boardStyle } from '../js/dartboard.js';
+import { boardStyle, dartIds } from '../js/dartboard.js';
 
 const R = 100; // board radius in px for these tests
 // Point at `percent` of the radius, `deg` degrees clockwise from the top.
@@ -163,4 +163,12 @@ test('a finish stays as its darts follow it, and changes when one goes off it', 
 	assert.deepEqual(followCheckout(100, [], true, 1).route, getCheckouts(100)[1]);
 	assert.equal(followCheckout(100, [], true, 1).index, 1);
 	assert.equal(followCheckout(100, [], true, total).index, 0); // round to the first again
+});
+
+test('darts in the same exact spot each have their own id', () => {
+	const spot = { x: 0.25, y: -0.5 };
+	const ids = dartIds([spot, { x: 0.1, y: 0.1 }, spot, spot]);
+	assert.equal(new Set(ids).size, 4);
+	// Taking the last off leaves the others' ids as they were.
+	assert.deepEqual(dartIds([spot, { x: 0.1, y: 0.1 }, spot]), ids.slice(0, 3));
 });
