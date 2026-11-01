@@ -433,7 +433,10 @@ function renderScoreboard() {
 		renderStats(statsRow, player);
 	});
 
-	for (const rows of rowsById.values()) rows.forEach(row => row.remove());
+	for (const rows of rowsById.values()) {
+		historyResize.unobserve($('.history', rows[2]));
+		rows.forEach(row => row.remove());
+	}
 	renderInputting();
 	layoutScores();
 	fitNames();
