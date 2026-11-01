@@ -36,6 +36,16 @@ const lightAt = (x, y) => norm([x - LAMP[0], y - LAMP[1]]);
 const SHADOW_END = 0.56;
 // How far the numbered marker sits from the point, beside the dart.
 const MARK_OFF = 8;
+// Markers keep this far from each other (board units), and from any dart's body.
+const MARK_ROOM = 7;
+const BODY_ROOM = 4;
+// The angles a marker tries round its point, its best side first.
+const MARK_TURNS = [0, 0.7, -0.7, 1.4, -1.4, 2.1, -2.1, 2.8, -2.8];
+// Where along the dart the flights are, how far apart they must be to clear
+// each other (board units), and the most a dart is knocked aside (tan of the angle).
+const FLIGHT_AT = 0.85;
+const FLIGHTS_CLEAR = 22;
+const MAX_KNOCK = 0.35;
 const ROUND = 14; // points round each end of a part
 
 /** The same random numbers for the same spot every time: a dart keeps its pose when redrawn. */
@@ -175,30 +185,72 @@ function fromSegment(p, a, b) {
 }
 
 /**
- * How far a tap at [px, py] is from a dart in the board at x, y (fractions of
- * the radius): from its point, its marker or its body, point to shaft end.
- * The body is narrow, so it counts as further: taps beside it still reach
- * the board.
+ * How a turn's darts sit together. Darts can't share a spot: a dart landing in
+ * a tight group is knocked aside by those already there, so each leans away
+ * from the earlier ones until their flights clear (within reason), and each
+ * marker takes a free spot. Only the look: where a dart scores doesn't change.
+ * hits: [{ x, y }] as fractions of the radius, in the order thrown. Returns
+ * [{ pose, mark: [x, y] }], a dart's own pose as in dartPose when nothing's near.
  */
-export function tapDistance(x, y, [px, py], view = DART_VIEW) {
-	const tap = [px * 100, py * 100];
-	const { tip, end } = dartShape(x, y, dartPose(x, y, view), {}, view);
-	const [mx, my] = markSpot(x, y, view);
-	return Math.min(
-		Math.hypot(...add(tap, [x * 100, y * 100], -1)),
-		Math.hypot(...add(tap, [mx * 100, my * 100], -1)),
-		fromSegment(tap, tip, [end.cx, end.cy]) * 1.6,
-	) / 100;
+export function dartLayout(hits, view = DART_VIEW) {
+	const reach = view.length * FLIGHT_AT;
+	const poses = [];
+	const tails = [];
+	for (const { x, y } of hits) {
+		const pose = dartPose(x, y, view);
+		const tailOf = lean => [x * 100 + lean[0] * reach, y * 100 + lean[1] * reach];
+		let lean = pose.lean;
+		// Twice round: moving clear of one can move it towards another.
+		for (let pass = 0; pass < 2; pass++) {
+			for (const other of tails) {
+				const gap = add(tailOf(lean), other, -1);
+				const apart = Math.hypot(...gap);
+				if (apart >= FLIGHTS_CLEAR) continue;
+				const way = apart > 1e-6 ? gap.map(v => v / apart) : [Math.cos(pose.roll * 4), Math.sin(pose.roll * 4)];
+				lean = add(lean, way, (FLIGHTS_CLEAR - apart) / reach);
+			}
+		}
+		const knock = add(lean, pose.lean, -1);
+		const size = Math.hypot(...knock);
+		if (size > MAX_KNOCK) lean = add(pose.lean, knock, MAX_KNOCK / size);
+		poses.push({ ...pose, lean });
+		tails.push(tailOf(lean));
+	}
+
+	const bodies = hits.map(({ x, y }, index) => {
+		const { tip, end } = dartShape(x, y, poses[index], {}, view);
+		return [tip, [end.cx, end.cy]];
+	});
+	const marks = [];
+	hits.forEach(({ x, y }, index) => {
+		const tip = [x * 100, y * 100];
+		const [, tail] = bodies[index];
+		const back = norm(add(norm(add(tail, tip, -1)), lightAt(...tip))).map(v => -v);
+		// Round the point from the best side, then a little further out. Clear of
+		// the markers placed so far and the darts down so far.
+		const free = spot => marks.every(mark => Math.hypot(...add(spot, mark, -1)) >= MARK_ROOM)
+			&& bodies.slice(0, index + 1).every(([a, b]) => fromSegment(spot, a, b) >= BODY_ROOM);
+		const spots = [MARK_OFF, MARK_OFF * 1.5].flatMap(far => MARK_TURNS.map(turn => {
+			const [c, s] = [Math.cos(turn), Math.sin(turn)];
+			return add(tip, [back[0] * c - back[1] * s, back[0] * s + back[1] * c], far);
+		}));
+		marks.push(spots.find(free) ?? spots[0]);
+	});
+	return poses.map((pose, index) => ({ pose, mark: marks[index].map(v => v / 100) }));
 }
 
 /**
- * Where a dart's numbered marker goes (fractions of the radius): beside the
- * point, away from the dart and its shadow, so the point itself shows.
+ * How far a tap at [px, py] is from a dart (fractions of the radius): from its
+ * point, its marker or its body, point to shaft end. The body is narrow, so
+ * it counts as further: taps beside it still reach the board. place: the
+ * dart's entry from dartLayout.
  */
-export function markSpot(x, y, view = DART_VIEW) {
-	const { end } = dartShape(x, y, dartPose(x, y, view), {}, view);
-	const tip = [x * 100, y * 100];
-	const tail = norm(add([end.cx, end.cy], tip, -1));
-	const away = norm(add(tail, lightAt(...tip))).map(v => -v);
-	return [(tip[0] + away[0] * MARK_OFF) / 100, (tip[1] + away[1] * MARK_OFF) / 100];
+export function tapDistance({ x, y }, { pose, mark }, [px, py], view = DART_VIEW) {
+	const tap = [px * 100, py * 100];
+	const { tip, end } = dartShape(x, y, pose, {}, view);
+	return Math.min(
+		Math.hypot(...add(tap, [x * 100, y * 100], -1)),
+		Math.hypot(...add(tap, mark.map(v => v * 100), -1)),
+		fromSegment(tap, tip, [end.cx, end.cy]) * 1.6,
+	) / 100;
 }

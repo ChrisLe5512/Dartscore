@@ -4,7 +4,7 @@
 
 import { BOARD_SECTORS, BOARD_STYLE, DART_VIEW } from './config.js';
 import { dartColor, RINGS } from './board.js';
-import { dartPose, dartShape, markSpot } from './dart3d.js';
+import { dartLayout, dartShape } from './dart3d.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -216,7 +216,7 @@ const ellipse = ({ cx, cy, rx, ry, angle }, attrs, parent) =>
  * facing you as a shaded disc, and each vane from its root out.
  */
 function paintDart(group, { x, y }, motion = {}) {
-	const shape = dartShape(x, y, dartPose(x, y), motion);
+	const shape = dartShape(x, y, group.pose, motion);
 	group.replaceChildren();
 	const defs = el('defs', {}, group);
 	// The dart itself, see-through as one (overlapping pieces don't darken).
@@ -386,11 +386,13 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 	const state = index => [kind, landing(index) && 'pop', editing === index && 'editing'];
 	const at = ({ x, y }) => ({ transform: `translate(${round(x * 100)} ${round(y * 100)})` });
 
+	const layout = dartLayout(hits);
 	// All the darts first, then all the markers, so no dart covers a number.
 	const darts = hits.map((hit, index) => {
 		const id = dartId(hit);
 		const group = el('g', { class: ['dart', ...state(index)].filter(Boolean).join(' '), 'data-dart': id });
 		group.hit = hit;
+		group.pose = layout[index].pose;
 		group.index = index;
 		if (landing(index) && !still()) thrown.set(id, now);
 		// Picked up: out a little; put back: in again.
@@ -410,7 +412,7 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 	// A picked-up dart's marker steps aside: it fades as the dart lifts, and back as it's put down.
 	const wasLifted = new Set([...layer.querySelectorAll('.mark-place.lifted')].map(place => place.dataset.dart));
 	const marks = hits.map((hit, index) => {
-		const [mx, my] = markSpot(hit.x, hit.y);
+		const [mx, my] = layout[index].mark;
 		const id = dartId(hit);
 		const lifted = editing === index;
 		const step = lifted ? `lifted${wasLifted.has(id) ? '' : ' lifting'}` : wasLifted.has(id) ? 'landing' : '';

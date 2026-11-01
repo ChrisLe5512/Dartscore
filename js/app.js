@@ -8,7 +8,7 @@ import {
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate } from './board.js';
 import { getCheckouts } from './checkout.js';
-import { tapDistance } from './dart3d.js';
+import { dartLayout, tapDistance } from './dart3d.js';
 import { boardRadius, boardStyle as savedBoardStyle, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
 import { describeTravel, describeTurn, historyLegs, undoWarning } from './feedback.js';
 import * as History from './history.js';
@@ -1095,8 +1095,9 @@ function markAt(dx, dy, radius) {
 	if (turn.darts.length < DARTS_PER_TURN || turn.editing !== null) return -1;
 	let closest = -1;
 	let best = MARK_REACH;
+	const layout = dartLayout(turn.darts);
 	turn.darts.forEach((dart, index) => {
-		const distance = tapDistance(dart.x, dart.y, [dx / radius, dy / radius]);
+		const distance = tapDistance(dart, layout[index], [dx / radius, dy / radius]);
 		if (distance <= best) [closest, best] = [index, distance];
 	});
 	return closest;

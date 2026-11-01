@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dartPose, dartShape, markSpot, tapDistance } from '../js/dart3d.js';
+import { dartLayout, dartPose, dartShape, tapDistance } from '../js/dart3d.js';
 
 const straight = { lean: [0, 0], roll: 0 };
 // The middle of the shaft's far end.
@@ -46,7 +46,7 @@ test('dart: its shadow starts at the point and falls down and right', () => {
 });
 
 test('dart: its marker sits beside the point, up and left of the shadow', () => {
-	const [mx, my] = markSpot(0.4, 0.3);
+	const [{ mark: [mx, my] }] = dartLayout([{ x: 0.4, y: 0.3 }]);
 	const off = Math.hypot(mx - 0.4, my - 0.3);
 	assert.ok(off > 0.05 && off < 0.12);
 	assert.ok(mx < 0.4 + 0.02);
@@ -62,9 +62,10 @@ test('dart: a tap on its body or marker reaches it; one well beside it does not'
 	const [x, y] = [0.5, 0.2];
 	const { end } = dartShape(x, y, dartPose(x, y));
 	const onBody = [(x * 100 + end.cx) / 200, (y * 100 + end.cy) / 200];
-	assert.ok(tapDistance(x, y, onBody) < 0.01);
-	assert.ok(tapDistance(x, y, markSpot(x, y)) < 1e-9);
-	assert.ok(tapDistance(x, y, [x - 0.2, y + 0.2]) > 0.1);
+	const [place] = dartLayout([{ x, y }]);
+	assert.ok(tapDistance({ x, y }, place, onBody) < 0.01);
+	assert.ok(tapDistance({ x, y }, place, place.mark) < 1e-9);
+	assert.ok(tapDistance({ x, y }, place, [x - 0.2, y + 0.2]) > 0.1);
 });
 
 test('dart: shadows fall away from one lamp, so they fan out across the board', () => {
@@ -80,4 +81,33 @@ test('dart: it leans back towards the player, so outer darts splay out less', ()
 	assert.ok(dartPose(0, 0.85).lean[1] < 0); // a low dart's tail up, towards the player
 	const splay = x => tailEnd(dartShape(x, 0, dartPose(x, 0)))[0] - x * 100;
 	assert.ok(splay(0.85) < tailEnd(dartShape(0.85, 0, straight))[0] - 85);
+});
+
+test('dart: alone, it sits as it would; in a tight group, each is knocked clear', () => {
+	const alone = dartLayout([{ x: 0.3, y: -0.4 }]);
+	assert.deepEqual(alone[0].pose, dartPose(0.3, -0.4));
+
+	const hits = [{ x: 0.3, y: -0.4 }, { x: 0.31, y: -0.39 }, { x: 0.3, y: -0.4 }];
+	const layout = dartLayout(hits);
+	assert.deepEqual(layout[0].pose, dartPose(0.3, -0.4)); // the first is already there
+	const tail = (hit, { pose }) => { const { end } = dartShape(hit.x, hit.y, pose); return [end.cx, end.cy]; };
+	const tails = hits.map((hit, index) => tail(hit, layout[index]));
+	for (const [a, b] of [[0, 1], [0, 2], [1, 2]]) {
+		assert.ok(Math.hypot(tails[a][0] - tails[b][0], tails[a][1] - tails[b][1]) > 8, `tails ${a} and ${b}`);
+	}
+});
+
+test('dart: a far-off neighbour changes nothing; a dart stays put when a later one lands', () => {
+	const near = { x: 0.3, y: -0.4 };
+	assert.deepEqual(dartLayout([{ x: -0.6, y: 0.5 }, near])[1].pose, dartPose(near.x, near.y));
+	const first = dartLayout([near])[0];
+	assert.deepEqual(dartLayout([near, { x: 0.3, y: -0.39 }])[0], first);
+});
+
+test('dart: markers in a tight group do not overlap', () => {
+	const layout = dartLayout([{ x: 0.3, y: -0.4 }, { x: 0.305, y: -0.395 }, { x: 0.295, y: -0.4 }]);
+	for (const [a, b] of [[0, 1], [0, 2], [1, 2]]) {
+		const [p, q] = [layout[a].mark, layout[b].mark];
+		assert.ok(Math.hypot(p[0] - q[0], p[1] - q[1]) >= 0.06, `markers ${a} and ${b}`);
+	}
 });
