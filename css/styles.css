@@ -1867,7 +1867,7 @@ td.back-score {
 	--side-pad: 1.2vmin; /* from the screen's edges, and between buttons */
 	--ctrl-size: 8vmin;
 	/* The right column's one width, a keypad key's (four across the panel, five 5px gaps
-	   and its edge): the darts card and Bust are this wide, Done two keys and the gap between. */
+	   and its edge): the darts card and No score are this wide, Done two keys and the gap between. */
 	--card-w: calc((30vw - 26px) / 4);
 	--done-h: calc((40vmin - 26px) / 4 * 1.5); /* Done: a key and a half tall (four keys down the panel, 40% of the screen) */
 	--hint-h: calc(6.6 * var(--u)); /* the darts card's Tap again to remove */
@@ -1998,7 +1998,7 @@ td.back-score {
 	white-space: nowrap;
 }
 
-/* Bust: a plain small button on Done's right end, there only until a dart is down. */
+/* No score: a plain small button on Done's right end, there only until a dart is down. */
 .side-btn.bust-btn {
 	position: absolute;
 	right: var(--side-pad);
@@ -2998,7 +2998,7 @@ td.calc-score:not(.disabled) {
 	}
 
 	/* Less height here: the darts card goes in the middle of the room between
-	   Settings and Bust (Bust is held clear of it, darts or not), not the column's. */
+	   Settings and No score (it's held clear of it, darts or not), not the column's. */
 	.btn-section .settings-btn {
 		margin-bottom: 0;
 	}
@@ -3008,7 +3008,7 @@ td.calc-score:not(.disabled) {
 		transition: transform var(--fast) var(--ease-out), color var(--medium), border-color var(--medium), opacity var(--medium), box-shadow var(--hover-speed), --send-top var(--medium) var(--ease-out), --send-bottom var(--medium) var(--ease-out), margin-top var(--medium) var(--ease-out);
 	}
 
-	/* With darts down Bust is away: only the card's hint needs the room. */
+	/* With darts down No score is away: only the card's hint needs the room. */
 	.darts.has-darts ~ .side-btn.done-btn {
 		margin-top: var(--hint-h);
 	}
@@ -3039,7 +3039,7 @@ td.calc-score:not(.disabled) {
 	}
 
 	/* The keys stand in from the panel's edges as far as the board's buttons do from
-	   the screen's, so the keypad's columns line up with Settings, the darts card, Bust
+	   the screen's, so the keypad's columns line up with Settings, the darts card, No score
 	   and Done above them (the table's own 5px gaps count towards it). */
 	.calc-tbl {
 		width: calc(var(--band) * 0.82);
