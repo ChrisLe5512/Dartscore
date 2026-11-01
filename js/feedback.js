@@ -18,6 +18,9 @@ function taker(before, after) {
 	return after?.players.find(won);
 }
 
+/** The word for what sending a turn would do, by the event of the mode's submitTurn (others have none). */
+export const OUTCOME_WORDS = Object.freeze({ bust: 'Bust', leg: 'Leg', set: 'Set', match: 'Game' });
+
 /**
  * What a submitted turn did, from the state it was thrown in (and the state
  * after, where a mode needs it to say more).

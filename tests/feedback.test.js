@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { describeTravel, describeTurn, historyLegs, historyMarks, undoWarning } from '../js/feedback.js';
+import { describeTravel, describeTurn, historyLegs, historyMarks, OUTCOME_WORDS, undoWarning } from '../js/feedback.js';
 import { addPlayer, createGame, movePlayer, newMatch, removePlayer, submitTurn } from '../js/game.js';
 
 const twoPlayers = () =>
@@ -131,4 +131,18 @@ test('undoing a new game that changed both the game and the players says so', as
 	assert.equal(undoWarning(after, before).title, 'Back to the last game?');
 	const samePlayers = newGame('121', {}, ['Ann'], before);
 	assert.equal(undoWarning(samePlayers, before).title, 'Back to the last settings?');
+});
+
+test('what sending a turn would do has a word for a bust, leg, set and match, not an ordinary turn', () => {
+	const game = settings => addPlayer(createGame({ startScore: 301, ...settings }), 'Ann');
+	const word = (state, score) => OUTCOME_WORDS[submitTurn(state, score, null).event];
+	const onLast = settings => {
+		const state = game(settings);
+		return { ...state, players: state.players.map(p => ({ ...p, score: 40 })) };
+	};
+	assert.equal(word(onLast({ legs: 2, sets: 1 }), 20), undefined);
+	assert.equal(word(onLast({ legs: 2, sets: 1 }), 60), 'Bust');
+	assert.equal(word(onLast({ legs: 2, sets: 1 }), 40), 'Leg');
+	assert.equal(word(onLast({ legs: 1, sets: 2 }), 40), 'Set');
+	assert.equal(word(onLast({ legs: 1, sets: 1 }), 40), 'Game');
 });

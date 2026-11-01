@@ -179,7 +179,6 @@ export const scoreNote = player => `/${player.target}`;
 export const checkoutFrom = player => (canThrow(player) ? player.score : null);
 export const hint = () => null;
 
-export const isBust = Game.isBust;
 export const dartsValue = (state, darts) => darts.reduce((sum, d) => sum + d.value, 0);
 export const turnText = t => t.score;
 export const turnLabel = turnText;

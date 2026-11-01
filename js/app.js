@@ -10,7 +10,7 @@ import { boardRings, hitTest, isOnBoard, locate, randomDart } from './board.js';
 import { getCheckouts } from './checkout.js';
 import { dartLayout, tapDistance } from './dart3d.js';
 import { boardRadius, boardStyle as savedBoardStyle, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
-import { describeTravel, describeTurn, historyLegs, undoWarning } from './feedback.js';
+import { describeTravel, describeTurn, historyLegs, OUTCOME_WORDS, undoWarning } from './feedback.js';
 import * as History from './history.js';
 import { GAME_CHOICES, MODES, choiceOf, createGame, modeOf, newGame, wonLegs } from './modes.js';
 import { loadPrefs, loadSession, savePrefs, saveSession } from './storage.js';
@@ -1014,6 +1014,7 @@ const bustBtn = $('.bust-btn');
 const doneBtn = $('.done-btn');
 const dartsClearBtn = $('.darts-clear');
 const doneTotal = $('.done-total', doneBtn);
+const doneNote = $('.done-note > span', doneBtn);
 const debugSpan = $('.debug-span');
 const debug = new URLSearchParams(location.search).has('debug');
 debugSpan.hidden = !debug;
@@ -1185,10 +1186,13 @@ function renderDarts(pop = []) {
 	// Done is a ✓ like the keypad's, with what the darts make beside it.
 	doneTotal.textContent = hasDarts ? mode().dartsValue(game, turn.darts) : '';
 	doneBtn.classList.toggle('disabled', !hasDarts);
-	// And says so if they'd be a bust (in the modes that have one).
-	const busting = hasDarts && Boolean(game.players[game.active] && mode().isBust?.(game, dartsTotal(), turn.darts));
-	doneBtn.classList.toggle('busting', busting);
-	doneBtn.setAttribute('aria-label', busting ? 'Score the darts: bust' : 'Score the darts');
+	// And under that, what sending them would do. (The word stays as it slides away.)
+	const event = hasDarts ? mode().submitTurn(game, dartsTotal(), turn.darts).event : null;
+	const outcome = OUTCOME_WORDS[event];
+	if (outcome) doneNote.textContent = outcome;
+	doneBtn.classList.toggle('noting', Boolean(outcome));
+	doneBtn.classList.toggle('winning', Boolean(outcome) && event !== 'bust');
+	doneBtn.setAttribute('aria-label', outcome ? `Score the darts: ${outcome}` : 'Score the darts');
 
 	// The active player's checkout follows the darts on the board.
 	renderScoreboard();

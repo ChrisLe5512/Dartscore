@@ -1848,7 +1848,7 @@ td.back-score {
 	--side-pad: 1.2vmin; /* from the screen's edges, and between buttons */
 	--ctrl-size: 8vmin;
 	/* The right column's one width, a keypad key's (four across the panel, five 5px gaps
-	   and its edge): the darts card and Bust are this wide, Done twice it. */
+	   and its edge): the darts card and Bust are this wide, Done two keys and the gap between. */
 	--card-w: calc((30vw - 26px) / 4);
 }
 
@@ -1973,7 +1973,7 @@ td.back-score {
 }
 
 .side-btn {
-	width: calc(2 * var(--card-w));
+	width: calc(2 * var(--card-w) + 5px);
 	height: 13vmin;
 	font-size: 6vmin;
 	white-space: nowrap;
@@ -2000,7 +2000,7 @@ td.back-score {
 }
 
 /* Done: a ✓ like the keypad's, with what the darts make beside it (and under
-   that, if it would be a bust, the word). */
+   that, what sending them would do: Bust, Leg, Set or Game). */
 .done-btn {
 	display: flex;
 	align-items: center;
@@ -2025,7 +2025,7 @@ td.back-score {
 }
 
 /* The word slides out from under the score, and back up. */
-.done-bust {
+.done-note {
 	display: grid;
 	grid-template-rows: 0fr;
 	width: 0; /* takes no room until it shows, so the score and ✓ stay put */
@@ -2039,19 +2039,24 @@ td.back-score {
 	transition: grid-template-rows var(--medium) var(--ease-out), width var(--medium) var(--ease-out);
 }
 
-.done-bust > span {
+.done-note > span {
 	min-height: 0;
 	transform: translateY(-100%);
 	transition: transform var(--medium) var(--ease-out);
 }
 
-.done-btn.busting .done-bust {
+.done-btn.noting .done-note {
 	grid-template-rows: 1fr;
-	width: 6.8vmin;
+	width: 7.2vmin;
 }
 
-.done-btn.busting .done-bust > span {
+.done-btn.noting .done-note > span {
 	transform: none;
+}
+
+/* Winning something: a warm white, not the bust's red. */
+.done-btn.winning .done-note {
+	color: color-mix(in srgb, var(--dart-edit) 55%, white);
 }
 
 .done-check {
