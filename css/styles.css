@@ -3120,12 +3120,22 @@ td.calc-score:not(.disabled) {
 	color: black;
 }
 
-/* See-through darts turned off in Board layout: they show in full. */
-.solid-darts :is(.dart-body, .dart-flight, .dart-shaft) {
-	opacity: 1;
+/* See-through darts turned off in Board layout: they show in full, except one
+   picked up to move, which goes as see-through as the others would be as it
+   lifts (--see, 0 to 1, from dartboard.js). */
+.solid-darts .dart-body {
+	opacity: calc(1 - 0.15 * var(--see, 0));
+}
+
+.solid-darts .dart-flight {
+	opacity: calc(1 - 0.62 * var(--see, 0));
 }
 
 .solid-darts .dart-shaft {
+	opacity: calc(1 - 0.4 * var(--see, 0));
+}
+
+.solid-darts .dart:not(.seeing) .dart-shaft {
 	mask: none;
 }
 

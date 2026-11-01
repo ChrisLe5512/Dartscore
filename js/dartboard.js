@@ -257,6 +257,9 @@ function paintDart(group, { x, y }, motion = {}) {
 	// A past turn's darts are fainter.
 	const faint = group.classList.contains('review') ? 0.6 : 1;
 	group.style.opacity = (motion.opacity ?? 1) * faint;
+	// Lifted: see-through as it comes out, even if darts are solid.
+	group.style.setProperty('--see', round(motion.see ?? 0));
+	group.classList.toggle('seeing', (motion.see ?? 0) > 0);
 }
 
 // How each dart is moving, by where it landed (so it keeps moving when the
@@ -293,7 +296,9 @@ function liftAt(id, now) {
 function motionOf(group, now) {
 	const id = group.dataset.dart;
 	const motion = thrown.has(id) ? throwAt(now - thrown.get(id)) : {};
-	let away = (motion.away ?? 0) + (group.pulled ? group.pulled.from : liftAt(id, now));
+	const lift = group.pulled ? group.pulled.from : liftAt(id, now);
+	motion.see = lift / DART_VIEW.lift;
+	let away = (motion.away ?? 0) + lift;
 	if (group.pulled) {
 		const t = (now - group.pulled.since) / DART_VIEW.pullMs;
 		if (t >= 1) return null;
