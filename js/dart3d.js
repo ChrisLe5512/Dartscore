@@ -264,30 +264,6 @@ export function dartLayout(hits, view = DART_VIEW) {
 }
 
 /**
- * How see-through each dart should be, 0 to 1: only for darts packed closely,
- * with the middle of its flight on another dart (on its point, its body or its
- * flight), so what's behind still shows. Flights just clipping something stay
- * solid. The last-touched dart always stays solid: whichever way it's packed
- * against another, that other one fades instead. layout, order: from dartLayout
- * and dartOrder. touched: index from lastTouched.
- */
-export function dartSee(hits, layout, order, touched = null, view = DART_VIEW) {
-	const lines = hits.map(({ x, y }, index) => bodyLine(x, y, layout[index].pose, view, FLIGHT_AT));
-	/** How far dart a's flight is from dart b. */
-	const flightFrom = (a, b) => fromSegment(lines[a][1], ...lines[b]);
-	return hits.map((_, index) => {
-		if (index === touched) return 0;
-		const gaps = hits.flatMap((_, other) => {
-			if (other === index) return [];
-			if (other === touched) return [flightFrom(index, other), flightFrom(other, index)];
-			return order.indexOf(other) < order.indexOf(index) ? [flightFrom(index, other)] : [];
-		});
-		const [full, none] = view.seeWithin;
-		return Math.max(0, Math.min(1, (none - Math.min(Infinity, ...gaps)) / (none - full)));
-	});
-}
-
-/**
  * Which dart was touched last (thrown or put down after moving), as an index
  * into hits: each carries a rising number, `touched`. Null if none has one, as
  * with a past turn's.

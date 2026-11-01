@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DART_VIEW } from '../js/config.js';
-import { dartLayout, dartOrder, dartPose, dartSee, dartShape, lastTouched, tapDistance } from '../js/dart3d.js';
+import { dartLayout, dartOrder, dartPose, dartShape, lastTouched, tapDistance } from '../js/dart3d.js';
 
 const straight = { lean: [0, 0], roll: 0 };
 // The middle of the shaft's far end.
@@ -113,49 +113,6 @@ test('dart: darts in the same exact spot each have an angle of their own, kept w
 	assert.notDeepEqual(third, first);
 	assert.notDeepEqual(third, second);
 	assert.deepEqual(poses(), [first, second, third]);
-});
-
-test('dart: see-through only where its flight sits on a dart behind it', () => {
-	const seeOf = hits => {
-		const layout = dartLayout(hits);
-		return { see: dartSee(hits, layout, dartOrder(hits, layout)), order: dartOrder(hits, layout) };
-	};
-	// Well apart: all solid.
-	assert.deepEqual(seeOf([{ x: -0.6, y: 0.5 }, { x: 0.6, y: 0.5 }, { x: 0, y: -0.6 }]).see, [0, 0, 0]);
-	// In one spot: the one at the back stays solid, the one in front goes see-through.
-	const spot = { x: 0.3, y: -0.4 };
-	const { see, order } = seeOf([spot, spot]);
-	assert.equal(see[order[0]], 0);
-	assert.equal(see[order[1]], 1);
-	// A dart just below another: its tail, up, covers the other's point.
-	const { see: stacked } = seeOf([{ x: 0.1, y: -0.45 }, { x: 0.1, y: -0.3 }]);
-	assert.ok(stacked[1] > 0);
-	assert.equal(stacked[0], 0);
-});
-
-test('dart: the last touched stays solid, and the one it overlaps fades instead', () => {
-	const seeOf = (hits, touched) => {
-		const layout = dartLayout(hits);
-		return dartSee(hits, layout, dartOrder(hits, layout), touched);
-	};
-	// A dart just below another: its tail, up, covers the other's point.
-	const pair = [{ x: 0.1, y: -0.45 }, { x: 0.1, y: -0.3 }];
-	const lower = seeOf(pair, 1);
-	assert.equal(lower[1], 0);
-	assert.ok(lower[0] > 0);
-	// The one covered, touched last: it's solid, and the one covering it fades.
-	const upper = seeOf(pair, 0);
-	assert.equal(upper[0], 0);
-	assert.ok(upper[1] > 0);
-	// In one spot, either way round.
-	const spot = { x: 0.3, y: -0.4 };
-	assert.deepEqual(seeOf([spot, spot], 0), [0, 1]);
-	assert.deepEqual(seeOf([spot, spot], 1), [1, 0]);
-	// One well apart changes nothing between the two that overlap, or for itself.
-	const trio = [...pair, { x: -0.6, y: 0.5 }];
-	const apart = seeOf(trio, 2);
-	assert.equal(apart[2], 0);
-	assert.deepEqual(apart, seeOf(trio, null));
 });
 
 test('dart: the last touched is the highest numbered, whichever slot it is in', () => {
