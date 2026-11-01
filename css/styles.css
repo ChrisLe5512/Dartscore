@@ -2423,17 +2423,6 @@ td.back-score {
 	dominant-baseline: central;
 }
 
-.debug-span {
-	position: absolute;
-	bottom: 1.5vmin;
-	right: 16.5vw;
-	color: var(--row);
-	font-size: 2.5vmin;
-	text-underline-offset: 0.25vmin;
-	line-height: 0.5;
-	text-align: right;
-}
-
 /* PLAYER MENU */
 
 /* Opens beside a player's rows, over the board (placed by JS). */

@@ -54,7 +54,6 @@ export const BOARD_HIT_COLORS = Object.freeze(['#ffd24d', '#ff8a3d', '#ff5cd6', 
 
 export const STORAGE_KEY = 'dartscore:v2';
 export const PREFS_KEY = 'dartscore:prefs'; // per-device view choices, e.g. keypad hidden
-export const LEGACY_STORAGE_KEYS = ['dartGameData'];
 export const MAX_UNDO_STEPS = 200;
 
 // The darts drawn in the board, in perspective from an eye in front of the

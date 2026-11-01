@@ -1046,9 +1046,6 @@ const doneBtn = $('.done-btn');
 const dartsClearBtn = $('.darts-clear');
 const doneTotal = $('.done-total', doneBtn);
 const doneNote = $('.done-note > span', doneBtn);
-const debugSpan = $('.debug-span');
-const debug = new URLSearchParams(location.search).has('debug');
-debugSpan.hidden = !debug;
 
 function boardOffset(event) {
 	const rect = board.getBoundingClientRect();
@@ -1090,10 +1087,6 @@ board.addEventListener('pointerdown', event => {
 board.addEventListener('click', event => {
 	const { dx, dy, radius } = boardOffset(event);
 	const dart = hitTest(dx, dy, radius, rings);
-	if (debug) {
-		const pct = Math.round(Math.hypot(dx, dy) / radius * 100);
-		debugSpan.textContent = `(${Math.round(dx)}, ${Math.round(dy)}) ${pct}% ${dart?.label ?? 'off'}`;
-	}
 	// Test darts in Board layout: after three, the next one starts again.
 	if (realDarts && turn.darts.length >= DARTS_PER_TURN) {
 		turn.darts = [];

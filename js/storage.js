@@ -1,4 +1,4 @@
-import { LEGACY_STORAGE_KEYS, PREFS_KEY, STORAGE_KEY } from './config.js';
+import { PREFS_KEY, STORAGE_KEY } from './config.js';
 import { restoreGame } from './modes.js';
 import { createHistory } from './history.js';
 
@@ -15,7 +15,6 @@ export function loadSession() {
 	const store = storage();
 	if (!store) return null;
 	try {
-		for (const key of LEGACY_STORAGE_KEYS) store.removeItem(key); // the old app's saves: never loadable
 		return unpackSession(JSON.parse(store.getItem(STORAGE_KEY)));
 	} catch {
 		return null;

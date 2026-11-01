@@ -130,13 +130,9 @@ test('without double out any dart finishes, up to 180', () => {
 	}
 });
 
-test('board style: wires are a thickness (0 for none); older on/off saves keep what they showed', () => {
+test('board style: wires are a thickness (0 for none)', () => {
 	assert.equal(boardStyle({}).wire, 0);
 	assert.equal(boardStyle({ wire: 0.8 }).wire, 0.8);
-	assert.equal(boardStyle({ outline: 1.5, wires: true }).wire, 0.9); // on, before wires had a thickness
-	assert.equal(boardStyle({ wires: true, wire: 1.2 }).wire, 1.2);
-	assert.equal(boardStyle({ wires: false, wire: 1.2 }).wire, 0); // switched off
-	assert.equal('wires' in boardStyle({ wires: true }), false);
 });
 
 test('board style: the outline is fixed, and a colour no longer offered goes back to the default', () => {

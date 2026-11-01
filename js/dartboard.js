@@ -79,17 +79,12 @@ function fadeOut(node) {
 
 /**
  * A saved board style with the defaults filled in. Wires are a thickness, 0
- * for none. Saves from when they were switched on or off (wires) keep what
- * they showed: off is 0; on is the thickness saved with it or, from before
- * wires had one, 60% of the outline. The outline itself is no longer a choice,
- * and a colour no longer on offer goes back to the default.
+ * for none. The outline isn't a choice, and a colour no longer on offer goes
+ * back to the default.
  */
 export function boardStyle(saved = {}) {
 	const style = { ...BOARD_STYLE, ...saved, outline: BOARD_STYLE.outline };
 	if (!BOARD_OUTLINE_COLORS.includes(style.outlineColor)) style.outlineColor = BOARD_STYLE.outlineColor;
-	if (saved.wires === false) style.wire = 0;
-	else if (saved.wires && saved.wire === undefined) style.wire = round((saved.outline ?? BOARD_STYLE.outline) * 0.6);
-	delete style.wires;
 	return style;
 }
 
