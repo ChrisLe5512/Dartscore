@@ -44,6 +44,10 @@ const BODY_ROOM = 4;
 const MARK_TURNS = [0, 0.7, -0.7, 1.4, -1.4, 2.1, -2.1, 2.8, -2.8];
 // Where a dart's flight sits along it: the middle of its vanes.
 const FLIGHT_AT = (VANE[0][0] + VANE.at(-1)[0]) / 2;
+// Looking for the gap round the darts already in: how many steps out from a
+// dart's own lean, and how many directions at each.
+const GAP_STEPS = 8;
+const GAP_TURNS = 24;
 // Points checked along each dart when working out which is in front.
 const DEPTH_STEPS = 16;
 const ROUND = 14; // points round each end of a part
@@ -207,43 +211,53 @@ function bodyLine(x, y, pose, view, along = PARTS.shaft[1]) {
 	return [[tip[0], tip[1]], [end[0] * scale, end[1] * scale]];
 }
 
-/** Where a dart's tail is over the board (board units). */
-const tailAt = ({ x, y }, lean, view) => [x * 100 + lean[0] * view.length, y * 100 + lean[1] * view.length];
+/** How clear two darts are on screen, each a line from its point to its flight: the nearer of either flight to the other dart. */
+const clearance = (a, b) => Math.min(fromSegment(a[1], ...b), fromSegment(b[1], ...a));
 
 /**
- * Lean away from the darts already in, where this one's flights would land on
- * theirs: a little, as a dart glancing off them would, so they don't look
- * merged and it still looks thrown from the same place. Only the look: where
- * a dart scores doesn't change.
+ * The lean that gets a dart into the gap the darts already in have left, as a
+ * player moves and aims round them: its own lean if that's clear, otherwise
+ * the smallest change that is, whichever way that's clearest (the most clear
+ * it can get, if nothing is). Only the look: where a dart scores doesn't change.
+ * lines: the darts already in, from point to flight.
  */
-function pushedAside(pose, hit, tails, view) {
-	let shove = [0, 0];
-	for (const other of tails) {
-		const gap = add(tailAt(hit, pose.lean, view), other, -1);
-		const apart = Math.hypot(...gap);
-		if (apart >= view.pushReach) continue;
-		// Dead level with the other: its own turn says which way.
-		const way = apart > 1e-6 ? gap.map(v => v / apart) : [Math.cos(pose.roll * 4), Math.sin(pose.roll * 4)];
-		shove = add(shove, way, view.push * (1 - apart / view.pushReach));
+function leanIntoGap({ lean }, hit, lines, view) {
+	const room = candidate => {
+		const line = bodyLine(hit.x, hit.y, { lean: candidate }, view, FLIGHT_AT);
+		return Math.min(Infinity, ...lines.map(other => clearance(line, other)));
+	};
+	let best = lean;
+	let bestRoom = room(lean);
+	for (let step = 1; step <= GAP_STEPS && bestRoom < view.gapRoom; step++) {
+		for (let turn = 0; turn < GAP_TURNS; turn++) {
+			const angle = turn / GAP_TURNS * 2 * Math.PI;
+			const candidate = add(lean, [Math.cos(angle), Math.sin(angle)], view.gapLean * step / GAP_STEPS);
+			const candidateRoom = room(candidate);
+			if (candidateRoom > bestRoom) [best, bestRoom] = [candidate, candidateRoom];
+		}
 	}
-	return add(pose.lean, shove);
+	return best;
 }
 
 /**
- * How a turn's darts sit together: each its own pose, pushed aside by those
- * thrown before it, and each marker in a free spot. hits: [{ x, y }] as
- * fractions of the radius, in the order thrown. Returns [{ pose, mark: [x, y] }].
+ * How a turn's darts sit together: each its own pose, angled into the gap left
+ * by those that went in before it, and each marker in a free spot. hits:
+ * [{ x, y }] as fractions of the radius, in the order thrown; those with
+ * `touched` (see lastTouched) go in that order, so a dart thrown again finds
+ * its way round the others. One with a `pose` already keeps it: a dart stays
+ * as it went in, whatever becomes of the others. Returns [{ pose, mark: [x, y] }].
  */
 export function dartLayout(hits, view = DART_VIEW) {
 	const turns = spotTurns(hits);
 	const poses = [];
-	const tails = [];
-	hits.forEach((hit, index) => {
+	const lines = [];
+	const arrived = hits.map((_, index) => index).sort((a, b) => (hits[a].touched ?? 0) - (hits[b].touched ?? 0));
+	for (const index of arrived) {
+		const hit = hits[index];
 		const pose = dartPose(hit.x, hit.y, view, turns[index]);
-		const lean = pushedAside(pose, hit, tails, view);
-		poses.push({ ...pose, lean });
-		tails.push(tailAt(hit, lean, view));
-	});
+		poses[index] = hit.pose ?? { ...pose, lean: leanIntoGap(pose, hit, lines, view) };
+		lines.push(bodyLine(hit.x, hit.y, poses[index], view, FLIGHT_AT));
+	}
 	const bodies = hits.map(({ x, y }, index) => bodyLine(x, y, poses[index], view));
 	const marks = [];
 	hits.forEach(({ x, y }, index) => {

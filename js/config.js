@@ -65,8 +65,8 @@ export const DART_VIEW = Object.freeze({
 	thrower: 520,  // where darts are thrown from, straight out from the bull: each leans back towards it
 	tilt: 0.07,    // how far a dart leans any way at random besides (tan of the angle)
 	droop: -0.15,  // the usual lean: tails a little up, from their fall (negative is up)
-	push: 0.1,     // how far a dart leans away from one whose flights it would land on (tan of the angle; 0 for none)
-	pushReach: 16, // flights this far apart don't push: the nearer they'd be, the harder
+	gapRoom: 16,   // a dart leans into a gap until its flight's middle is this far from the other darts
+	gapLean: 0.5,  // the most it will change its lean to get there (tan of the angle)
 	flightIn: 120, // how far in front of the board a thrown dart comes from
 	flightMs: 170, // in the air
 	wobbleMs: 380, // the wobble as it lands

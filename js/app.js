@@ -1187,6 +1187,8 @@ bustBtn.addEventListener('click', () => {
 
 /** pop: indexes of darts that just landed or moved, to animate. */
 function renderDarts(pop = []) {
+	// A dart just landed: every dart now keeps the angle it went in at.
+	if (pop.length) dartLayout(turn.darts).forEach(({ pose }, index) => { turn.darts[index].pose = pose; });
 	dartSpans.forEach((span, index) => {
 		const dart = turn.darts[index];
 		span.className = dart ? dart.color : 'empty';

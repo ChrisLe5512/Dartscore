@@ -93,15 +93,37 @@ test('dart: its angle is its own, unless its flights would land on a dart alread
 	assert.equal(layout[2].pose.roll, dartPose(0.305, -0.395).roll);
 });
 
-test('dart: pushed aside, its flights end up further from the other, and not far off its own angle', () => {
-	const tailGap = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) * DART_VIEW.length;
-	for (let i = 0; i < 50; i++) {
-		const spot = { x: -0.6 + i * 0.024, y: 0.5 - i * 0.02 };
-		const [first, second] = dartLayout([spot, spot]).map(({ pose }) => pose.lean);
-		const own = dartPose(spot.x, spot.y, DART_VIEW, 1).lean;
-		assert.ok(tailGap(first, second) >= tailGap(first, own));
-		assert.ok(Math.hypot(second[0] - own[0], second[1] - own[1]) <= DART_VIEW.push + 1e-9);
+test('dart: three in one spot fan out: each finds a gap, not far off its own angle', () => {
+	for (let i = 0; i < 30; i++) {
+		const spot = { x: -0.5 + i * 0.03, y: -0.65 + i * 0.008 }; // the top of the board, where tails stand clear of the points
+		const layout = dartLayout([spot, spot, spot]);
+		const flights = layout.map(({ pose }) => dartShape(spot.x, spot.y, pose).end);
+		for (const [a, b] of [[0, 1], [0, 2], [1, 2]]) {
+			assert.ok(Math.hypot(flights[a].cx - flights[b].cx, flights[a].cy - flights[b].cy) >= 8, `flights ${a} and ${b} at ${i}`);
+		}
+		layout.forEach(({ pose }, turn) => {
+			const own = dartPose(spot.x, spot.y, DART_VIEW, turn).lean;
+			assert.ok(Math.hypot(pose.lean[0] - own[0], pose.lean[1] - own[1]) <= DART_VIEW.gapLean + 1e-9);
+		});
 	}
+});
+
+test('dart: thrown again, a dart goes round the others, and they stay as they were', () => {
+	const near = { x: 0.3, y: -0.4 };
+	const [first, again, last] = [{ ...near, touched: 1 }, { ...near, x: 0.302, touched: 3 }, { ...near, x: 0.298, touched: 2 }];
+	const before = dartLayout([first, last]);
+	const after = dartLayout([first, again, last]);
+	assert.deepEqual(after[0].pose, before[0].pose);
+	assert.deepEqual(after[2].pose, before[1].pose);
+	assert.notDeepEqual(after[1].pose.lean, dartPose(again.x, again.y).lean);
+});
+
+test('dart: one with a pose already keeps it, with the dart it went round gone', () => {
+	const spot = { x: 0.3, y: -0.4 };
+	const [, second] = dartLayout([spot, spot]);
+	const kept = dartLayout([{ ...spot, pose: second.pose }]);
+	assert.deepEqual(kept[0].pose, second.pose);
+	assert.notDeepEqual(dartLayout([spot])[0].pose, second.pose);
 });
 
 test('dart: darts in the same exact spot each have an angle of their own, kept when redrawn', () => {
