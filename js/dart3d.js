@@ -42,10 +42,8 @@ const MARK_ROOM = 7;
 const BODY_ROOM = 4;
 // The angles a marker tries round its point, its best side first.
 const MARK_TURNS = [0, 0.7, -0.7, 1.4, -1.4, 2.1, -2.1, 2.8, -2.8];
-// Points checked along a dart for a flight covering it, and how near that
-// flight's edge (board units) a dart starts going see-through.
-const SEE_STEPS = 8;
-const SEE_EDGE = 3;
+// Where a dart's flight sits along it: the middle of its vanes.
+const FLIGHT_AT = (VANE[0][0] + VANE.at(-1)[0]) / 2;
 // Points checked along each dart when working out which is in front.
 const DEPTH_STEPS = 16;
 const ROUND = 14; // points round each end of a part
@@ -201,10 +199,10 @@ function fromSegment(p, a, b) {
 	return Math.hypot(...add(p, add(a, ab, t), -1));
 }
 
-/** A dart stuck in the board, on screen: its point and the end of its shaft. */
-function bodyLine(x, y, pose, view) {
+/** A dart stuck in the board, on screen: its point and a place along it (by default the end of its shaft). */
+function bodyLine(x, y, pose, view, along = PARTS.shaft[1]) {
 	const tip = [x * 100, y * 100, 0];
-	const end = add(tip, norm([...pose.lean, 1]), PARTS.shaft[1] * view.length);
+	const end = add(tip, norm([...pose.lean, 1]), along * view.length);
 	const scale = view.eye / (view.eye - end[2]);
 	return [[tip[0], tip[1]], [end[0] * scale, end[1] * scale]];
 }
@@ -265,42 +263,27 @@ export function dartLayout(hits, view = DART_VIEW) {
 	return poses.map((pose, index) => ({ pose, mark: marks[index].map(v => v / 100) }));
 }
 
-/** How far a point is outside a shape's outline (0 inside it). */
-function fromOutline(p, outline) {
-	let inside = false;
-	let nearest = Infinity;
-	outline.forEach((a, index) => {
-		const b = outline[(index + 1) % outline.length];
-		if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < a[0] + (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1])) inside = !inside;
-		nearest = Math.min(nearest, fromSegment(p, a, b));
-	});
-	return inside ? 0 : nearest;
-}
-
 /**
- * How see-through each dart should be, 0 to 1: a dart goes see-through where
- * its flight is in front of another dart (its point in the board, its body or
- * its flight), so what's behind still shows, and fades back in as that clears.
- * Darts on their own stay solid. The last-touched dart always stays solid:
- * whichever way it overlaps another, that other one fades instead. layout,
- * order: from dartLayout and dartOrder. touched: index from lastTouched.
+ * How see-through each dart should be, 0 to 1: only for darts packed closely,
+ * with the middle of its flight on another dart (on its point, its body or its
+ * flight), so what's behind still shows. Flights just clipping something stay
+ * solid. The last-touched dart always stays solid: whichever way it's packed
+ * against another, that other one fades instead. layout, order: from dartLayout
+ * and dartOrder. touched: index from lastTouched.
  */
 export function dartSee(hits, layout, order, touched = null, view = DART_VIEW) {
-	const shapes = hits.map(({ x, y }, index) => dartShape(x, y, layout[index].pose, {}, view));
-	const spots = shapes.map(({ tip, end, vanes }) => [
-		...Array.from({ length: SEE_STEPS + 1 }, (_, step) => add(tip, add([end.cx, end.cy], tip, -1), step / SEE_STEPS)),
-		...vanes.map(vane => vane.edge),
-	]);
+	const lines = hits.map(({ x, y }, index) => bodyLine(x, y, layout[index].pose, view, FLIGHT_AT));
 	/** How far dart a's flight is from dart b. */
-	const flightFrom = (a, b) => Math.min(...spots[b].flatMap(spot => shapes[a].vanes.map(vane => fromOutline(spot, vane.points))));
-	return shapes.map((_, index) => {
+	const flightFrom = (a, b) => fromSegment(lines[a][1], ...lines[b]);
+	return hits.map((_, index) => {
 		if (index === touched) return 0;
 		const gaps = hits.flatMap((_, other) => {
 			if (other === index) return [];
 			if (other === touched) return [flightFrom(index, other), flightFrom(other, index)];
 			return order.indexOf(other) < order.indexOf(index) ? [flightFrom(index, other)] : [];
 		});
-		return Math.max(0, 1 - Math.min(Infinity, ...gaps) / SEE_EDGE);
+		const [full, none] = view.seeWithin;
+		return Math.max(0, Math.min(1, (none - Math.min(Infinity, ...gaps)) / (none - full)));
 	});
 }
 

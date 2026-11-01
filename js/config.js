@@ -79,6 +79,7 @@ export const DART_VIEW = Object.freeze({
 	wobbleMs: 380, // the wobble as it lands
 	lift: 12,      // picked up to move: how far it comes out of the board (clear of it: more than the point in it)
 	liftMs: 140,
+	seeWithin: [3, 7], // a flight's middle this near another dart: fully see-through at the first, solid from the second
 	seeMs: 200,    // going see-through or back, when its flight comes to cover another dart or stops
 	pullOut: 40,   // taken out (the score sent, cleared, removed): how far it's pulled before it's gone
 	pullMs: 240,

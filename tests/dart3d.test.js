@@ -115,7 +115,7 @@ test('dart: darts in the same exact spot each have an angle of their own, kept w
 	assert.deepEqual(poses(), [first, second, third]);
 });
 
-test('dart: see-through only where its flight covers a dart behind it', () => {
+test('dart: see-through only where its flight sits on a dart behind it', () => {
 	const seeOf = hits => {
 		const layout = dartLayout(hits);
 		return { see: dartSee(hits, layout, dartOrder(hits, layout)), order: dartOrder(hits, layout) };
