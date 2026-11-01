@@ -205,14 +205,43 @@ function bodyLine(x, y, pose, view) {
 	return [[tip[0], tip[1]], [end[0] * scale, end[1] * scale]];
 }
 
+/** Where a dart's tail is over the board (board units). */
+const tailAt = ({ x, y }, lean, view) => [x * 100 + lean[0] * view.length, y * 100 + lean[1] * view.length];
+
 /**
- * How a turn's darts sit together: each its own pose, and each marker in a
- * free spot. hits: [{ x, y }] as fractions of the radius, in the order thrown.
- * Returns [{ pose, mark: [x, y] }].
+ * Lean away from the darts already in, where this one's flights would land on
+ * theirs: a little, as a dart glancing off them would, so they don't look
+ * merged and it still looks thrown from the same place. Only the look: where
+ * a dart scores doesn't change.
+ */
+function pushedAside(pose, hit, tails, view) {
+	let shove = [0, 0];
+	for (const other of tails) {
+		const gap = add(tailAt(hit, pose.lean, view), other, -1);
+		const apart = Math.hypot(...gap);
+		if (apart >= view.pushReach) continue;
+		// Dead level with the other: its own turn says which way.
+		const way = apart > 1e-6 ? gap.map(v => v / apart) : [Math.cos(pose.roll * 4), Math.sin(pose.roll * 4)];
+		shove = add(shove, way, view.push * (1 - apart / view.pushReach));
+	}
+	return add(pose.lean, shove);
+}
+
+/**
+ * How a turn's darts sit together: each its own pose, pushed aside by those
+ * thrown before it, and each marker in a free spot. hits: [{ x, y }] as
+ * fractions of the radius, in the order thrown. Returns [{ pose, mark: [x, y] }].
  */
 export function dartLayout(hits, view = DART_VIEW) {
 	const turns = spotTurns(hits);
-	const poses = hits.map(({ x, y }, index) => dartPose(x, y, view, turns[index]));
+	const poses = [];
+	const tails = [];
+	hits.forEach((hit, index) => {
+		const pose = dartPose(hit.x, hit.y, view, turns[index]);
+		const lean = pushedAside(pose, hit, tails, view);
+		poses.push({ ...pose, lean });
+		tails.push(tailAt(hit, lean, view));
+	});
 	const bodies = hits.map(({ x, y }, index) => bodyLine(x, y, poses[index], view));
 	const marks = [];
 	hits.forEach(({ x, y }, index) => {

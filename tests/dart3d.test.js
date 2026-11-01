@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { DART_VIEW } from '../js/config.js';
 import { dartLayout, dartOrder, dartPose, dartShape, tapDistance } from '../js/dart3d.js';
 
 const straight = { lean: [0, 0], roll: 0 };
@@ -83,12 +84,24 @@ test('dart: it leans back towards the player, so outer darts splay out less', ()
 	assert.ok(splay(0.85) < tailEnd(dartShape(0.85, 0, straight))[0] - 85);
 });
 
-test('dart: its angle is its own, whatever else is in the board', () => {
-	const near = { x: 0.3, y: -0.4 };
-	const layout = dartLayout([near, { x: 0.305, y: -0.395 }, { x: 0.295, y: -0.4 }]);
+test('dart: its angle is its own, unless its flights would land on a dart already in', () => {
+	const near = { x: 0.3, y: -0.4 }, far = { x: -0.5, y: 0.5 };
+	const layout = dartLayout([near, far, { x: 0.305, y: -0.395 }]);
 	assert.deepEqual(layout[0].pose, dartPose(near.x, near.y));
-	assert.deepEqual(layout[1].pose, dartPose(0.305, -0.395));
-	assert.deepEqual(dartLayout([near])[0].pose, dartPose(near.x, near.y));
+	assert.deepEqual(layout[1].pose, dartPose(far.x, far.y));
+	assert.notDeepEqual(layout[2].pose.lean, dartPose(0.305, -0.395).lean);
+	assert.equal(layout[2].pose.roll, dartPose(0.305, -0.395).roll);
+});
+
+test('dart: pushed aside, its flights end up further from the other, and not far off its own angle', () => {
+	const tailGap = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) * DART_VIEW.length;
+	for (let i = 0; i < 50; i++) {
+		const spot = { x: -0.6 + i * 0.024, y: 0.5 - i * 0.02 };
+		const [first, second] = dartLayout([spot, spot]).map(({ pose }) => pose.lean);
+		const own = dartPose(spot.x, spot.y, DART_VIEW, 1).lean;
+		assert.ok(tailGap(first, second) >= tailGap(first, own));
+		assert.ok(Math.hypot(second[0] - own[0], second[1] - own[1]) <= DART_VIEW.push + 1e-9);
+	}
 });
 
 test('dart: darts in the same exact spot each have an angle of their own, kept when redrawn', () => {
