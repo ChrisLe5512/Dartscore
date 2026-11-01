@@ -1003,7 +1003,6 @@ function renderKeypad() {
 
 const board = $('#dartboard');
 const dartSpans = $$('.darts span');
-const bustBtn = $('.bust-btn');
 const doneBtn = $('.done-btn');
 const dartsClearBtn = $('.darts-clear');
 const doneTotal = $('.done-total', doneBtn);
@@ -1143,12 +1142,6 @@ for (const [button, input] of [[checkBtn, 'keypad'], [doneBtn, 'board']]) {
 	});
 }
 
-// A quick way to a turn of 0 (three misses or a bust), with no darts kept.
-bustBtn.addEventListener('click', () => {
-	const name = game.players[game.active]?.name;
-	if (submit(0) === 'turn') showToast({ kind: 'bust', title: 'No score', detail: name });
-});
-
 /** pop: indexes of darts that just landed or moved, to animate. */
 function renderDarts(pop = []) {
 	dartSpans.forEach((span, index) => {
@@ -1179,6 +1172,10 @@ function renderDarts(pop = []) {
 	// Done is a ✓ like the keypad's, with what the darts make beside it.
 	doneTotal.textContent = hasDarts ? mode().dartsValue(game, turn.darts) : '';
 	doneBtn.classList.toggle('disabled', !hasDarts);
+	// And says so if they'd be a bust (in the modes that have one).
+	const busting = hasDarts && Boolean(game.players[game.active] && mode().isBust?.(game, dartsTotal(), turn.darts));
+	doneBtn.classList.toggle('busting', busting);
+	doneBtn.setAttribute('aria-label', busting ? 'Score the darts: bust' : 'Score the darts');
 
 	// The active player's checkout follows the darts on the board.
 	renderScoreboard();
@@ -1298,7 +1295,7 @@ const undoBtn = $('.ctrl-section .undo');
 const redoBtn = $('.ctrl-section .redo');
 undoBtn.addEventListener('click', undo);
 redoBtn.addEventListener('click', redo);
-$('.ctrl-section .settings-btn').addEventListener('click', openSettings);
+$('.btn-section .settings-btn').addEventListener('click', openSettings);
 
 function renderControls() {
 	undoBtn.classList.toggle('disabled', history.past.length === 0);

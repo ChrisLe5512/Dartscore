@@ -1843,11 +1843,11 @@ td.back-score {
    rounded, white-edged button on the grey gradient, a little apart. Left:
    undo and redo at the top; the keypad, Settings and full screen at the
    bottom, the keypad on the left above Settings where the board leaves room.
-   Right: BUST, the turn's darts, and Done. */
+   Right: Settings, the turn's darts, and Done. */
 :root {
 	--side-pad: 1.2vmin; /* from the screen's edges, and between buttons */
 	--ctrl-size: 8vmin;
-	--side-w: 15vw; /* BUST and Done */
+	--side-w: 15vw; /* Done */
 	--card-w: calc(8vw - var(--side-pad) - 0.4vmin); /* the darts card: the right column, as close to the board as the board is to the scoreboard */
 }
 
@@ -1906,14 +1906,9 @@ td.back-score {
 	margin-left: var(--side-pad);
 }
 
-.ctrl-row,
-.ctrl-bottom {
+.ctrl-row {
 	display: flex;
 	gap: var(--side-pad);
-}
-
-.ctrl-bottom {
-	flex-direction: column;
 }
 
 .ctrl-btn {
@@ -1983,16 +1978,24 @@ td.back-score {
 	white-space: nowrap;
 }
 
-/* BUST: an ordinary button, its word in a soft red. */
-.bust-btn:not(.disabled) {
-	color: color-mix(in srgb, var(--bust) 65%, white);
+/* Settings, as far from the darts card as Done is, so the card stays centred. */
+.btn-section .settings-btn {
+	margin-bottom: calc(13vmin - var(--ctrl-size));
 }
 
-/* Done: a ✓ like the keypad's, with what the darts make beside it. */
+/* Done: a ✓ like the keypad's, with what the darts make beside it (and under
+   that, if it would be a bust, the word). */
 .done-btn {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+.done-score {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	line-height: 1;
 }
 
 .done-total:not(:empty) {
@@ -2000,6 +2003,20 @@ td.back-score {
 	font-size: 5.4vmin;
 	font-weight: 600;
 	font-variant-numeric: tabular-nums;
+}
+
+.done-bust {
+	display: none;
+	margin-right: 1.4vmin;
+	font-size: 2.8vmin;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: color-mix(in srgb, var(--bust) 40%, white);
+}
+
+.done-btn.busting .done-bust {
+	display: block;
 }
 
 .done-check {
@@ -2761,7 +2778,7 @@ td.calc-score:not(.disabled) {
 		margin: 0;
 	}
 
-	/* The right-hand column at the right edge; BUST and Done a little wider here. */
+	/* The right-hand column at the right edge; Done a little wider here. */
 	.btn-section {
 		--side-w: 22vmin;
 		--card-w: 11vmin;
