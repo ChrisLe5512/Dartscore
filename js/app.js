@@ -1113,7 +1113,6 @@ dartSpans.forEach((span, index) => {
 			turn.editing = null;
 		} else {
 			turn.editing = index;
-			showToast({ kind: 'info', title: `Moving dart ${index + 1}`, detail: '' });
 		}
 		renderDarts();
 	});
