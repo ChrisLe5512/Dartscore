@@ -99,8 +99,16 @@ export const TOAST_CLOSE_ROOM = 16;
 
 // Player rows: heights in vmin at scale 1 (as in css/styles.css), and how far they may grow or shrink.
 // rows: name + history; stats: the stats line; bigRows: name + big score + history.
+// roomyFrom, bigFrom: the scale a layout must reach to be used (a layout still counts as fitting at 97% size).
 export const SCORES_LAYOUT = Object.freeze({
 	rows: 15, stats: 5, bigRows: 30,
 	minScale: 0.7, maxScale: 1, bigMaxScale: 1.25,
-	tolerance: 0.97, // a layout still counts as fitting at 97% size
+	roomyFrom: 0.97, bigFrom: 0.97,
+});
+// On a phone the cards have the screen's whole width, and vmin is small: everything
+// can and must be larger, and an extra line isn't worth smaller text.
+export const SCORES_LAYOUT_PHONE = Object.freeze({
+	...SCORES_LAYOUT,
+	minScale: 1, maxScale: 1.7, bigMaxScale: 1.9,
+	roomyFrom: 1.3, bigFrom: 1.4,
 });

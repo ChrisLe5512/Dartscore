@@ -1,6 +1,6 @@
 # Dartscore
 
-Darts X01 scoreboard web app (301/501/701), built for tablets in landscape (16:10 first, 4:3 too) with a portrait layout, and installable as a PWA. Plain HTML/CSS/JS ES modules, no build step, no dependencies.
+Darts X01 scoreboard web app (301/501/701), built for tablets in landscape (16:10 first, 4:3 too) with a portrait layout and a phone layout (portrait narrower than 3:5), and installable as a PWA. Plain HTML/CSS/JS ES modules, no build step, no dependencies.
 
 ## Commands
 

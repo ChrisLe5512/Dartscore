@@ -3178,6 +3178,111 @@ td.calc-score:not(.disabled) {
 	}
 }
 
+/* PHONE */
+
+/* A portrait screen narrower than a tablet's (3:5, so a 9:16 phone still counts
+   with its browser's bars taking some of the height). Stacked: the board on top,
+   the players under it across the whole width, and under them the keypad, hidden
+   to begin with. Along the top a strip of buttons; the board's corners and its
+   right side keep the rest. */
+@media (orientation: portrait) and (max-aspect-ratio: 3/5) {
+	:root {
+		--side-pad: 2vmin;
+		--ctrl-size: 11vmin;
+		--strip-h: calc(var(--ctrl-size) + var(--side-pad));
+	}
+
+	main {
+		--band: 50vw; /* the keypad's height */
+		--u: 1.15vmin;
+		--card-w: 14.5vmin;
+		grid-template-rows: calc(var(--strip-h) + 100vw - var(--card-w) - 2 * var(--side-pad)) minmax(0, 1fr);
+	}
+
+	.dartboard-section {
+		justify-content: flex-start;
+		box-sizing: border-box;
+		padding: var(--strip-h) 0 0 var(--side-pad);
+	}
+
+	.board-frame {
+		width: calc(min(100cqw - var(--card-w) - 2 * var(--side-pad), 100cqh - var(--side-pad)) * 1.01);
+	}
+
+	.ctrl-btn .icon {
+		width: 6vmin;
+		height: 6vmin;
+	}
+
+	.ctrl-btn .keypad-icon {
+		width: 5vmin;
+		height: 5vmin;
+	}
+
+	.ctrl-btn .keypad-arrow {
+		width: 3.4vmin;
+		height: 3.4vmin;
+	}
+
+	/* Full screen joins undo and redo along the top: the board's corner has room for one. */
+	.ctrl-section .full-screen {
+		position: absolute;
+		top: var(--side-pad);
+		left: calc(var(--side-pad) + 2 * (var(--ctrl-size) + var(--side-pad)));
+	}
+
+	.btn-section {
+		--card-w: 14.5vmin;
+		--done-h: 12vmin;
+	}
+
+	.side-btn {
+		width: calc(1.7 * var(--card-w));
+	}
+
+	aside {
+		flex-direction: column;
+	}
+
+	.scores-section {
+		flex: 1;
+		width: 100%;
+		height: auto;
+		border-right: none;
+		transition: --fade-top var(--medium), --fade-bottom var(--medium);
+	}
+
+	/* The last row's line divides the players from the keypad (when it's there). */
+	aside:not(.keypad-hidden) .scores-section {
+		border-bottom: var(--border);
+	}
+
+	aside.keypad-hidden .scores-section {
+		height: auto;
+	}
+
+	.calc-section {
+		flex: none;
+		width: 100%;
+		height: var(--band);
+		transition: height var(--medium) var(--ease-out), visibility var(--medium), filter var(--medium) var(--ease-out);
+	}
+
+	aside.keypad-hidden .calc-section {
+		width: 100%;
+		height: 0;
+	}
+
+	/* The keypad folds away downward here, as in landscape. */
+	.keypad-btn .keypad-arrow {
+		transform: none;
+	}
+
+	.keypad-btn[aria-expanded="false"] .keypad-arrow {
+		transform: rotate(180deg);
+	}
+}
+
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,

@@ -4,7 +4,7 @@
 
 import {
 	BOARD_HIT_COLORS, BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_OUTLINE_LIMITS, BOARD_WIRE_LIMITS,
-	CHECKOUT_COUNT_MS, DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, TEST_DART_GAP_MS, TOAST_CLOSE_ROOM, TOAST_MS,
+	CHECKOUT_COUNT_MS, DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, SCORES_LAYOUT_PHONE, TEST_DART_GAP_MS, TOAST_CLOSE_ROOM, TOAST_MS,
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate, randomDart } from './board.js';
 import { followCheckout } from './checkout.js';
@@ -45,6 +45,7 @@ addEventListener('pointermove', event => {
 	if (event.pointerType === 'mouse') document.documentElement.classList.remove('touching');
 }, true);
 const checkoutChoice = new Map(); // player id -> which suggested route to show
+const phone = matchMedia('(orientation: portrait) and (max-aspect-ratio: 3/5)'); // see PHONE in the CSS
 let review = null; // { id, index }: a past turn whose darts are shown on the board
 let toastSticky = false; // the toast stays up (while a past turn is on show)
 
@@ -461,15 +462,15 @@ function renderScoreboard() {
  * players the rows shrink and the list scrolls.
  */
 function layoutScores() {
-	const { rows, bigRows, minScale, maxScale, bigMaxScale } = SCORES_LAYOUT;
+	const { rows, stats, bigRows, minScale, maxScale, bigMaxScale, roomyFrom, bigFrom } = phone.matches ? SCORES_LAYOUT_PHONE : SCORES_LAYOUT;
 	const count = game.players.length;
 	// Inside the border, so the rows never overflow it.
 	const available = scoresSection.clientHeight / (Math.min(innerWidth, innerHeight) / 100); // in vmin
 	const fit = block => (count ? available / (count * block) : 1);
 	// A layout is used when it fits at (nearly) full size; the scale below makes it fit exactly.
-	const big = count > 0 && fit(bigRows) >= SCORES_LAYOUT.tolerance;
-	const roomy = big || (count > 0 && fit(rows + SCORES_LAYOUT.stats) >= SCORES_LAYOUT.tolerance);
-	const scale = big ? Math.min(bigMaxScale, fit(bigRows)) : fit(rows + (roomy ? SCORES_LAYOUT.stats : 0));
+	const big = count > 0 && fit(bigRows) >= bigFrom;
+	const roomy = big || (count > 0 && fit(rows + stats) >= roomyFrom);
+	const scale = big ? Math.min(bigMaxScale, fit(bigRows)) : fit(rows + (roomy ? stats : 0));
 	const clamped = Math.min(big ? bigMaxScale : maxScale, Math.max(minScale, scale));
 	scoresTable.style.setProperty('--s', Math.floor(clamped * 1000) / 1000); // round down: never a pixel too tall
 	scoresTable.classList.toggle('roomy', roomy);
@@ -784,7 +785,8 @@ function placePlayerMenu() {
 	const room = innerHeight - playerMenu.offsetHeight - 8;
 	if (portrait.matches) {
 		// Scores run along the bottom: open just above them, clear of the buttons on the left.
-		playerMenu.style.left = `${$('.ctrl-top').getBoundingClientRect().right + 8}px`;
+		const left = $('.ctrl-top').getBoundingClientRect().right + 8;
+		playerMenu.style.left = `${Math.max(8, Math.min(left, innerWidth - playerMenu.offsetWidth - 8))}px`;
 		playerMenu.style.top = `${Math.max(8, sidebar.getBoundingClientRect().top - playerMenu.offsetHeight - 8)}px`;
 	} else {
 		playerMenu.style.left = `${sidebar.getBoundingClientRect().right + 8}px`;
@@ -1397,7 +1399,8 @@ function setKeypadHidden(hidden) {
 }
 
 keypadToggle.addEventListener('click', () => setKeypadHidden(!sidebar.classList.contains('keypad-hidden')));
-setKeypadHidden(Boolean(prefs.keypadHidden));
+// Hidden to begin with on a phone, where it takes the players' room.
+setKeypadHidden(prefs.keypadHidden ?? phone.matches);
 
 // The icon's corners point in while in full screen (also when left with Esc).
 const fullscreenBtn = $('.ctrl-section .full-screen');
