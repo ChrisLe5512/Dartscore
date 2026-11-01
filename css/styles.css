@@ -1233,10 +1233,11 @@ body.visuals-open :is(.ctrl-section, .btn-section) {
 	color: #e1e1e1;
 }
 
-/* Every part of a player's card opens their menu (or does its own thing). */
+/* The name and stats open a player's menu; in the history line, only what has a
+   tap of its own shows it (a board turn, a leg dot, a finish). */
 .player-row,
 .stats-row,
-.history-row {
+.history .leg-dot {
 	cursor: pointer;
 }
 
@@ -1584,6 +1585,10 @@ body.dismissing * {
 
 .checkout-steps span.done {
 	opacity: 0.35;
+}
+
+.checkout.hint {
+	cursor: default;
 }
 
 .checkout.hint.muted {

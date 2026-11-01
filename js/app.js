@@ -322,22 +322,18 @@ function createPlayerRows(player) {
 			<div class="big-score"></div>
 		</div></td>`;
 
-	// With a mouse, the whole card lights up under the pointer (see HOVER in the CSS).
+	// With a mouse, the card lights up under the pointer where it opens the menu (see HOVER in the CSS).
 	const rows = [playerRow, statsRow, historyRow];
-	for (const row of rows) {
+	for (const row of [playerRow, statsRow]) {
 		row.addEventListener('mouseenter', () => rows.forEach(r => r.classList.add('card-hover')));
 		row.addEventListener('mouseleave', () => rows.forEach(r => r.classList.remove('card-hover')));
 	}
 
-	// Tapping a player opens their menu beside the scores.
+	// Tapping a player opens their menu beside the scores. (Not the history line:
+	// its turns, leg dots and finish have taps of their own.)
 	for (const row of [playerRow, statsRow]) {
 		row.addEventListener('click', () => togglePlayerMenu(player.id));
 	}
-	// The history line too, where nothing in it has a tap of its own: the
-	// background, a practice game's hint.
-	historyRow.addEventListener('click', event => {
-		if (!event.target.closest('.leg-dot, span[data-index], .checkout:not(.hint)')) togglePlayerMenu(player.id);
-	});
 
 	$('.history-line > .checkout', historyRow).addEventListener('click', event => {
 		const finish = event.currentTarget;
@@ -357,8 +353,7 @@ function createPlayerRows(player) {
 	}, { passive: true });
 	historyResize.observe(historyCell);
 	// Tap a turn entered on the board to see where its darts landed, or a
-	// finished leg's dot to open or fold it. Any other turn closes a turn on
-	// show, or else opens the menu like the rest of the card.
+	// finished leg's dot to open or fold it. Any other turn closes a turn on show.
 	historyCell.addEventListener('click', event => {
 		const dot = event.target.closest('.leg-dot');
 		if (dot) {
@@ -370,7 +365,6 @@ function createPlayerRows(player) {
 		if (!span || !current) return;
 		const index = Number(span.dataset.index);
 		if (current.turns[index]?.hits || review) toggleReview(current, index);
-		else togglePlayerMenu(player.id);
 	});
 
 	return [playerRow, statsRow, historyRow];
@@ -907,7 +901,7 @@ document.addEventListener('pointerdown', event => {
 			closePlayerMenu();
 			return;
 		}
-		const card = event.target.closest('[data-id]');
+		const card = event.target.closest('[data-id]:not(.history-row)');
 		if (card && scoresBody.contains(card) && Number(card.dataset.id) !== menuFor) return; // its click opens their menu
 		closePlayerMenu();
 	} else if (review !== null) {
