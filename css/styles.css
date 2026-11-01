@@ -2987,9 +2987,10 @@ td.calc-score:not(.disabled) {
 		margin: 0;
 	}
 
-	/* The right-hand column at the right edge; a key's width here too (the keypad is the band's). */
+	/* The right-hand column at the right edge; a key's width here too (the keypad is
+	   the band's, inset to line up with it: see .calc-tbl below). */
 	.btn-section {
-		--card-w: calc((var(--band) * 0.82 - 26px) / 4);
+		--card-w: calc((var(--band) * 0.82 - 2 * var(--side-pad) - 15px) / 4);
 		justify-self: end;
 		height: 100%;
 		width: auto;
@@ -3034,6 +3035,13 @@ td.calc-score:not(.disabled) {
 	.scores-section.overflowing,
 	.scores-section .history-row:last-child .history-cell {
 		border-bottom: none;
+	}
+
+	/* The keys stand in from the panel's edges as far as the board's buttons do from
+	   the screen's, so the keypad's columns line up with Settings, the darts card, Bust
+	   and Done above them (the table's own 5px gaps count towards it). */
+	.calc-tbl {
+		padding: max(0px, calc(var(--side-pad) - 5px));
 	}
 
 	.calc-section {
