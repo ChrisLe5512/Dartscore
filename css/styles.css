@@ -1511,7 +1511,7 @@ body.dismissing * {
 	padding-left: 1vw;
 	/* Older turns fade out at the left edge when they scroll past it. */
 	mask-image: linear-gradient(to right, transparent, black var(--fade-left), black calc(100% - var(--fade-right)), transparent);
-	transition: --fade-left var(--medium), --fade-right var(--medium);
+	transition: --fade-left var(--medium), --fade-right var(--medium), filter var(--medium) var(--ease-out);
 }
 
 .history.fade-left {
@@ -1563,6 +1563,20 @@ body.dismissing * {
 .scores-tbl .stats-row.active,
 .scores-tbl .history-row.active {
 	background: var(--active-line);
+}
+
+/* With darts on the board, the thrower's past turns can't be tapped to show:
+   their bar steps back (the checkout beside them stays lit, and tappable). */
+.scores-tbl.darts-down .history-row.active:not(.menu-open) {
+	background: color-mix(in srgb, var(--active-line) 45%, black);
+}
+
+.scores-tbl.darts-down .history-row.active:not(.menu-open) .history {
+	filter: var(--dim);
+}
+
+.scores-tbl.darts-down .history-row.active:not(.menu-open) .history span {
+	pointer-events: none;
 }
 
 /* With the score beside the name, the stats line is part of the player's

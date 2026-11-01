@@ -984,6 +984,7 @@ function renderInputting() {
 	const keypad = turn.keypad !== '';
 	const board = turn.darts.length > 0;
 	scoresTable.classList.toggle('inputting', keypad || board);
+	scoresTable.classList.toggle('darts-down', board);
 	const has = { keypad, board };
 	const using = has[previewInput] ? previewInput
 		: keypad && board ? turn.input : keypad ? 'keypad' : board ? 'board' : null;
