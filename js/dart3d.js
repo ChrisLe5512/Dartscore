@@ -281,19 +281,40 @@ function fromOutline(p, outline) {
  * How see-through each dart should be, 0 to 1: a dart goes see-through where
  * its flight is in front of another dart (its point in the board, its body or
  * its flight), so what's behind still shows, and fades back in as that clears.
- * Darts on their own stay solid. layout, order: from dartLayout and dartOrder.
+ * Darts on their own stay solid. The last-touched dart always stays solid:
+ * whichever way it overlaps another, that other one fades instead. layout,
+ * order: from dartLayout and dartOrder. touched: index from lastTouched.
  */
-export function dartSee(hits, layout, order, view = DART_VIEW) {
+export function dartSee(hits, layout, order, touched = null, view = DART_VIEW) {
 	const shapes = hits.map(({ x, y }, index) => dartShape(x, y, layout[index].pose, {}, view));
 	const spots = shapes.map(({ tip, end, vanes }) => [
 		...Array.from({ length: SEE_STEPS + 1 }, (_, step) => add(tip, add([end.cx, end.cy], tip, -1), step / SEE_STEPS)),
 		...vanes.map(vane => vane.edge),
 	]);
-	return shapes.map(({ vanes }, index) => {
-		const behind = spots.filter((_, other) => order.indexOf(other) < order.indexOf(index)).flat();
-		const nearest = Math.min(Infinity, ...behind.flatMap(spot => vanes.map(vane => fromOutline(spot, vane.points))));
-		return Math.max(0, 1 - nearest / SEE_EDGE);
+	/** How far dart a's flight is from dart b. */
+	const flightFrom = (a, b) => Math.min(...spots[b].flatMap(spot => shapes[a].vanes.map(vane => fromOutline(spot, vane.points))));
+	return shapes.map((_, index) => {
+		if (index === touched) return 0;
+		const gaps = hits.flatMap((_, other) => {
+			if (other === index) return [];
+			if (other === touched) return [flightFrom(index, other), flightFrom(other, index)];
+			return order.indexOf(other) < order.indexOf(index) ? [flightFrom(index, other)] : [];
+		});
+		return Math.max(0, 1 - Math.min(Infinity, ...gaps) / SEE_EDGE);
 	});
+}
+
+/**
+ * Which dart was touched last (thrown or put down after moving), as an index
+ * into hits: each carries a rising number, `touched`. Null if none has one, as
+ * with a past turn's.
+ */
+export function lastTouched(hits) {
+	let last = null;
+	hits.forEach(({ touched }, index) => {
+		if (touched && (last === null || touched > hits[last].touched)) last = index;
+	});
+	return last;
 }
 
 /**

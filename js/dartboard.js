@@ -4,7 +4,7 @@
 
 import { BOARD_SECTORS, BOARD_STYLE, DART_VIEW } from './config.js';
 import { dartColor, RINGS } from './board.js';
-import { dartLayout, dartOrder, dartSee, dartShape, spotTurns } from './dart3d.js';
+import { dartLayout, dartOrder, dartSee, dartShape, lastTouched, spotTurns } from './dart3d.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -428,7 +428,7 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 
 	const layout = dartLayout(hits);
 	const order = dartOrder(hits, layout);
-	const see = dartSee(hits, layout, order);
+	const see = dartSee(hits, layout, order, lastTouched(hits));
 	// A dart on its way in changes nothing until it lands.
 	const seeFrom = hits.some((_, index) => landing(index)) && !still() ? now + DART_VIEW.flightMs : now;
 	// All the darts first, then all the markers, so no dart covers a number.

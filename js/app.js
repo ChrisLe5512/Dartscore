@@ -37,6 +37,9 @@ const turn = {
 	editing: null, // index of the dart being moved, if any
 	input: null,  // 'keypad' or 'board': the one used last, when both have something
 };
+let touches = 0;
+/** A dart just thrown or put down: numbered, so the last touched is known (see lastTouched). */
+const touch = dart => ({ ...dart, touched: ++touches });
 
 // After a touch, nothing stays lit as if the pointer were over it, until a
 // mouse moves again (a touch screen laptop has both; see HOVER in the CSS).
@@ -1104,7 +1107,7 @@ board.addEventListener('click', event => {
 	}
 	if (!dart) return;
 	// Keep where it landed (as a fraction of the radius) to mark it on the board.
-	const placed = { ...dart, x: dx / radius, y: dy / radius };
+	const placed = touch({ ...dart, x: dx / radius, y: dy / radius });
 	review = null;
 	if (turn.editing !== null) {
 		// Moving a dart: it keeps its number.
@@ -2024,7 +2027,7 @@ function throwTestDarts() {
 	for (let i = 1; i <= DARTS_PER_TURN; i++) {
 		setTimeout(() => {
 			if (realDarts !== opened || turn.darts.length >= DARTS_PER_TURN) return;
-			turn.darts.push(randomDart(rings));
+			turn.darts.push(touch(randomDart(rings)));
 			renderDarts([turn.darts.length - 1]);
 		}, i * TEST_DART_GAP_MS);
 	}
