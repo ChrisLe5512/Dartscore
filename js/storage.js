@@ -15,7 +15,7 @@ export function loadSession() {
 	const store = storage();
 	if (!store) return null;
 	try {
-		for (const key of LEGACY_STORAGE_KEYS) store.removeItem(key); // never loadable, see README
+		for (const key of LEGACY_STORAGE_KEYS) store.removeItem(key); // the old app's saves: never loadable
 		return unpackSession(JSON.parse(store.getItem(STORAGE_KEY)));
 	} catch {
 		return null;

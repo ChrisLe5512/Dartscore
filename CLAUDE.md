@@ -13,11 +13,13 @@ Darts X01 scoreboard web app (301/501/701), built for tablets in landscape (16:1
 - `js/game.js`: pure X01 game state and rules (no DOM). Every function returns a new state.
 - `js/clock.js`, `js/doubles.js`, `js/one21.js`: the practice games (around the clock, doubles practice, 121), pure rules modules like `game.js`, each with how it shows (score text, stats line, history marks, STAT_ROWS).
 - `js/match.js`: what every mode shares (turn records, legs/sets via `endLeg`, restoring a save).
+- `js/rounds.js`: the game flow doubles practice and 121 share (a leg decided only once everyone has thrown it out; `results` keeps who won each).
 - `js/modes.js`: the mode registry. `modeOf(state)` gives a game's rules and look (no `mode` = X01, so old saves load); `GAME_CHOICES` fills the New game screen's tiles. A new mode (cricket) is a new module with the same exports, added here.
 - `js/checkout.js`: ranked checkout suggestions
 - `js/feedback.js`: status toast messages for turns and undo/redo (pure)
 - `js/board.js`: board geometry (adjustable ring layout), hit-testing and dart colours (pure)
-- `js/dartboard.js`: draws the board as SVG from the geometry; lit beds and dart markers
+- `js/dartboard.js`: draws the board as SVG from the geometry; lit beds, dart markers, and the darts as they fly in and come out
+- `js/dart3d.js`: a dart's shape in perspective, its pose, and where its marker goes (pure geometry)
 - `js/history.js`: undo/redo snapshot stacks
 - `js/stats.js`: match stats (pure)
 - `js/storage.js`: localStorage save/load (game: `dartscore:v2`; per-device view prefs such as keypad and board look: `dartscore:prefs`). Undo steps are packed so turns are saved once (packSession).

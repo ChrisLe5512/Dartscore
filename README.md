@@ -1,6 +1,6 @@
 # Dartscore
 
-A darts scoreboard for 301, 501 and 701, built for tablets in landscape (with a portrait layout too) and installable as an app. No build step, no dependencies: plain HTML, CSS and JavaScript modules.
+A darts scoreboard for 301, 501 and 701, built for tablets in landscape (with portrait and phone layouts too) and installable as an app. No build step, no dependencies: plain HTML, CSS and JavaScript modules.
 
 ## Run it locally
 
@@ -15,15 +15,15 @@ VS Code's Live Server or `python -m http.server` work too.
 
 ## How to play
 
-- **Players:** tap **+** under the scores before the first throw (up to 10); after that, add them in **⚙ Settings**. Tap anywhere on a player's card to open their menu (tap another card to switch straight to theirs): Rename, Throw now (hand them the throw), Move up/down, Match stats, Remove. In Settings, drag a player by the three lines on the left of their slot to reorder (the rest of the list scrolls as usual). Long names narrow, wrap or shrink to fit. The score column resizes to the number of players: one or two get a large score and stats (3-dart average, best visit, visits), three get a stats line, and five or more shrink and scroll.
+- **Players:** add them on the **New game** screen or in **⚙ Settings** (up to 10). Tap a player's name or stats to open their menu (tap another player to switch straight to theirs): Rename, Throw now (hand them the throw), Move up/down, Match stats, Remove. In Settings, drag a player by the three lines on the left of their slot to reorder (the rest of the list scrolls as usual). Long names narrow, wrap or shrink to fit. The score column resizes to the number of players: one or two get a large score and stats (average, checkout rate, darts this leg), three get a stats line, and five or more shrink and scroll.
 - **Who throws first:** after a bull-off, use **Throw now** on the winner before the first dart: they start the leg, and each leg after goes to the next player in order.
 - **Keypad:** type the turn's total and tap **✓**. Tap the top or bottom half of the score box to adjust it by 1. Totals that three darts can't make (179, 178, …) can't be submitted.
-- **Dartboard:** tap where each dart landed, then **DONE**. Each dart is marked on the board with a number that matches its slot in the darts column. The outer number ring counts as a miss (0). Tap a dart in the column to pick it up, then tap the board to move it (it keeps its number); tap it again to remove it. **Clear** starts the turn over.
-- **History:** each player's turns run left to right under their name: 100+, 140+ and 180 in colour, the leg-winning visit in green, a bust as the score it would have been, struck through. Tap a turn entered on the dartboard to see where its darts landed (the message names the visit, and the leg if it was an earlier one). Finished legs fold into a dot (green: won, grey ring: lost); tap one to open the leg out.
-- **▾** (above ⚙ beside the board) folds the keypad away to give the players more room; tap again to bring it back.
+- **Dartboard:** tap where each dart landed, then **✓**, which shows what the darts make and, under that, what sending them would do (Bust, Leg, Set or Game). Each dart is marked on the board with a number that matches its slot in the darts card. The outer number ring counts as a miss (0). Tap a dart's slot (or, once all three are down, the dart) to pick it up, then tap the board to move it (it keeps its number); tap its slot again to remove it. **Clear** starts the turn over.
+- **History:** each player's turns run left to right under their name: 100+, 140+ and 180 in colour, the leg-winning visit in green, a bust as the score it would have been, struck through. A small star marks the player's best visit of each leg, a green one their best of the game. Tap a turn entered on the dartboard to see where its darts landed (the message names the visit, and the leg if it was an earlier one). Finished legs fold into a dot (green: won, grey ring: lost); tap one to open the leg out.
+- The **keypad button** (at the board's bottom left) folds the keypad away to give the players more room; tap again to bring it back. On a phone it starts folded away.
 - **Board layout** (in ⚙ Settings): the controls take the place of the scores and keypad, and the board itself shows each change. Resize the bull, treble, double and number rings, change the outline thickness and colour, or add wires round every bed. Tapping follows your layout, and the bed each dart hits lights up (a dart in the number ring lights it faintly, as the pointer does).
-- **BUST** is a quick turn of 0 (three misses, or a bust you didn't enter dart by dart). Entering a score that goes too far is a bust by itself.
-- **Checkout** suggestions appear in green once a finish is possible and update as you tap darts on the board. Tap the suggestion to see other routes. They follow the Double out setting.
+- **Bust** (above ✓, until a dart is down) is a quick turn of 0 (three misses, or a bust you didn't enter dart by dart). Entering a score that goes too far is a bust by itself.
+- **Checkout** suggestions appear beside the history once a finish is possible (green for the player throwing, grey for the others) and update as you tap darts on the board. Tap one for another route; a counter shows which of how many it is. They follow the Double out setting.
 - **↶ / ↷** undo and redo whole turns, players added or removed, and new games. Undoing a leg, set or match win, a new game, or a player or settings change asks first.
 - **New game** (opens by itself when no game is under way; also from ⚙ Settings and the winner screen), in two steps:
   1. **The game:** a tile for 301, 501 or 701, or a practice game (below; 501 by default), then only what that game has: its own options, **Match** (**First to**, with legs and sets as − / + counters sliding out beside it, back to 3 and 1 when switching between X01 and a practice game; or **Endless**: no winner, legs just keep counting, shown on each card as the number of legs), and **Double out** where a game finishes on a double (on by default: finishes must end on a double or bull, and leaving 1 is a bust).
@@ -55,11 +55,13 @@ js/game.js         X01 game state and rules (pure functions, no DOM)
 js/clock.js        around the clock rules
 js/doubles.js      doubles practice rules
 js/one21.js        121 checkout rules
+js/rounds.js       the game flow doubles practice and 121 share
 js/match.js        what every mode shares: recording turns, legs and sets, loading
 js/modes.js        the game modes: each mode's rules and how it shows
 js/checkout.js     checkout suggestions
 js/board.js        board geometry, hit detection and dart colours
-js/dartboard.js    draws the board (SVG)
+js/dartboard.js    draws the board and the darts in it (SVG)
+js/dart3d.js       a dart's shape in perspective (pure geometry)
 js/history.js      undo / redo
 js/storage.js      saving to the device
 js/feedback.js     status messages (undo, bust, leg won, …)
