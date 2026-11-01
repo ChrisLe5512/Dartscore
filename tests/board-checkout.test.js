@@ -122,3 +122,9 @@ test('board style: wires are a thickness (0 for none); older on/off saves keep w
 	assert.equal(boardStyle({ wires: false, wire: 1.2 }).wire, 0); // switched off
 	assert.equal('wires' in boardStyle({ wires: true }), false);
 });
+
+test('board style: darts are see-through by default, and older saves get that too', () => {
+	assert.equal(boardStyle().seeThrough, true);
+	assert.equal(boardStyle({ outline: 2 }).seeThrough, true);
+	assert.equal(boardStyle({ seeThrough: false }).seeThrough, false);
+});

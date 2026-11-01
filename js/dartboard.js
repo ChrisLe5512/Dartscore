@@ -96,7 +96,8 @@ export function boardStyle(saved = {}) {
  * style: { outline, wire, outlineColor } as in BOARD_STYLE.
  */
 export function drawBoard(svg, rings, style = BOARD_STYLE) {
-	const { outline, outlineColor, wire } = boardStyle(style);
+	const { outline, outlineColor, wire, seeThrough } = boardStyle(style);
+	svg.classList.toggle('solid-darts', !seeThrough);
 	svg.setAttribute('viewBox', `${-VIEW} ${-VIEW} ${VIEW * 2} ${VIEW * 2}`);
 	svg.replaceChildren();
 	const defs = el('defs', {}, svg);

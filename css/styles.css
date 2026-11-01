@@ -2867,6 +2867,12 @@ td.calc-score:not(.disabled) {
 		align-content: start;
 	}
 
+	/* Its label is long for one column: it would push Reset and Done off the screen. */
+	.visuals-panel .check-line {
+		grid-column: span 2;
+		align-self: start;
+	}
+
 	.visuals-actions {
 		grid-template-columns: none;
 		align-content: end;
@@ -3095,6 +3101,15 @@ td.calc-score:not(.disabled) {
 	border-color: var(--dart-edit);
 	background: var(--dart-edit);
 	color: black;
+}
+
+/* See-through darts turned off in Board layout: they show in full. */
+.solid-darts :is(.dart-body, .dart-flight, .dart-shaft) {
+	opacity: 1;
+}
+
+.solid-darts .dart-shaft {
+	mask: none;
 }
 
 /* A dart picked up to move: its marker steps aside (fades), back when it's put down. */
