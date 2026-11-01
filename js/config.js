@@ -54,7 +54,7 @@ export const BOARD_LAYOUT_LIMITS = Object.freeze({
 // wire: the wires round every bed, how thick (0: none), in the outline's colour.
 // hitColor: the beds lit where darts landed (and everything else in that colour).
 // seeThrough: darts fade towards their fins, so the board shows through them.
-export const BOARD_STYLE = Object.freeze({ outline: 1, wire: 0, outlineColor: '#ffffff', hitColor: '#ffd24d', seeThrough: true });
+export const BOARD_STYLE = Object.freeze({ outline: 1, wire: 0, outlineColor: '#ffffff', hitColor: '#ffd24d', seeThrough: false });
 export const BOARD_OUTLINE_LIMITS = Object.freeze([0, 2.5]);
 export const BOARD_WIRE_LIMITS = Object.freeze([0, 1.5]);
 export const BOARD_OUTLINE_COLORS = Object.freeze(['#ffffff', '#c8c8c8', '#808080', '#d4af37', '#000000']);
