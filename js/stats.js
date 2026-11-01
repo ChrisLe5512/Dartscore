@@ -7,7 +7,7 @@ import { canCheckout } from './checkout.js';
 // visit used all three, however many of them were tapped on the board.
 const dartsIn = t => (t.checkout ? t.darts?.length || 3 : 3);
 
-/** The stats line: three-dart average, best visit, visits. */
+/** Three-dart average, darts thrown, visits and best visit, over the whole match. */
 export function playerStats(player) {
 	let points = 0;
 	let darts = 0;
@@ -19,6 +19,9 @@ export function playerStats(player) {
 	}
 	return { average: darts ? points / darts * 3 : 0, darts, visits: player.turns.length, best };
 }
+
+/** Darts the player has thrown in a leg. */
+export const legDarts = (player, leg) => player.turns.filter(t => t.leg === leg).reduce((sum, t) => sum + dartsIn(t), 0);
 
 /**
  * A player's turns split into legs, in order. A leg ends when the turn's leg

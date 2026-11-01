@@ -316,8 +316,8 @@ function createPlayerRows(player) {
 		<td colspan="7" class="stats-cell"><div class="stats-line">
 			<div class="stats">
 				<span>Avg <b class="stat-average"></b></span>
-				<span>Best <b class="stat-best"></b></span>
-				<span>Visits <b class="stat-visits"></b></span>
+				<span>CO <b class="stat-checkout"></b></span>
+				<span>Leg darts <b class="stat-darts"></b></span>
 			</div>
 			<div class="big-score"></div>
 		</div></td>`;

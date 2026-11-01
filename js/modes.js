@@ -9,7 +9,7 @@ import * as Doubles from './doubles.js';
 import { historyMarks } from './feedback.js';
 import * as Game from './game.js';
 import * as One21 from './one21.js';
-import { matchStats, playerStats } from './stats.js';
+import { legDarts, matchStats } from './stats.js';
 
 // X01's rules are game.js; how it shows is here, so game.js stays rules only.
 const X01 = {
@@ -26,10 +26,14 @@ const X01 = {
 	turnLabel: t => t.score,
 	historyMarks,
 	matchStats: (player, state) => matchStats(player, state.settings),
-	statsLine(player) {
-		const { average, visits, best } = playerStats(player);
-		const none = visits === 0; // nothing thrown yet
-		return [['Avg', none ? '–' : average.toFixed(1)], ['Best', none ? '–' : best], ['Visits', visits]];
+	// The average and checkout rate (CO) are over the match; the darts, as it says, this leg's.
+	statsLine(player, state) {
+		const { average, visits, finishes, chances } = matchStats(player, state.settings);
+		return [
+			['Avg', visits ? average.toFixed(1) : '–'],
+			['CO', chances ? `${Math.round(finishes / chances * 100)}%` : '–'],
+			['Leg darts', legDarts(player, state.leg)],
+		];
 	},
 	// One line per stat. value: the number (null for none yet); show: how it
 	// reads; note: small print after it; low: the lowest leads.
