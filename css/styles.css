@@ -18,6 +18,7 @@
 	--button-pressed: linear-gradient(#484848, #202020);
 	--row: #161616;
 	--checkout: #00c800;
+	--checkout-now: #00fa00; /* the thrower's finish */
 	--go-top: #2e8a22; /* the main button (Start) and the button that sends a score */
 	--go-bottom: #1a5212;
 	--active-top: #6fb4ff; /* the player throwing */
@@ -1512,7 +1513,7 @@ body.dismissing * {
 }
 
 .history-row.active .checkout:not(.muted) {
-	color: var(--checkout);
+	color: var(--checkout-now);
 }
 
 .checkout-steps {
@@ -2737,8 +2738,8 @@ td.back-score {
 		color: white;
 	}
 
-	:root:not(.touching) .checkout:not(.hint):hover {
-		filter: brightness(1.25);
+	:root:not(.touching) .history-row:not(.active) .checkout:not(.hint):hover {
+		color: white;
 	}
 
 	:root:not(.touching) .checkout:not(.hint):hover .checkout-count {
@@ -2802,7 +2803,7 @@ td.back-score {
 }
 
 .checkout {
-	transition: filter var(--hover-speed), color var(--medium) var(--ease-out);
+	transition: color var(--medium) var(--ease-out);
 }
 
 .player-wins::before,
