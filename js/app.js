@@ -2289,7 +2289,8 @@ document.addEventListener('visibilitychange', keepAwake);
 
 // Only over HTTPS, so local development always loads fresh files.
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-	navigator.serviceWorker.register('sw.js').catch(() => {});
+	// sw.js itself rarely changes between versions, only js/version.js it imports: always check that, not a cached copy.
+	navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
 }
 
 // Ready the checkout table while nothing's happening, so the first finish (the

@@ -1,3 +1,4 @@
+import { readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { addPlayer, createGame, newMatch, submitTurn } from '../js/game.js';
@@ -59,4 +60,11 @@ test('a broken step loses only the undo steps before it', () => {
 	assert.equal(loaded.history.past.length, history.past.length - 5);
 	assert.deepEqual(loaded.game, game);
 	assert.equal(unpackSession({ game: null }), null);
+});
+
+test('the offline cache lists every script, and the version is the same everywhere', () => {
+	const read = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
+	const worker = read('sw.js');
+	for (const file of readdirSync(new URL('../js/', import.meta.url))) assert.ok(worker.includes(`'js/${file}'`), `${file} missing from APP_SHELL`);
+	assert.equal(read('js/version.js').match(/'([\d.]+)'/)[1], JSON.parse(read('package.json')).version);
 });
