@@ -1163,11 +1163,7 @@ function renderDarts(pop = []) {
 		}
 		const label = document.createElement('u');
 		label.textContent = dart.label;
-		// Corner number, matching the dart's marker on the board.
-		const number = document.createElement('i');
-		number.className = 'dart-num';
-		number.textContent = index + 1;
-		span.replaceChildren(number, label);
+		span.replaceChildren(label);
 		// Doubles, trebles and bulls also show what they are worth.
 		if (dart.multiplier > 1 || dart.sector === 25) span.append(document.createElement('br'), String(dart.value));
 	});
@@ -1176,6 +1172,7 @@ function renderDarts(pop = []) {
 
 	const hasDarts = turn.darts.length > 0;
 	dartsCard.classList.toggle('has-darts', hasDarts);
+	dartsCard.classList.toggle('moving', turn.editing !== null);
 	dartsClearBtn.disabled = !hasDarts;
 	// Done is a ✓ like the keypad's, with what the darts make beside it.
 	doneTotal.textContent = hasDarts ? mode().dartsValue(game, turn.darts) : '';

@@ -1367,7 +1367,7 @@ body:is(.menu-focus, .review-focus) .calc-section {
 }
 
 .darts {
-	transition: opacity var(--medium) var(--ease-out);
+	transition: opacity var(--medium) var(--ease-out), margin-bottom var(--medium) var(--ease-out);
 }
 
 body.keypad-input:not(.visuals-open) .darts {
@@ -2086,6 +2086,36 @@ td.back-score {
 
 @keyframes darts-unfolded {
 	to { overflow: visible; }
+}
+
+/* The card's own margin takes back what the hint adds, so it grows down only:
+   the slots stay under the finger for the second tap. */
+.darts {
+	--hint-h: calc(6.6 * var(--u));
+}
+
+.darts.moving {
+	margin-bottom: calc(-1 * var(--hint-h));
+}
+
+.darts-hint {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: 90%;
+	height: 0;
+	overflow: hidden;
+	opacity: 0;
+	font-family: var(--font-condensed);
+	font-size: calc(2.3 * var(--u));
+	line-height: 1.1;
+	color: color-mix(in srgb, var(--bust) 40%, white);
+	transition: height var(--medium) var(--ease-out), opacity var(--medium) var(--ease-out);
+}
+
+.darts.moving .darts-hint {
+	height: var(--hint-h);
+	opacity: 1;
 }
 
 .idle-dart {
@@ -3156,23 +3186,13 @@ td.calc-score:not(.disabled) {
 	from { opacity: 0; transform: scale(2); }
 }
 
-.darts span {
-	position: relative;
-}
-
 /* A dart picked up to move: its slot and its marker pulse, and its bed
-   flashes. The slot's edge is the moving yellow, its glow red: another
-   tap removes it. */
+   flashes. The slot's edge is the moving yellow, its glow red, and the card
+   grows downward to say another tap removes it. */
 .darts span.editing {
 	--slot-veil: inset 0 0 0 0 transparent; /* the hover veil, if any: both frames list it, so the glow fades */
 	border-color: var(--dart-edit);
 	animation: editing 0.9s ease-in-out infinite alternate;
-}
-
-.darts span.editing .dart-num {
-	border-color: var(--dart-edit);
-	background: var(--dart-edit);
-	color: black;
 }
 
 /* See-through darts turned off in Board layout: they show in full, except one
@@ -3211,48 +3231,6 @@ td.calc-score:not(.disabled) {
 @keyframes editing {
 	from { box-shadow: var(--slot-veil), 0 0 0 transparent; }
 	to { box-shadow: var(--slot-veil), 0 0 calc(2.6 * var(--u)) calc(0.3 * var(--u)) var(--bust); }
-}
-
-/* A dart picked up to move: a red × in its box's other corner, as tapping it again removes it. */
-.darts span.editing::after {
-	content: '✕';
-	position: absolute;
-	top: calc(-1.1 * var(--u));
-	right: calc(-1.1 * var(--u));
-	display: grid;
-	place-items: center;
-	width: calc(2.6 * var(--u));
-	height: calc(2.6 * var(--u));
-	box-sizing: border-box;
-	border: var(--line) solid white; /* like the number in the other corner */
-	border-radius: 50%;
-	background: var(--bust);
-	color: white;
-	font-size: calc(1.3 * var(--u));
-	font-weight: 700;
-	line-height: 1;
-	text-shadow: none;
-	animation: fade-in var(--fast) var(--ease-out);
-}
-
-/* Corner number on each dart slot, matching its marker on the board. */
-.dart-num {
-	position: absolute;
-	top: calc(-1.1 * var(--u));
-	left: calc(-1.1 * var(--u));
-	width: calc(2.6 * var(--u));
-	height: calc(2.6 * var(--u));
-	box-sizing: border-box;
-	border: var(--line) solid white;
-	border-radius: 50%;
-	background: black;
-	font-family: var(--font-condensed);
-	font-size: calc(1.6 * var(--u));
-	font-style: normal;
-	font-weight: 600;
-	line-height: calc(2 * var(--u));
-	text-align: center;
-	text-shadow: none;
 }
 
 /* History turns entered on the board can be tapped to show their darts. */
