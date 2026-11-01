@@ -1536,9 +1536,14 @@ body.dismissing * {
 	transition: color var(--medium) var(--ease-out), background-color var(--medium) var(--ease-out), box-shadow var(--medium) var(--ease-out);
 }
 
+/* The whole height of the line and a little either side, so a tap on a finish
+   is a tap on the finish, not on the card behind it (which opens the menu). */
 .checkout {
 	flex: none;
-	padding: 0 1vw 0 1vmin;
+	align-self: stretch;
+	display: flex;
+	align-items: center;
+	padding: 0 1vw 0 2vmin;
 	font-size: calc(3vmin * var(--s));
 	white-space: nowrap;
 	color: var(--checkout);
