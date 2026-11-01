@@ -198,6 +198,13 @@ function gradient(parent, stops, line = null) {
 	return `url(#${id})`;
 }
 
+/** A mask fading what it covers along a line: its stops go from white (shown) to black (gone). */
+function fadeMask(parent, stops, line) {
+	const mask = el('mask', { id: `dart-${++gradients}`, maskUnits: 'userSpaceOnUse', x: -300, y: -300, width: 600, height: 600 }, parent);
+	el('rect', { x: -300, y: -300, width: 600, height: 600, fill: gradient(parent, stops, line) }, mask);
+	return `url(#${mask.id})`;
+}
+
 const ellipse = ({ cx, cy, rx, ry, angle }, attrs, parent) =>
 	el('ellipse', { cx: round(cx), cy: round(cy), rx: round(rx), ry: round(Math.max(ry, 0.01)), transform: `rotate(${round(angle)} ${round(cx)} ${round(cy)})`, ...attrs }, parent);
 
@@ -217,10 +224,8 @@ function paintDart(group, { x, y }, motion = {}) {
 	if (!motion.inAir) {
 		// The dart's own shape as one flat layer (no darker overlaps), faded
 		// by a mask from the point to nothing before the flight.
-		const fade = gradient(defs, [[0, 'white'], [0.55, '#777'], [1, 'black']], [shape.shadow.from, shape.shadow.to]);
-		const mask = el('mask', { id: `dart-${++gradients}`, maskUnits: 'userSpaceOnUse', x: -300, y: -300, width: 600, height: 600 }, defs);
-		el('rect', { x: -300, y: -300, width: 600, height: 600, fill: fade }, mask);
-		const shadow = el('g', { class: 'dart-shadow', mask: `url(#${mask.id})` }, group);
+		const fade = fadeMask(defs, [[0, 'white'], [0.55, '#777'], [1, 'black']], [shape.shadow.from, shape.shadow.to]);
+		const shadow = el('g', { class: 'dart-shadow', mask: fade }, group);
 		for (const piece of shape.shadow.parts) el('polygon', { points: points(piece) }, shadow);
 	}
 	const across = [shape.across.from, shape.across.to];
@@ -238,9 +243,9 @@ function paintDart(group, { x, y }, motion = {}) {
 	polygons([shape.tail], { class: 'dart-steel', fill: steel });
 	// The barrel's end, facing you: a shaded disc, the shaft coming out of it.
 	ellipse(shape.face, { class: 'dart-face', fill: gradient(defs, [[0, '#8d939b'], [0.55, '#3a3f45'], [1, '#141619']]) }, body);
-	polygons([shape.shaft], { class: 'dart-shaft', fill: black });
-	// The shaft's end, into the flight: shaded like the shaft, no hard rim.
-	ellipse(shape.end, { class: 'dart-shaft-end', fill: gradient(defs, [[0, '#4a4c50'], [1, '#0b0b0b']]) }, body);
+	// The shaft fades out before the flight, so its top doesn't show through the fins.
+	const fade = fadeMask(defs, [[0, 'white'], [0.35, '#bbb'], [1, 'black']], [[shape.face.cx, shape.face.cy], [shape.end.cx, shape.end.cy]]);
+	el('polygon', { class: 'dart-shaft', fill: black, mask: fade, points: points(shape.shaft) }, body);
 	// The flight: one see-through layer, so where the vanes meet doesn't darken.
 	const flight = el('g', { class: 'dart-flight' }, group);
 	for (const { points: vane, root, edge } of shape.vanes) {
