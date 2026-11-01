@@ -2,7 +2,7 @@
 // drawn) moves the match on through legs and sets, and repairing a saved
 // match. Pure, like game.js.
 
-import { DEFAULT_SETTINGS, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS } from './config.js';
+import { DARTS_PER_TURN, DEFAULT_SETTINGS, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS } from './config.js';
 
 export function clampInt(value, min, max, fallback) {
 	const n = Math.trunc(Number(value));
@@ -17,6 +17,14 @@ export function cleanName(name, fallback) {
 export function nextIndex(i, length) {
 	return length ? (i + 1) % length : 0;
 }
+
+// Only the visit that wins a leg can take fewer than three darts: any other
+// visit used all three, however many of them were tapped on the board.
+export const dartsIn = t => (t.checkout ? t.darts?.length || DARTS_PER_TURN : DARTS_PER_TURN);
+
+export const dartsSum = darts => darts.reduce((sum, d) => sum + d.value, 0);
+
+export const percent = n => `${Math.round(n * 100)}%`;
 
 /** The settings every mode has: legs and sets to win (first to), and practice (legs go on, no winner). */
 export function matchSettings(settings = {}) {

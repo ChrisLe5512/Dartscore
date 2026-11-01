@@ -8,7 +8,8 @@
 import { DEFAULT_SETTINGS, MAX_TURN_SCORE, ONE21 } from './config.js';
 import * as Game from './game.js';
 import { historyMarks as x01Marks } from './feedback.js';
-import { clampInt, endLeg, makeTurn, matchSettings, restoreMatch, restoreResults } from './match.js';
+import { clampInt, dartsIn, dartsSum, makeTurn, matchSettings, percent } from './match.js';
+import { roundsGame } from './rounds.js';
 
 export { canAddPlayer, movePlayer, movePlayerTo, renamePlayer } from './game.js';
 
@@ -30,41 +31,33 @@ export function normalizeSettings(settings = {}) {
 	return { legs, sets, doubleOut: Boolean(s.doubleOut), practice, dropBack: Boolean(s.dropBack) };
 }
 
-export function createGame(settings = {}) {
-	return {
-		mode: id, settings: normalizeSettings(settings), players: [], results: [],
-		leg: 0, active: 0, starter: 0, winner: null, nextId: 1,
-	};
-}
-
-const START = Object.freeze({ score: ONE21.start, target: ONE21.start, safe: 0, visit: 0, round: 0 });
-const fresh = p => ({ ...p, ...START });
-
-export function addPlayer(state, name) {
-	return Game.addPlayer(state, name, START);
-}
-
-/** Same players, everything else back to zero. */
-export function newMatch(state, settings = state.settings) {
-	return {
-		...state,
-		mode: id,
-		settings: normalizeSettings(settings),
-		players: state.players.map(p => ({ ...fresh(p), legs: 0, sets: 0, turns: [] })),
-		results: [],
-		leg: 0,
-		active: 0,
-		starter: 0,
-		winner: null,
-	};
-}
-
 export const OPTIONS = [
 	{ key: 'dropBack', label: 'Drop back on a miss', title: 'Three visits without a checkout send you back to the last target you checked out (121 if none yet), instead of trying the same one again.' },
 ];
 
 /** Targets left to play this leg. */
 export const canThrow = p => p.round < ONE21.rounds;
+
+const rules = roundsGame({
+	id,
+	normalizeSettings,
+	start: Object.freeze({ score: ONE21.start, target: ONE21.start, safe: 0, visit: 0, round: 0 }),
+	canThrow,
+	legWinner,
+	restorePlayer(p) {
+		const target = clampInt(p.target, ONE21.start, ONE21.start + ONE21.rounds, ONE21.start);
+		const safe = clampInt(p.safe, 0, ONE21.start + ONE21.rounds - 1, 0);
+		return {
+			score: clampInt(p.score, 0, target, target),
+			target,
+			safe: safe >= ONE21.start ? safe : 0,
+			visit: clampInt(p.visit, 0, ONE21.visits - 1, 0),
+			round: clampInt(p.round, 0, ONE21.rounds, 0),
+		};
+	},
+});
+const { moveOn } = rules;
+export const { createGame, addPlayer, newMatch, removePlayer, setActive, restoreGame, wonLegs } = rules;
 
 export const maxInput = MAX_TURN_SCORE;
 export const isValidInput = Game.isValidTurnScore;
@@ -109,63 +102,11 @@ export function submitTurn(state, score, darts = null) {
 	return moveOn({ ...state, players }, event);
 }
 
-/** The next player with targets left after `from` (themselves last), or null when the leg is over. */
-function nextThrower(players, from) {
-	for (let k = 1; k <= players.length; k++) {
-		const i = (from + k) % players.length;
-		if (canThrow(players[i])) return i;
-	}
-	return null;
-}
-
-function moveOn(state, event) {
-	const next = nextThrower(state.players, state.active);
-	if (next !== null) return { state: { ...state, active: next }, event };
-	const winner = legWinner(state.players);
-	const results = [...state.results, winner === null ? null : state.players[winner].id];
-	const { state: done, event: legEvent } = endLeg(state, state.players.slice(), winner, fresh);
-	return { state: { ...done, results }, event: legEvent };
-}
-
 /** The leg's winner: the one player on the highest target, or null. */
 export function legWinner(players) {
 	const best = Math.max(...players.map(p => p.target));
 	const top = players.filter(p => p.target === best);
 	return top.length === 1 ? players.indexOf(top[0]) : null;
-}
-
-/** After a change to the players: if the thrower has no targets left, the next one throws (or the leg ends). */
-function settle(state) {
-	if (state.winner !== null || !state.players.length || canThrow(state.players[state.active])) return state;
-	return moveOn(state, null).state;
-}
-
-export function removePlayer(state, index) {
-	return settle(Game.removePlayer(state, index));
-}
-
-export function setActive(state, index) {
-	if (!state.players[index] || !canThrow(state.players[index])) return state;
-	return Game.setActive(state, index);
-}
-
-export function restoreGame(raw) {
-	if (!raw || typeof raw !== 'object') return null;
-	const settings = normalizeSettings(raw.settings);
-	const state = restoreMatch(raw, settings, p => {
-		const target = clampInt(p.target, ONE21.start, ONE21.start + ONE21.rounds, ONE21.start);
-		const safe = clampInt(p.safe, 0, ONE21.start + ONE21.rounds - 1, 0);
-		return {
-			score: clampInt(p.score, 0, target, target),
-			target,
-			safe: safe >= ONE21.start ? safe : 0,
-			visit: clampInt(p.visit, 0, ONE21.visits - 1, 0),
-			round: clampInt(p.round, 0, ONE21.rounds, 0),
-		};
-	});
-	if (!state) return null;
-	const { settings: _, players, ...rest } = state; // in the order createGame has, so a reloaded game saves the same
-	return { mode: id, settings, players, results: restoreResults(raw.results, state.leg), ...rest };
 }
 
 // ---- How it shows -----------------------------------------------------------
@@ -179,12 +120,10 @@ export const scoreNote = player => `/${player.target}`;
 export const checkoutFrom = player => (canThrow(player) ? player.score : null);
 export const hint = () => null;
 
-export const dartsValue = (state, darts) => darts.reduce((sum, d) => sum + d.value, 0);
+export const dartsValue = (state, darts) => dartsSum(darts);
 export const turnText = t => t.score;
 export const turnLabel = turnText;
 export const historyMarks = x01Marks;
-
-export const wonLegs = (state, player) => new Set(state.results.flatMap((winner, leg) => (winner === player.id ? [leg] : [])));
 
 /** legs won; checkouts out of targets played; top: highest target checked out; average: three-dart average. */
 export function matchStats(player, state) {
@@ -195,7 +134,7 @@ export function matchStats(player, state) {
 	let top = null;
 	for (const t of player.turns) {
 		points += t.score;
-		darts += t.checkout ? t.darts?.length || 3 : 3;
+		darts += dartsIn(t);
 		if (t.checkout) {
 			checkouts++;
 			top = Math.max(top ?? 0, t.target ?? 0);
@@ -220,7 +159,7 @@ export function statsLine(player) {
 
 export const STAT_ROWS = [
 	{ label: 'Legs won', value: s => s.legs },
-	{ label: 'Checkouts', value: s => (s.targets ? s.checkouts / s.targets : null), show: n => `${Math.round(n * 100)}%`, note: s => `${s.checkouts}/${s.targets}` },
+	{ label: 'Checkouts', value: s => (s.targets ? s.checkouts / s.targets : null), show: percent, note: s => `${s.checkouts}/${s.targets}` },
 	{ label: 'Top checkout', value: s => s.top },
 	{ label: '3-dart average', value: s => (s.visits ? s.average : null), show: n => n.toFixed(1) },
 ];

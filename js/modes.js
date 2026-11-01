@@ -8,6 +8,7 @@ import * as Clock from './clock.js';
 import * as Doubles from './doubles.js';
 import { historyMarks } from './feedback.js';
 import * as Game from './game.js';
+import { dartsSum, percent } from './match.js';
 import * as One21 from './one21.js';
 import { legDarts, matchStats } from './stats.js';
 
@@ -21,7 +22,7 @@ const X01 = {
 	scoreText: player => player.score,
 	checkoutFrom: player => player.score,
 	hint: () => null,
-	dartsValue: (state, darts) => darts.reduce((sum, d) => sum + d.value, 0),
+	dartsValue: (state, darts) => dartsSum(darts),
 	turnText: t => t.score,
 	turnLabel: t => t.score,
 	historyMarks,
@@ -31,7 +32,7 @@ const X01 = {
 		const { average, visits, finishes, chances } = matchStats(player, state.settings);
 		return [
 			['Avg', visits ? average.toFixed(1) : '–'],
-			['CO', chances ? `${Math.round(finishes / chances * 100)}%` : '–'],
+			['CO', chances ? percent(finishes / chances) : '–'],
 			['Leg darts', legDarts(player, state.leg)],
 		];
 	},
@@ -41,7 +42,7 @@ const X01 = {
 		{ label: 'Legs won', value: s => s.finishes },
 		{ label: '3-dart average', value: s => (s.visits ? s.average : null), show: n => n.toFixed(1) },
 		{ label: 'First 9 average', value: s => (s.visits ? s.first9 : null), show: n => n.toFixed(1) },
-		{ label: 'Checkout', value: s => (s.chances ? s.finishes / s.chances : null), show: n => `${Math.round(n * 100)}%`, note: s => `${s.finishes}/${s.chances}` },
+		{ label: 'Checkout', value: s => (s.chances ? s.finishes / s.chances : null), show: percent, note: s => `${s.finishes}/${s.chances}` },
 		{ label: 'Best leg', value: s => s.bestLeg, show: n => `${n} darts`, low: true },
 		{ label: 'High finish', value: s => s.highFinish },
 		{ label: '180s', value: s => s.tons[180] },

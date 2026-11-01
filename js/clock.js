@@ -5,7 +5,7 @@
 
 import { CLOCK_RINGS, CLOCK_TARGETS, DARTS_PER_TURN, DEFAULT_SETTINGS } from './config.js';
 import * as Game from './game.js';
-import { clampInt, endLeg, makeTurn, matchSettings, nextIndex, restoreMatch } from './match.js';
+import { clampInt, dartsIn, endLeg, makeTurn, matchSettings, nextIndex, percent, restoreMatch } from './match.js';
 
 export { canAddPlayer, movePlayer, movePlayerTo, removePlayer, renamePlayer, setActive } from './game.js';
 
@@ -143,10 +143,6 @@ export function historyMarks(turns) {
 		return marks;
 	});
 }
-
-// Only the visit that goes round can take fewer than three darts.
-const dartsIn = t => (t.checkout ? t.darts?.length || DARTS_PER_TURN : DARTS_PER_TURN);
-const percent = n => `${Math.round(n * 100)}%`;
 
 /** legs: legs won; hits: targets moved on; darts; bestLeg: fewest darts to go round; threes: visits that moved three or more. */
 export function matchStats(player) {

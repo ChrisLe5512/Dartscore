@@ -30,6 +30,7 @@ const APP_SHELL = [
 	'js/match.js',
 	'js/modes.js',
 	'js/one21.js',
+	'js/rounds.js',
 	'js/stats.js',
 	'js/storage.js',
 	'js/version.js',

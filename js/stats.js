@@ -2,10 +2,7 @@
 // player's turns and the match settings, no DOM.
 
 import { canCheckout } from './checkout.js';
-
-// Only the visit that wins a leg can take fewer than three darts: any other
-// visit used all three, however many of them were tapped on the board.
-const dartsIn = t => (t.checkout ? t.darts?.length || 3 : 3);
+import { dartsIn } from './match.js';
 
 /** Three-dart average, darts thrown, visits and best visit, over the whole match. */
 export function playerStats(player) {

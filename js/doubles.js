@@ -6,8 +6,8 @@
 // wins the leg (a tie draws it). Pure, like game.js.
 
 import { CLOCK_TARGETS, DARTS_PER_TURN, DEFAULT_SETTINGS, DOUBLES_START } from './config.js';
-import * as Game from './game.js';
-import { clampInt, endLeg, makeTurn, matchSettings, restoreMatch, restoreResults } from './match.js';
+import { clampInt, makeTurn, matchSettings, percent } from './match.js';
+import { roundsGame } from './rounds.js';
 
 export { canAddPlayer, movePlayer, movePlayerTo, renamePlayer } from './game.js';
 
@@ -24,36 +24,23 @@ export function normalizeSettings(settings = {}) {
 	return { ...matchSettings({ ...DEFAULT_SETTINGS, ...settings }), playOn: Boolean(settings.playOn) };
 }
 
-export function createGame(settings = {}) {
-	return {
-		mode: id, settings: normalizeSettings(settings), players: [], results: [],
-		leg: 0, active: 0, starter: 0, winner: null, nextId: 1,
-	};
-}
-
-const fresh = p => ({ ...p, score: DOUBLES_START, round: 0, out: false });
-
-export function addPlayer(state, name) {
-	return Game.addPlayer(state, name, { score: DOUBLES_START, round: 0, out: false });
-}
-
-/** Same players, everything else back to zero. */
-export function newMatch(state, settings = state.settings) {
-	return {
-		...state,
-		mode: id,
-		settings: normalizeSettings(settings),
-		players: state.players.map(p => ({ ...fresh(p), legs: 0, sets: 0, turns: [] })),
-		results: [],
-		leg: 0,
-		active: 0,
-		starter: 0,
-		winner: null,
-	};
-}
-
 /** Still in the leg, with doubles left to throw at. */
 export const canThrow = p => !p.out && p.round < CLOCK_TARGETS.length;
+
+const rules = roundsGame({
+	id,
+	normalizeSettings,
+	start: Object.freeze({ score: DOUBLES_START, round: 0, out: false }),
+	canThrow,
+	legWinner,
+	restorePlayer: p => ({
+		score: clampInt(p.score, -999, 9999, DOUBLES_START),
+		round: clampInt(p.round, 0, CLOCK_TARGETS.length, 0),
+		out: Boolean(p.out),
+	}),
+});
+const { moveOn } = rules;
+export const { createGame, addPlayer, newMatch, removePlayer, setActive, restoreGame, wonLegs } = rules;
 
 /** The double a player is throwing at (25: the bullseye), or undefined when they are done. */
 export const targetOf = p => (canThrow(p) ? CLOCK_TARGETS[p.round] : undefined);
@@ -92,21 +79,6 @@ export function submitTurn(state, score, darts = null) {
 	return moveOn({ ...state, players }, player.out ? 'out' : 'turn');
 }
 
-/** The next player still in after `from` (themselves last), or null when the leg is over. */
-function nextThrower(players, from) {
-	for (let k = 1; k <= players.length; k++) {
-		const i = (from + k) % players.length;
-		if (canThrow(players[i])) return i;
-	}
-	return null;
-}
-
-function moveOn(state, event) {
-	const next = nextThrower(state.players, state.active);
-	if (next !== null) return { state: { ...state, active: next }, event };
-	return finishLeg(state);
-}
-
 /** The leg's winner: the one highest score among the players still in, or null. */
 export function legWinner(players) {
 	const scores = players.map(p => (p.out ? -Infinity : p.score));
@@ -115,47 +87,10 @@ export function legWinner(players) {
 	return scores.indexOf(best);
 }
 
-function finishLeg(state) {
-	const winner = legWinner(state.players);
-	const results = [...state.results, winner === null ? null : state.players[winner].id];
-	const { state: next, event } = endLeg(state, state.players.slice(), winner, fresh);
-	return { state: { ...next, results }, event };
-}
-
-/** After a change to the players: if the thrower can't throw, the next one does (or the leg ends). */
-function settle(state) {
-	if (state.winner !== null || !state.players.length || canThrow(state.players[state.active])) return state;
-	return moveOn(state, null).state;
-}
-
-export function removePlayer(state, index) {
-	return settle(Game.removePlayer(state, index));
-}
-
-/** Hand the throw to a player who is still in. */
-export function setActive(state, index) {
-	if (!state.players[index] || !canThrow(state.players[index])) return state;
-	return Game.setActive(state, index);
-}
-
-export function restoreGame(raw) {
-	if (!raw || typeof raw !== 'object') return null;
-	const settings = normalizeSettings(raw.settings);
-	const state = restoreMatch(raw, settings, p => ({
-		score: clampInt(p.score, -999, 9999, DOUBLES_START),
-		round: clampInt(p.round, 0, CLOCK_TARGETS.length, 0),
-		out: Boolean(p.out),
-	}));
-	if (!state) return null;
-	const { settings: _, players, ...rest } = state; // in the order createGame has, so a reloaded game saves the same
-	return { mode: id, settings, players, results: restoreResults(raw.results, state.leg), ...rest };
-}
-
 // ---- How it shows -----------------------------------------------------------
 
 const doubleName = target => (target === 25 ? 'Bull' : `D${target}`);
 const signed = n => (n > 0 ? `+${n}` : `−${-n}`);
-const percent = n => `${Math.round(n * 100)}%`;
 
 export const scoreText = player => player.score;
 export const checkoutFrom = () => null;
@@ -186,9 +121,6 @@ export function historyMarks(turns) {
 		return marks;
 	});
 }
-
-/** The legs a player won, for the history's leg dots. */
-export const wonLegs = (state, player) => new Set(state.results.flatMap((winner, leg) => (winner === player.id ? [leg] : [])));
 
 /** legs: legs won; made, darts: doubles hit and thrown; high: best score at the end of a leg; best: most doubles in a visit. */
 export function matchStats(player, state) {
