@@ -1554,12 +1554,35 @@ body.dismissing * {
 	color: var(--checkout);
 }
 
+.checkout-steps {
+	margin-left: 0.25em;
+}
+
+/* Which of how many: slides out beside the target for a moment after a tap. */
+.checkout-count {
+	flex: none;
+	max-width: 0;
+	margin-left: 0;
+	overflow: hidden;
+	opacity: 0;
+	font-size: 0.75em;
+	font-style: normal;
+	color: var(--text-soft);
+	transition: max-width var(--medium) var(--ease-out), margin-left var(--medium) var(--ease-out), opacity var(--medium) var(--ease-out);
+}
+
+.checkout.counting .checkout-count {
+	max-width: 3.2em;
+	margin-left: 0.35em;
+	opacity: 1;
+}
+
 /* What's been thrown of the finish being followed. */
-.checkout span {
+.checkout-steps span {
 	transition: opacity var(--medium) var(--ease-out);
 }
 
-.checkout span.done {
+.checkout-steps span.done {
 	opacity: 0.35;
 }
 

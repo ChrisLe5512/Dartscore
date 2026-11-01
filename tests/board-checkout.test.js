@@ -140,11 +140,12 @@ test('randomDart lands in a scoring bed, where it says it did', () => {
 test('a finish stays as its darts follow it, and changes when one goes off it', () => {
 	const d = (label, value) => ({ label, value });
 	const route = getCheckouts(100)[0]; // T20 D20
-	assert.deepEqual(followCheckout(100, []), { route, done: 0 });
-	assert.deepEqual(followCheckout(100, [d('T20', 60)]), { route, done: 1 });
-	assert.deepEqual(followCheckout(100, [d('T20', 60), d('D20', 40)]), { route, done: 2 });
+	const total = getCheckouts(100).length;
+	assert.deepEqual(followCheckout(100, []), { route, done: 0, index: 0, total });
+	assert.deepEqual(followCheckout(100, [d('T20', 60)]), { route, done: 1, index: 0, total });
+	assert.deepEqual(followCheckout(100, [d('T20', 60), d('D20', 40)]), { route, done: 2, index: 0, total });
 	// Off the route: a new one from what's left, nothing done of it.
-	assert.deepEqual(followCheckout(100, [d('20', 20)]), { route: getCheckouts(80, 2)[0], done: 0 });
+	assert.deepEqual(followCheckout(100, [d('20', 20)]), { route: getCheckouts(80, 2)[0], done: 0, index: 0, total: getCheckouts(80, 2).length });
 	// Back on after going off: the new route's progress.
 	const next = getCheckouts(80, 2)[0];
 	assert.deepEqual(followCheckout(100, [d('20', 20), d(next[0], 60)]).done, 1);
@@ -153,4 +154,6 @@ test('a finish stays as its darts follow it, and changes when one goes off it', 
 	assert.equal(followCheckout(40, [d('T20', 60)]), null);
 	// The choice picks among the ways out.
 	assert.deepEqual(followCheckout(100, [], true, 1).route, getCheckouts(100)[1]);
+	assert.equal(followCheckout(100, [], true, 1).index, 1);
+	assert.equal(followCheckout(100, [], true, total).index, 0); // round to the first again
 });

@@ -4,7 +4,7 @@
 
 import {
 	BOARD_HIT_COLORS, BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_OUTLINE_LIMITS, BOARD_WIRE_LIMITS,
-	DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, TEST_DART_GAP_MS, TOAST_CLOSE_ROOM, TOAST_MS,
+	CHECKOUT_COUNT_MS, DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, TEST_DART_GAP_MS, TOAST_CLOSE_ROOM, TOAST_MS,
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate, randomDart } from './board.js';
 import { followCheckout } from './checkout.js';
@@ -340,9 +340,14 @@ function createPlayerRows(player) {
 	});
 
 	$('.history-line > .checkout', historyRow).addEventListener('click', event => {
-		if (event.currentTarget.classList.contains('hint')) return;
+		const finish = event.currentTarget;
+		if (finish.classList.contains('hint')) return;
 		checkoutChoice.set(player.id, (checkoutChoice.get(player.id) ?? 0) + 1);
 		renderScoreboard();
+		// Which of how many, for a moment.
+		finish.classList.add('counting');
+		clearTimeout(finish.countTimer);
+		finish.countTimer = setTimeout(() => finish.classList.remove('counting'), CHECKOUT_COUNT_MS);
 	});
 
 	const historyCell = $('.history', historyRow);
@@ -638,17 +643,27 @@ function renderCheckout(historyRow, player, index, isActive) {
 	checkoutCell.title = hint ? '' : 'Tap for another way to check out';
 	if (plan) {
 		checkoutCell.classList.remove('hidden');
+		// The target, a counter (kept, so it slides out rather than appears), the route.
+		if (!$('.checkout-steps', checkoutCell)) {
+			const count = document.createElement('i');
+			count.className = 'checkout-count';
+			const steps = document.createElement('span');
+			steps.className = 'checkout-steps';
+			checkoutCell.replaceChildren('\u{1F3AF}', count, steps);
+		}
+		$('.checkout-count', checkoutCell).textContent = `${plan.index + 1}/${plan.total}`;
+		const steps = $('.checkout-steps', checkoutCell);
 		// Only rebuilt for a new route, so a dart thrown fades (.done) where it is.
 		const key = plan.route.join(' ');
 		if (checkoutCell.dataset.route !== key) {
 			checkoutCell.dataset.route = key;
-			checkoutCell.replaceChildren('\u{1F3AF}', ...plan.route.flatMap(label => {
+			steps.replaceChildren(...plan.route.flatMap((label, i) => {
 				const step = document.createElement('span');
 				step.textContent = label;
-				return [' ', step];
+				return i ? [' ', step] : [step];
 			}));
 		}
-		$$('span', checkoutCell).forEach((step, i) => step.classList.toggle('done', i < plan.done));
+		$$('span', steps).forEach((step, i) => step.classList.toggle('done', i < plan.done));
 	} else if (hint) {
 		checkoutCell.classList.remove('hidden');
 		delete checkoutCell.dataset.route;
