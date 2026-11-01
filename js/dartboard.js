@@ -4,7 +4,7 @@
 
 import { BOARD_SECTORS, BOARD_STYLE, DART_VIEW } from './config.js';
 import { dartColor, RINGS } from './board.js';
-import { dartLayout, dartOrder, dartShape } from './dart3d.js';
+import { dartLayout, dartOrder, dartShape, spotTurns } from './dart3d.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -272,13 +272,8 @@ const thrown = new Map();
 const lifted = new Map();
 /** Each dart's id: where it landed, and which of the darts there it is. */
 export function dartIds(hits) {
-	const atSpot = new Map();
-	return hits.map(({ x, y }) => {
-		const spot = `${x},${y}`;
-		const count = atSpot.get(spot) ?? 0;
-		atSpot.set(spot, count + 1);
-		return `${spot},${count}`;
-	});
+	const turns = spotTurns(hits);
+	return hits.map(({ x, y }, index) => `${x},${y},${turns[index]}`);
 }
 const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const moving = new WeakSet(); // board layers with darts on the move

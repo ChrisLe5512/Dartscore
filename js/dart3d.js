@@ -46,9 +46,20 @@ const MARK_TURNS = [0, 0.7, -0.7, 1.4, -1.4, 2.1, -2.1, 2.8, -2.8];
 const DEPTH_STEPS = 16;
 const ROUND = 14; // points round each end of a part
 
+/** Which of the darts at its exact spot each one is: 0 for the first there, 1 for the next, and so on. */
+export function spotTurns(hits) {
+	const atSpot = new Map();
+	return hits.map(({ x, y }) => {
+		const spot = `${x},${y}`;
+		const turn = atSpot.get(spot) ?? 0;
+		atSpot.set(spot, turn + 1);
+		return turn;
+	});
+}
+
 /** The same random numbers for the same spot every time: a dart keeps its pose when redrawn. */
-function seeded(x, y) {
-	let seed = (Math.round(x * 1e4) * 73856093) ^ (Math.round(y * 1e4) * 19349663);
+function seeded(x, y, spotTurn) {
+	let seed = (Math.round(x * 1e4) * 73856093) ^ (Math.round(y * 1e4) * 19349663) ^ (spotTurn * 83492791);
 	return () => {
 		seed = (seed + 0x6d2b79f5) | 0;
 		let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
@@ -61,10 +72,10 @@ function seeded(x, y) {
  * How a dart that landed at x, y (fractions of the radius) sits: its lean
  * (tan of the angle across and up) and how its flight is turned. It points
  * back the way it came, towards the player in front of the bull, tail a
- * little up from its fall, give or take a little.
+ * little up from its fall, give or take a little. spotTurn: see spotTurns.
  */
-export function dartPose(x, y, view = DART_VIEW) {
-	const random = seeded(x, y);
+export function dartPose(x, y, view = DART_VIEW, spotTurn = 0) {
+	const random = seeded(x, y, spotTurn);
 	const spread = () => (random() * 2 - 1) * view.tilt;
 	const back = [-x * 100 / view.thrower, -y * 100 / view.thrower];
 	return { lean: [back[0] + spread(), back[1] + view.droop + spread()], roll: random() * Math.PI / 2 };
@@ -200,7 +211,8 @@ function bodyLine(x, y, pose, view) {
  * Returns [{ pose, mark: [x, y] }].
  */
 export function dartLayout(hits, view = DART_VIEW) {
-	const poses = hits.map(({ x, y }) => dartPose(x, y, view));
+	const turns = spotTurns(hits);
+	const poses = hits.map(({ x, y }, index) => dartPose(x, y, view, turns[index]));
 	const bodies = hits.map(({ x, y }, index) => bodyLine(x, y, poses[index], view));
 	const marks = [];
 	hits.forEach(({ x, y }, index) => {

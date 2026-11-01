@@ -91,6 +91,17 @@ test('dart: its angle is its own, whatever else is in the board', () => {
 	assert.deepEqual(dartLayout([near])[0].pose, dartPose(near.x, near.y));
 });
 
+test('dart: darts in the same exact spot each have an angle of their own, kept when redrawn', () => {
+	const spot = { x: 0.3, y: -0.4 };
+	const poses = () => dartLayout([spot, spot, spot]).map(({ pose }) => pose);
+	const [first, second, third] = poses();
+	assert.deepEqual(first, dartPose(spot.x, spot.y));
+	assert.notDeepEqual(second, first);
+	assert.notDeepEqual(third, first);
+	assert.notDeepEqual(third, second);
+	assert.deepEqual(poses(), [first, second, third]);
+});
+
 test('dart: where two cross on screen, the nearer the eye there is drawn in front', () => {
 	const pose = { lean: [0, -0.3], roll: 0 }; // tails well up
 	const low = { x: 0, y: -0.3 }, high = { x: 0, y: -0.4 };
