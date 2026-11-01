@@ -98,7 +98,7 @@ test('history in legs: earlier legs are done, won where the player checked out',
 	assert.deepEqual(historyLegs([{ score: 60 }, { score: 45 }], 3), [{ leg: 3, turns: [0, 1], done: false, won: false }]);
 });
 
-test('history marks: busts, zeros, tons, 180s, checkouts, bulls and the best visit', () => {
+test('history marks: busts, zeros, tons, 180s, checkouts and the best visit', () => {
 	const marks = historyMarks([
 		{ score: 0, bust: true, attempted: 60 },
 		{ score: 0 },
@@ -110,7 +110,7 @@ test('history marks: busts, zeros, tons, 180s, checkouts, bulls and the best vis
 		{ score: 26 },
 	]);
 	assert.deepEqual(marks, [
-		['bust'], ['zero'], ['ton'], ['ton-forty'], ['max', 'best'], ['bull'], ['finish'], [],
+		['bust'], ['zero'], ['ton'], ['ton-forty'], ['max', 'best'], [], ['finish'], [],
 	]);
 	// No best until there is another visit to compare it with.
 	assert.deepEqual(historyMarks([{ score: 60 }]), [[]]);

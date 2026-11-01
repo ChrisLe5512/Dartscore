@@ -3461,18 +3461,6 @@ td.calc-score:not(.disabled) {
 	box-shadow: 0 0 0 calc(0.3vmin * var(--s)) color-mix(in srgb, var(--text-soft) 45%, transparent);
 }
 
-/* A bullseye was in the visit: a small red dot. */
-.history span.bull b::after {
-	content: '';
-	display: inline-block;
-	width: 0.6vmin;
-	height: 0.6vmin;
-	margin-left: 0.25vmin;
-	vertical-align: super;
-	border-radius: 50%;
-	background: var(--board-red);
-}
-
 /* The player's best visit: a small star on its corner like a badge, taking
    no room and leaving its colour alone. */
 .history span.best b {

@@ -140,7 +140,6 @@ export function historyMarks(turns) {
 		if (t.score === 0) marks.push('zero');
 		if (t.score >= DARTS_PER_TURN) marks.push('ton-forty');
 		if (t.checkout) marks.push('finish');
-		if (t.darts?.includes('B')) marks.push('bull');
 		return marks;
 	});
 }

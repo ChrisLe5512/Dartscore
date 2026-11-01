@@ -183,7 +183,6 @@ export function historyMarks(turns) {
 		const marks = [];
 		if (!t.made) marks.push('zero');
 		if (t.made === DARTS_PER_TURN) marks.push('ton-forty');
-		if (t.darts?.includes('B')) marks.push('bull');
 		return marks;
 	});
 }

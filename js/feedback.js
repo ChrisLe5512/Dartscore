@@ -146,7 +146,7 @@ const BEST_FROM = 2; // visits before the best one is marked
 
 /**
  * Class names for each turn in a history line: 'bust', 'zero', 'finish',
- * 'max' (180), 'ton-forty' (140+), 'ton' (100+), 'bull' (a bullseye thrown)
+ * 'max' (180), 'ton-forty' (140+), 'ton' (100+)
  * and 'best' (the highest visit so far, once there are a few).
  */
 export function historyMarks(turns) {
@@ -158,7 +158,6 @@ export function historyMarks(turns) {
 		if (t.checkout) marks.push('finish'); // not 'checkout': that's the suggestion beside the history
 		const tier = TIERS.find(([min]) => t.score >= min);
 		if (tier) marks.push(tier[1]);
-		if (t.darts?.includes('B')) marks.push('bull');
 		if (best > 0 && t.score === best) marks.push('best');
 		return marks;
 	});
