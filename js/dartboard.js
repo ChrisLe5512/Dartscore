@@ -103,8 +103,10 @@ export function drawBoard(svg, rings, style = BOARD_STYLE) {
 	const defs = el('defs', {}, svg);
 
 	const beds = el('g', { class: wire > 0 ? 'beds wired' : 'beds' }, svg);
-	if (wire > 0) beds.style.setProperty('--wire', outlineColor);
-	if (wire > 0) beds.style.setProperty('--wire-width', wire);
+	if (wire > 0) {
+		beds.style.setProperty('--wire', outlineColor);
+		beds.style.setProperty('--wire-width', wire);
+	}
 	for (const { key, d, color } of segments(rings)) {
 		el('path', { d, class: `seg ${color}`, 'data-key': key }, beds);
 	}
@@ -149,7 +151,7 @@ export function drawBoard(svg, rings, style = BOARD_STYLE) {
 
 /**
  * Light up segments: [{ key, kind }] where kind is a class name
- * ('hit', 'review', 'miss' or 'hover').
+ * ('hit', 'editing', 'review', 'miss' or 'hover').
  */
 export function lightSegments(svg, lights) {
 	const layer = svg.querySelector('.lit');
@@ -339,10 +341,13 @@ function moveDarts(layer) {
 			group.remove();
 			continue;
 		}
-		paintDart(group, group.hit, motion);
+		const going = isMoving(group, now);
+		// One already at rest stays as it was painted, while another comes in.
+		if (going || !group.atRest) paintDart(group, group.hit, motion);
+		group.atRest = !going;
 		if (group.inAir && !motion.inAir) landed = true;
 		group.inAir = Boolean(motion.inAir);
-		if (isMoving(group, now)) more = true;
+		if (going) more = true;
 		else thrown.delete(group.dataset.dart);
 	}
 	if (landed) stackDarts(layer);

@@ -7,7 +7,7 @@ import {
 	CHECKOUT_COUNT_MS, DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, SCORES_LAYOUT_PHONE, TEST_DART_GAP_MS, TOAST_CLOSE_ROOM, TOAST_MS,
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate, randomDart } from './board.js';
-import { followCheckout } from './checkout.js';
+import { canCheckout, followCheckout } from './checkout.js';
 import { dartLayout, tapDistance } from './dart3d.js';
 import { boardRadius, boardStyle as savedBoardStyle, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
 import { describeTravel, describeTurn, historyLegs, OUTCOME_WORDS, undoWarning } from './feedback.js';
@@ -2306,6 +2306,10 @@ document.addEventListener('visibilitychange', keepAwake);
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
 	navigator.serviceWorker.register('sw.js').catch(() => {});
 }
+
+// Ready the checkout table while nothing's happening, so the first finish (the
+// first score it's needed for) doesn't make that tap stutter.
+(self.requestIdleCallback ?? setTimeout)(() => canCheckout(2, 1, game.settings.doubleOut ?? true));
 
 // ---- Render -------------------------------------------------------------------
 

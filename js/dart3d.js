@@ -186,6 +186,14 @@ function fromSegment(p, a, b) {
 	return Math.hypot(...add(p, add(a, ab, t), -1));
 }
 
+/** A dart stuck in the board, on screen: its point and the end of its shaft. */
+function bodyLine(x, y, pose, view) {
+	const tip = [x * 100, y * 100, 0];
+	const end = add(tip, norm([...pose.lean, 1]), PARTS.shaft[1] * view.length);
+	const scale = view.eye / (view.eye - end[2]);
+	return [[tip[0], tip[1]], [end[0] * scale, end[1] * scale]];
+}
+
 /**
  * How a turn's darts sit together: each its own pose, and each marker in a
  * free spot. hits: [{ x, y }] as fractions of the radius, in the order thrown.
@@ -193,10 +201,7 @@ function fromSegment(p, a, b) {
  */
 export function dartLayout(hits, view = DART_VIEW) {
 	const poses = hits.map(({ x, y }) => dartPose(x, y, view));
-	const bodies = hits.map(({ x, y }, index) => {
-		const { tip, end } = dartShape(x, y, poses[index], {}, view);
-		return [tip, [end.cx, end.cy]];
-	});
+	const bodies = hits.map(({ x, y }, index) => bodyLine(x, y, poses[index], view));
 	const marks = [];
 	hits.forEach(({ x, y }, index) => {
 		const tip = [x * 100, y * 100];
@@ -251,10 +256,10 @@ export function dartOrder(hits, layout, view = DART_VIEW) {
  */
 export function tapDistance({ x, y }, { pose, mark }, [px, py], view = DART_VIEW) {
 	const tap = [px * 100, py * 100];
-	const { tip, end } = dartShape(x, y, pose, {}, view);
+	const [tip, end] = bodyLine(x, y, pose, view);
 	return Math.min(
 		Math.hypot(...add(tap, [x * 100, y * 100], -1)),
 		Math.hypot(...add(tap, mark.map(v => v * 100), -1)),
-		fromSegment(tap, tip, [end.cx, end.cy]) * 1.6,
+		fromSegment(tap, tip, end) * 1.6,
 	) / 100;
 }

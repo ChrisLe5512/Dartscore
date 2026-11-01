@@ -80,7 +80,8 @@ function buildTable(anyOut) {
  * Each route is an array of labels, e.g. ['T20', 'D20'].
  */
 export function getCheckouts(score, dartsLeft = 3, doubleOut = true) {
-	if (!Number.isInteger(score) || score < 1 || dartsLeft < 1) return [];
+	// Nothing goes out from above these, and most scores are: no table needed for them.
+	if (!Number.isInteger(score) || score < 1 || dartsLeft < 1 || score > (doubleOut ? 170 : 180)) return [];
 	const table = doubleOut ? (tables.double ??= buildTable(false)) : (tables.any ??= buildTable(true));
 	const routes = [];
 	for (let n = 1; n <= Math.min(dartsLeft, 3); n++) {

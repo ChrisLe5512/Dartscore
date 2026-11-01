@@ -137,6 +137,13 @@ test('randomDart lands in a scoring bed, where it says it did', () => {
 	}
 });
 
+test('the highest finishes', () => {
+	assert.ok(canCheckout(170));
+	assert.equal(canCheckout(171), false);
+	assert.ok(canCheckout(180, 3, false));
+	assert.equal(canCheckout(181, 3, false), false);
+});
+
 test('a finish stays as its darts follow it, and changes when one goes off it', () => {
 	const d = (label, value) => ({ label, value });
 	const route = getCheckouts(100)[0]; // T20 D20
