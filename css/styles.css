@@ -2851,7 +2851,7 @@ td.calc-score:not(.disabled) {
 		grid-template-columns: 1fr 18vmin;
 		grid-template-rows: auto 1fr;
 		width: 100%;
-		column-gap: 3vmin;
+		column-gap: 2vmin;
 		row-gap: 1.5vmin;
 	}
 
@@ -2862,7 +2862,7 @@ td.calc-score:not(.disabled) {
 	.visuals-controls {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
-		column-gap: 3vmin;
+		column-gap: 2vmin;
 		row-gap: 1.6vmin;
 		align-content: start;
 	}
