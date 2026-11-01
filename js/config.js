@@ -92,6 +92,8 @@ export const TEST_DART_GAP_MS = 220;
 
 // How long a status toast stays on screen.
 export const TOAST_MS = 2200;
+// A past turn's toast: px to keep between its Close and Settings, or Close loses its word.
+export const TOAST_CLOSE_ROOM = 16;
 
 // Player rows: heights in vmin at scale 1 (as in css/styles.css), and how far they may grow or shrink.
 // rows: name + history; stats: the stats line; bigRows: name + big score + history.

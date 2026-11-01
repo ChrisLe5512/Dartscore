@@ -2548,6 +2548,7 @@ td.back-score {
 	top: calc(var(--side-pad) + var(--ctrl-size) / 2); /* level with the middle of undo, redo and Settings */
 	left: 61%;
 	z-index: 50;
+	width: max-content; /* as wide as its text, up to its max, wherever it's centred */
 	max-width: 40vw;
 	padding: 1vmin 2.5vmin;
 	box-sizing: border-box;
@@ -2628,6 +2629,14 @@ td.back-score {
 
 .toast.review .toast-close {
 	display: flex;
+}
+
+.toast.tight .toast-close {
+	padding: 0 1.2vmin;
+}
+
+.toast.tight .toast-close-word {
+	display: none;
 }
 
 .toast-close .icon {
@@ -3058,9 +3067,13 @@ td.calc-score:not(.disabled) {
 		max-width: 80vw;
 	}
 
-	/* Leaves room for Close before Settings. */
+	/* Leaves room for Close before Settings; a little more when it's just the ✕. */
 	.toast.review {
 		max-width: 46vw;
+	}
+
+	.toast.review.tight {
+		max-width: 56vw;
 	}
 
 	.settings-section {

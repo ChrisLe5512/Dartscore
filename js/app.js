@@ -4,7 +4,7 @@
 
 import {
 	BOARD_HIT_COLORS, BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_OUTLINE_LIMITS, BOARD_WIRE_LIMITS,
-	DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, TEST_DART_GAP_MS, TOAST_MS,
+	DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, TEST_DART_GAP_MS, TOAST_CLOSE_ROOM, TOAST_MS,
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate, randomDart } from './board.js';
 import { getCheckouts } from './checkout.js';
@@ -2162,6 +2162,16 @@ confirmDialog.addEventListener('click', event => {
 const toast = $('.toast');
 let toastTimer = 0;
 
+/** A past turn's toast with no room for the word Close beside it, or itself cut short: just the ✕. */
+function fitToastClose() {
+	toast.classList.remove('tight');
+	if (!toast.classList.contains('review')) return;
+	const text = $('.toast-text', toast);
+	const room = $('.btn-section .settings-btn').getBoundingClientRect().left - $('.toast-close', toast).getBoundingClientRect().right;
+	toast.classList.toggle('tight', room < TOAST_CLOSE_ROOM || text.scrollWidth > text.clientWidth);
+}
+addEventListener('resize', () => !toast.hidden && fitToastClose());
+
 /** Show a short status message; a new one replaces the last. sticky: stays until hidden. */
 function showToast(message, { sticky = false } = {}) {
 	if (!message) return;
@@ -2172,6 +2182,7 @@ function showToast(message, { sticky = false } = {}) {
 	// Restart the pop-in even if a toast is already showing.
 	toast.style.animation = 'none';
 	void toast.offsetWidth;
+	fitToastClose(); // measured here, before the pop-in's scale
 	toast.style.animation = '';
 	clearTimeout(toastTimer);
 	toastSticky = sticky;
