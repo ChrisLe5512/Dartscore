@@ -1182,7 +1182,7 @@ for (const [button, input] of [[checkBtn, 'keypad'], [doneBtn, 'board']]) {
 // A quick way to a turn of 0 (three misses or a bust), with no darts kept.
 bustBtn.addEventListener('click', () => {
 	const name = game.players[game.active]?.name;
-	if (submit(0) === 'turn') showToast({ kind: 'bust', title: 'No score', detail: name });
+	if (submit(0) === 'turn') showToast({ kind: 'bust', title: 'Pass', detail: name });
 });
 
 /** pop: indexes of darts that just landed or moved, to animate. */
