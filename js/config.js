@@ -90,6 +90,11 @@ export const MARK_REACH = 0.05;
 // Board layout throws three test darts as it opens: the time between them.
 export const TEST_DART_GAP_MS = 220;
 
+// How long a mouse rests on an ⓘ before its tip shows, so sweeping across a few doesn't flash each one.
+export const INFO_HOVER_MS = 350;
+// How many px the pointer moves before a press on a player's grip becomes a drag.
+export const DRAG_FROM = 6;
+
 // How long a status toast stays on screen.
 export const TOAST_MS = 2200;
 // How long the counter shows beside a finish after a tap cycles it.

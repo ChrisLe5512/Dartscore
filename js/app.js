@@ -4,7 +4,7 @@
 
 import {
 	BOARD_HIT_COLORS, BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_OUTLINE_LIMITS, BOARD_WIRE_LIMITS,
-	CHECKOUT_COUNT_MS, DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, SCORES_LAYOUT_PHONE, TEST_DART_GAP_MS, TOAST_CLOSE_ROOM, TOAST_MS,
+	CHECKOUT_COUNT_MS, DARTS_PER_TURN, DEFAULT_SETTINGS, DRAG_FROM, INFO_HOVER_MS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, SCORES_LAYOUT_PHONE, TEST_DART_GAP_MS, TOAST_CLOSE_ROOM, TOAST_MS,
 } from './config.js';
 import { boardRings, hitTest, isOnBoard, locate, randomDart } from './board.js';
 import { canCheckout, followCheckout } from './checkout.js';
@@ -12,11 +12,13 @@ import { dartLayout, tapDistance } from './dart3d.js';
 import { boardRadius, boardStyle as savedBoardStyle, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
 import { describeTravel, describeTurn, historyLegs, OUTCOME_WORDS, undoWarning } from './feedback.js';
 import * as History from './history.js';
+import { dartsSum } from './match.js';
 import { GAME_CHOICES, MODES, choiceOf, createGame, modeOf, newGame, wonLegs } from './modes.js';
 import { loadPrefs, loadSession, savePrefs, saveSession } from './storage.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+const actionOf = event => event.target.closest('[data-action]')?.dataset.action;
 
 // ---- State ------------------------------------------------------------------
 
@@ -122,6 +124,11 @@ function replay(el, className) {
 	el.classList.add(className);
 }
 
+/** Run `done` once el's animations and transitions have finished. */
+function afterAnimations(el, done) {
+	Promise.allSettled(el.getAnimations().map(a => a.finished)).then(done);
+}
+
 /** Play a dialog's closing animation, then hide it. */
 function closeDialog(dialog) {
 	if (dialog.hidden || dialog.classList.contains('closing')) return;
@@ -214,7 +221,7 @@ function hideInfo() {
 	// It fades out, unless another ⓘ opens it again first.
 	infoTip.classList.remove('opening');
 	infoTip.classList.add('closing');
-	Promise.allSettled(infoTip.getAnimations().map(a => a.finished)).then(() => {
+	afterAnimations(infoTip, () => {
 		if (infoTip.classList.contains('closing')) infoTip.hidden = true;
 	});
 }
@@ -232,9 +239,6 @@ document.addEventListener('click', event => {
 	if (infoFor === button) hideInfo();
 	else showInfo(button);
 }, true);
-// With a mouse, a tip waits a moment before showing, so sweeping the pointer
-// across a few ⓘ doesn't flash each one.
-const INFO_HOVER_MS = 350;
 let infoHover = 0;
 document.addEventListener('pointerover', event => {
 	const button = event.target.closest('.info-btn');
@@ -267,7 +271,7 @@ function trapFocus(event, dialog) {
 	}
 }
 
-const dartsTotal = () => turn.darts.reduce((sum, d) => sum + d.value, 0);
+const dartsTotal = () => dartsSum(turn.darts);
 const matchStarted = () => game.players.some(p => p.turns.length > 0);
 
 // ---- Scoreboard -------------------------------------------------------------
@@ -315,24 +319,17 @@ function createPlayerRows(player) {
 	statsRow.dataset.id = player.id;
 	statsRow.innerHTML = `
 		<td colspan="7" class="stats-cell"><div class="stats-line">
-			<div class="stats">
-				<span>Avg <b class="stat-average"></b></span>
-				<span>CO <b class="stat-checkout"></b></span>
-				<span>Leg darts <b class="stat-darts"></b></span>
-			</div>
+			<div class="stats"><span></span><span></span><span></span></div>
 			<div class="big-score"></div>
 		</div></td>`;
 
-	// With a mouse, the card lights up under the pointer where it opens the menu (see HOVER in the CSS).
+	// Tapping a player opens their menu beside the scores, and with a mouse the
+	// card lights up under the pointer to say so (see HOVER in the CSS). Not the
+	// history line: its turns, leg dots and finish have taps of their own.
 	const rows = [playerRow, statsRow, historyRow];
 	for (const row of [playerRow, statsRow]) {
 		row.addEventListener('mouseenter', () => rows.forEach(r => r.classList.add('card-hover')));
 		row.addEventListener('mouseleave', () => rows.forEach(r => r.classList.remove('card-hover')));
-	}
-
-	// Tapping a player opens their menu beside the scores. (Not the history line:
-	// its turns, leg dots and finish have taps of their own.)
-	for (const row of [playerRow, statsRow]) {
 		row.addEventListener('click', () => togglePlayerMenu(player.id));
 	}
 
@@ -368,7 +365,7 @@ function createPlayerRows(player) {
 		if (current.turns[index]?.hits || review) toggleReview(current, index);
 	});
 
-	return [playerRow, statsRow, historyRow];
+	return rows;
 }
 
 function renderScoreboard() {
@@ -402,9 +399,7 @@ function renderScoreboard() {
 
 		const isActive = index === game.active && game.winner === null;
 		if (isActive && !playerRow.classList.contains('active')) activeRows = rows;
-		playerRow.classList.toggle('active', isActive);
-		statsRow.classList.toggle('active', isActive);
-		historyRow.classList.toggle('active', isActive);
+		rows.forEach(row => row.classList.toggle('active', isActive));
 		// A dot by the name of whoever threw first this leg (with someone to throw after).
 		playerRow.classList.toggle('starts', index === game.starter && game.players.length > 1);
 		// Legs won over sets won, each beside what it takes. A one-set match
@@ -477,14 +472,7 @@ function layoutScores() {
 	scoresTable.classList.toggle('big', big);
 	// Only rows too many to fit (at the smallest size) make the list scroll.
 	scoresSection.classList.toggle('overflowing', scale < minScale);
-	updateScoreFades();
-}
-
-/** Fade the list's top or bottom edge where players are scrolled out of view. */
-function updateScoreFades() {
-	const { scrollTop, scrollHeight, clientHeight } = scoresSection;
-	scoresSection.classList.toggle('fade-top', scrollTop > 1);
-	scoresSection.classList.toggle('fade-bottom', scrollTop + clientHeight < scrollHeight - 1);
+	updateListFades(scoresSection);
 }
 
 // While the keypad folds away or comes back, the list is already laid out for
@@ -497,7 +485,7 @@ new ResizeObserver(() => {
 	layoutScores();
 	fitNames();
 }).observe(scoresSection);
-scoresSection.addEventListener('scroll', updateScoreFades, { passive: true });
+scoresSection.addEventListener('scroll', () => updateListFades(scoresSection), { passive: true });
 
 const atEnd = el => el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
 
@@ -757,7 +745,7 @@ function closePlayerMenu() {
 	menuFor = null;
 	if (!playerMenu.hidden) {
 		playerMenu.classList.add('closing');
-		Promise.allSettled(playerMenu.getAnimations().map(a => a.finished)).then(() => {
+		afterAnimations(playerMenu, () => {
 			if (playerMenu.classList.contains('closing')) playerMenu.hidden = true;
 		});
 	}
@@ -1436,10 +1424,6 @@ function openSettings() {
 	openDialog(settingsDialog);
 }
 
-function closeSettings() {
-	closeDialog(settingsDialog);
-}
-
 /** The game being played: its name, then how it's played ("First to 3 legs", "Double out"). */
 function gameSummary() {
 	const { legs, sets, practice, doubleOut } = game.settings;
@@ -1460,33 +1444,17 @@ function renderSettings() {
 	settingsSummary.replaceChildren(title, ...details.map(detail => ` · ${detail}`));
 
 	const items = game.players.map((player, index) => {
-		const item = document.createElement('li');
-		item.className = 'player-item';
-		item.innerHTML = `
-			<div class="player-field">
-				<span class="grip" role="button" aria-label="Drag to reorder"></span>
-				<input type="text" autocomplete="off" spellcheck="false" aria-label="Player name">
-				<button type="button" class="field-btn move-up" aria-label="Move up">&#x25B2;</button>
-				<button type="button" class="field-btn move-down" aria-label="Move down">&#x25BC;</button>
-				<button type="button" class="field-btn delete-player" aria-label="Remove player">&#10006;</button>
-			</div>`;
+		const item = playerItem(player.name, index, game.players.length, {
+			grip: true,
+			move: offset => slidePlayer(index, offset),
+			remove: () => commit(mode().removePlayer(game, index)),
+		});
 		const input = $('input', item);
-		input.value = player.name;
 		input.addEventListener('input', () => {
 			game = mode().renamePlayer(game, index, input.value);
 			persist();
 			renderScoreboard();
 		});
-		input.addEventListener('keydown', event => {
-			if (event.key === 'Enter') input.blur();
-		});
-		const up = $('.move-up', item);
-		const down = $('.move-down', item);
-		up.disabled = index === 0;
-		down.disabled = index === game.players.length - 1;
-		up.addEventListener('click', () => slidePlayer(index, -1));
-		down.addEventListener('click', () => slidePlayer(index, 1));
-		$('.delete-player', item).addEventListener('click', () => commit(mode().removePlayer(game, index)));
 		$('.grip', item).addEventListener('pointerdown', event => pressPlayer(event, item, index, $('.player-field', item)));
 		return item;
 	});
@@ -1495,15 +1463,35 @@ function renderSettings() {
 	updateListFades();
 }
 
-const DRAG_FROM = 6; // px the pointer moves before a press on a player becomes a drag
+/** A player's line in a list: their name in a field, with buttons to move and remove them (and a grip to drag them by). */
+function playerItem(name, index, count, { grip = false, move, remove }) {
+	const item = document.createElement('li');
+	item.className = 'player-item';
+	item.innerHTML = `
+		<div class="player-field">
+			${grip ? '<span class="grip" role="button" aria-label="Drag to reorder"></span>' : ''}
+			<input type="text" autocomplete="off" spellcheck="false" aria-label="Player name">
+			<button type="button" class="field-btn move-up" aria-label="Move up">&#x25B2;</button>
+			<button type="button" class="field-btn move-down" aria-label="Move down">&#x25BC;</button>
+			<button type="button" class="field-btn delete-player" aria-label="Remove player">&#10006;</button>
+		</div>`;
+	const input = $('input', item);
+	input.value = name;
+	input.addEventListener('keydown', event => {
+		if (event.key === 'Enter') input.blur();
+	});
+	const up = $('.move-up', item);
+	const down = $('.move-down', item);
+	up.disabled = index === 0;
+	down.disabled = index === count - 1;
+	up.addEventListener('click', () => move(-1));
+	down.addEventListener('click', () => move(1));
+	$('.delete-player', item).addEventListener('click', remove);
+	return item;
+}
 
 /** Whether a move is still settling (the list is rebuilt when it ends). */
 const sorting = () => playersList.classList.contains('sorting');
-
-/** Run `done` once el's transitions have finished. */
-function afterTransitions(el, done) {
-	Promise.allSettled(el.getAnimations().map(a => a.finished)).then(done);
-}
 
 /** Move up or down with the buttons: the two players slide past each other. */
 function slidePlayer(index, offset) {
@@ -1516,7 +1504,7 @@ function slidePlayer(index, offset) {
 	item.classList.add('moving');
 	item.style.transform = `translateY(${step}px)`;
 	other.style.transform = `translateY(${-step}px)`;
-	afterTransitions(item, () => {
+	afterAnimations(item, () => {
 		playersList.classList.remove('sorting');
 		commit(mode().movePlayer(game, index, offset));
 	});
@@ -1598,7 +1586,7 @@ function startDrag(event, field, item, from, startY) {
 		field.removeEventListener('pointercancel', end);
 		item.classList.replace('dragging', 'dropping');
 		item.style.transform = `translateY(${(to - from) * step}px)`;
-		afterTransitions(item, () => {
+		afterAnimations(item, () => {
 			playersList.classList.remove('sorting');
 			if (to !== from) commit(mode().movePlayerTo(game, from, to));
 			else renderSettings();
@@ -1632,11 +1620,11 @@ playersAddBtn.addEventListener('click', () => {
 });
 
 settingsDialog.addEventListener('click', event => {
-	const action = event.target.closest('[data-action]')?.dataset.action;
+	const action = actionOf(event);
 	if (action === 'new-game') {
 		openNewGame(settingsDialog);
 	} else if (action === 'close' || event.target === settingsDialog) {
-		closeSettings();
+		closeDialog(settingsDialog);
 	} else if (action === 'visuals') {
 		openVisuals();
 	}
@@ -1820,35 +1808,20 @@ function renderPlayersStep() {
 	if (ngForm.solo) return;
 
 	const items = ngForm.names.map((name, index) => {
-		const item = document.createElement('li');
-		item.className = 'player-item';
-		item.innerHTML = `
-			<div class="player-field">
-				<input type="text" autocomplete="off" spellcheck="false" aria-label="Player name">
-				<button type="button" class="field-btn move-up" aria-label="Move up">&#x25B2;</button>
-				<button type="button" class="field-btn move-down" aria-label="Move down">&#x25BC;</button>
-				<button type="button" class="field-btn delete-player" aria-label="Remove player">&#10006;</button>
-			</div>`;
+		const item = playerItem(name, index, ngForm.names.length, {
+			move(offset) {
+				const names = ngForm.names;
+				[names[index], names[index + offset]] = [names[index + offset], names[index]];
+				renderPlayersStep();
+			},
+			remove() {
+				ngForm.names.splice(index, 1);
+				renderPlayersStep();
+			},
+		});
 		const input = $('input', item);
-		input.value = name;
 		input.placeholder = `Player ${index + 1}`;
 		input.addEventListener('input', () => { ngForm.names[index] = input.value; });
-		input.addEventListener('keydown', event => {
-			if (event.key === 'Enter') input.blur();
-		});
-		const move = offset => {
-			const names = ngForm.names;
-			[names[index], names[index + offset]] = [names[index + offset], names[index]];
-			renderPlayersStep();
-		};
-		$('.move-up', item).disabled = index === 0;
-		$('.move-down', item).disabled = index === ngForm.names.length - 1;
-		$('.move-up', item).addEventListener('click', () => move(-1));
-		$('.move-down', item).addEventListener('click', () => move(1));
-		$('.delete-player', item).addEventListener('click', () => {
-			ngForm.names.splice(index, 1);
-			renderPlayersStep();
-		});
 		return item;
 	});
 	draftList.replaceChildren(...items);
@@ -1964,7 +1937,7 @@ soloName.addEventListener('keydown', event => {
 });
 
 newGameDialog.addEventListener('click', event => {
-	const action = event.target.closest('[data-action]')?.dataset.action;
+	const action = actionOf(event);
 	if (action === 'next') {
 		if (ngForm.step === 'players') {
 			startNewGame();
@@ -2056,7 +2029,7 @@ function closeVisuals() {
 }
 
 visualsPanel.addEventListener('click', event => {
-	const action = event.target.closest('[data-action]')?.dataset.action;
+	const action = actionOf(event);
 	if (action === 'visuals-done') {
 		closeVisuals();
 	} else if (action === 'visuals-reset') {
@@ -2106,7 +2079,7 @@ function showWinner() {
 }
 
 winnerDialog.addEventListener('click', event => {
-	const action = event.target.closest('[data-action]')?.dataset.action;
+	const action = actionOf(event);
 	if (action === 'rematch') {
 		clearTurn();
 		commit(mode().newMatch(game));
@@ -2176,7 +2149,7 @@ function confirmUndo({ title, detail }) {
 }
 
 confirmDialog.addEventListener('click', event => {
-	const action = event.target.closest('[data-action]')?.dataset.action;
+	const action = actionOf(event);
 	if (action === 'undo') travel(History.undo(history, game), 'undo');
 	if (action || event.target === confirmDialog) closeDialog(confirmDialog);
 });
@@ -2218,7 +2191,7 @@ function hideToast() {
 	toastSticky = false;
 	if (toast.hidden) return;
 	toast.classList.add('leaving');
-	Promise.allSettled(toast.getAnimations().map(a => a.finished)).then(() => {
+	afterAnimations(toast, () => {
 		if (toast.classList.contains('leaving')) toast.hidden = true;
 	});
 }
@@ -2250,8 +2223,7 @@ document.addEventListener('keydown', event => {
 	}
 
 	if (event.key === 'Escape' && dialogs.length) {
-		if (!settingsDialog.hidden) closeSettings();
-		for (const dialog of [winnerDialog, confirmDialog, statsDialog, newGameDialog]) closeDialog(dialog);
+		for (const dialog of [settingsDialog, winnerDialog, confirmDialog, statsDialog, newGameDialog]) closeDialog(dialog);
 		return;
 	}
 	if (dialogs.length || event.target.closest('input, select, textarea')) return;
