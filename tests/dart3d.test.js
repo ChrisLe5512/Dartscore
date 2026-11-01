@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dartLayout, dartPose, dartShape, tapDistance } from '../js/dart3d.js';
+import { dartLayout, dartOrder, dartPose, dartShape, tapDistance } from '../js/dart3d.js';
 
 const straight = { lean: [0, 0], roll: 0 };
 // The middle of the shaft's far end.
@@ -83,25 +83,27 @@ test('dart: it leans back towards the player, so outer darts splay out less', ()
 	assert.ok(splay(0.85) < tailEnd(dartShape(0.85, 0, straight))[0] - 85);
 });
 
-test('dart: alone, it sits as it would; in a tight group, each is knocked clear', () => {
-	const alone = dartLayout([{ x: 0.3, y: -0.4 }]);
-	assert.deepEqual(alone[0].pose, dartPose(0.3, -0.4));
-
-	const hits = [{ x: 0.3, y: -0.4 }, { x: 0.31, y: -0.39 }, { x: 0.3, y: -0.4 }];
-	const layout = dartLayout(hits);
-	assert.deepEqual(layout[0].pose, dartPose(0.3, -0.4)); // the first is already there
-	const tail = (hit, { pose }) => { const { end } = dartShape(hit.x, hit.y, pose); return [end.cx, end.cy]; };
-	const tails = hits.map((hit, index) => tail(hit, layout[index]));
-	for (const [a, b] of [[0, 1], [0, 2], [1, 2]]) {
-		assert.ok(Math.hypot(tails[a][0] - tails[b][0], tails[a][1] - tails[b][1]) > 8, `tails ${a} and ${b}`);
-	}
+test('dart: its angle is its own, whatever else is in the board', () => {
+	const near = { x: 0.3, y: -0.4 };
+	const layout = dartLayout([near, { x: 0.305, y: -0.395 }, { x: 0.295, y: -0.4 }]);
+	assert.deepEqual(layout[0].pose, dartPose(near.x, near.y));
+	assert.deepEqual(layout[1].pose, dartPose(0.305, -0.395));
+	assert.deepEqual(dartLayout([near])[0].pose, dartPose(near.x, near.y));
 });
 
-test('dart: a far-off neighbour changes nothing; a dart stays put when a later one lands', () => {
-	const near = { x: 0.3, y: -0.4 };
-	assert.deepEqual(dartLayout([{ x: -0.6, y: 0.5 }, near])[1].pose, dartPose(near.x, near.y));
-	const first = dartLayout([near])[0];
-	assert.deepEqual(dartLayout([near, { x: 0.3, y: -0.39 }])[0], first);
+test('dart: where two cross on screen, the nearer the eye there is drawn in front', () => {
+	const pose = { lean: [0, -0.3], roll: 0 }; // tails well up
+	const low = { x: 0, y: -0.3 }, high = { x: 0, y: -0.4 };
+	const place = () => ({ pose, mark: [0, 0] });
+	// The low dart's tail passes in front of the high dart's point, whichever was thrown first.
+	assert.deepEqual(dartOrder([high, low], [place(), place()]), [0, 1]);
+	assert.deepEqual(dartOrder([low, high], [place(), place()]), [1, 0]);
+});
+
+test('dart: apart from that, the later thrown is in front', () => {
+	const pose = { lean: [0, 0], roll: 0 };
+	const place = () => ({ pose, mark: [0, 0] });
+	assert.deepEqual(dartOrder([{ x: 0.2, y: 0 }, { x: 0.2, y: 0 }], [place(), place()]), [0, 1]);
 });
 
 test('dart: markers in a tight group do not overlap', () => {

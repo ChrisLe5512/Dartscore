@@ -4,7 +4,7 @@
 
 import { BOARD_SECTORS, BOARD_STYLE, DART_VIEW } from './config.js';
 import { dartColor, RINGS } from './board.js';
-import { dartLayout, dartShape } from './dart3d.js';
+import { dartLayout, dartOrder, dartShape } from './dart3d.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -314,10 +314,20 @@ function isMoving(group, now) {
 		|| Boolean(lift && now - lift.since < DART_VIEW.liftMs);
 }
 
+/** Put the darts in depth order, back to front, under the markers; one in the air is nearest of all. */
+function stackDarts(layer) {
+	const depth = group => (group.inAir || group.pulled ? Infinity : group.rank);
+	const before = layer.querySelector('.mark-place');
+	[...layer.querySelectorAll('.dart')]
+		.sort((a, b) => depth(a) - depth(b))
+		.forEach(group => layer.insertBefore(group, before));
+}
+
 /** Move the darts on, a frame at a time, until none is moving. */
 function moveDarts(layer) {
 	const now = performance.now();
 	let more = false;
+	let landed = false;
 	for (const group of layer.querySelectorAll('.dart')) {
 		const motion = motionOf(group, now);
 		if (!motion) {
@@ -325,9 +335,12 @@ function moveDarts(layer) {
 			continue;
 		}
 		paintDart(group, group.hit, motion);
+		if (group.inAir && !motion.inAir) landed = true;
+		group.inAir = Boolean(motion.inAir);
 		if (isMoving(group, now)) more = true;
 		else thrown.delete(group.dataset.dart);
 	}
+	if (landed) stackDarts(layer);
 	if (more) requestAnimationFrame(() => moveDarts(layer));
 	else moving.delete(layer);
 }
@@ -387,6 +400,7 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 	const at = ({ x, y }) => ({ transform: `translate(${round(x * 100)} ${round(y * 100)})` });
 
 	const layout = dartLayout(hits);
+	const order = dartOrder(hits, layout);
 	// All the darts first, then all the markers, so no dart covers a number.
 	const darts = hits.map((hit, index) => {
 		const id = dartId(hit);
@@ -394,13 +408,16 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 		group.hit = hit;
 		group.pose = layout[index].pose;
 		group.index = index;
+		group.rank = order.indexOf(index);
 		if (landing(index) && !still()) thrown.set(id, now);
 		// Picked up: out a little; put back: in again.
 		const lift = editing === index ? DART_VIEW.lift : 0;
 		if ((lifted.get(id)?.to ?? 0) !== lift) {
 			lifted.set(id, { from: still() ? lift : liftAt(id, now), to: lift, since: now });
 		}
-		paintDart(group, hit, motionOf(group, now));
+		const motion = motionOf(group, now);
+		group.inAir = Boolean(motion.inAir);
+		paintDart(group, hit, motion);
 		if (isMoving(group, now)) startMoving(layer);
 		return group;
 	});
@@ -434,4 +451,5 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 	const leaving = [...layer.children].filter(node => node.pulled || node.classList.contains('leaving'));
 	const isDart = node => node.classList.contains('dart');
 	layer.replaceChildren(...darts, ...leaving.filter(isDart), ...marks, ...leaving.filter(node => !isDart(node)));
+	stackDarts(layer);
 }

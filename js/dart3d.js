@@ -42,11 +42,8 @@ const MARK_ROOM = 7;
 const BODY_ROOM = 4;
 // The angles a marker tries round its point, its best side first.
 const MARK_TURNS = [0, 0.7, -0.7, 1.4, -1.4, 2.1, -2.1, 2.8, -2.8];
-// Where along the dart the flights are, how far apart they must be to clear
-// each other (board units), and the most a dart is knocked aside (tan of the angle).
-const FLIGHT_AT = 0.85;
-const FLIGHTS_CLEAR = 22;
-const MAX_KNOCK = 0.35;
+// Points checked along each dart when working out which is in front.
+const DEPTH_STEPS = 16;
 const ROUND = 14; // points round each end of a part
 
 /** The same random numbers for the same spot every time: a dart keeps its pose when redrawn. */
@@ -186,38 +183,12 @@ function fromSegment(p, a, b) {
 }
 
 /**
- * How a turn's darts sit together. Darts can't share a spot: a dart landing in
- * a tight group is knocked aside by those already there, so each leans away
- * from the earlier ones until their flights clear (within reason), and each
- * marker takes a free spot. Only the look: where a dart scores doesn't change.
- * hits: [{ x, y }] as fractions of the radius, in the order thrown. Returns
- * [{ pose, mark: [x, y] }], a dart's own pose as in dartPose when nothing's near.
+ * How a turn's darts sit together: each its own pose, and each marker in a
+ * free spot. hits: [{ x, y }] as fractions of the radius, in the order thrown.
+ * Returns [{ pose, mark: [x, y] }].
  */
 export function dartLayout(hits, view = DART_VIEW) {
-	const reach = view.length * FLIGHT_AT;
-	const poses = [];
-	const tails = [];
-	for (const { x, y } of hits) {
-		const pose = dartPose(x, y, view);
-		const tailOf = lean => [x * 100 + lean[0] * reach, y * 100 + lean[1] * reach];
-		let lean = pose.lean;
-		// Twice round: moving clear of one can move it towards another.
-		for (let pass = 0; pass < 2; pass++) {
-			for (const other of tails) {
-				const gap = add(tailOf(lean), other, -1);
-				const apart = Math.hypot(...gap);
-				if (apart >= FLIGHTS_CLEAR) continue;
-				const way = apart > 1e-6 ? gap.map(v => v / apart) : [Math.cos(pose.roll * 4), Math.sin(pose.roll * 4)];
-				lean = add(lean, way, (FLIGHTS_CLEAR - apart) / reach);
-			}
-		}
-		const knock = add(lean, pose.lean, -1);
-		const size = Math.hypot(...knock);
-		if (size > MAX_KNOCK) lean = add(pose.lean, knock, MAX_KNOCK / size);
-		poses.push({ ...pose, lean });
-		tails.push(tailOf(lean));
-	}
-
+	const poses = hits.map(({ x, y }) => dartPose(x, y, view));
 	const bodies = hits.map(({ x, y }, index) => {
 		const { tip, end } = dartShape(x, y, poses[index], {}, view);
 		return [tip, [end.cx, end.cy]];
@@ -238,6 +209,34 @@ export function dartLayout(hits, view = DART_VIEW) {
 		marks.push(spots.find(free) ?? spots[0]);
 	});
 	return poses.map((pose, index) => ({ pose, mark: marks[index].map(v => v / 100) }));
+}
+
+/**
+ * The order to draw a turn's darts, back to front (indexes into hits). Where
+ * two cross on screen, the one nearer the eye there goes in front, as a low
+ * dart's tail passes in front of the point of the dart above it. Otherwise,
+ * the later thrown goes in front.
+ */
+export function dartOrder(hits, layout, view = DART_VIEW) {
+	const scale = z => view.eye / (view.eye - z);
+	const lines = hits.map(({ x, y }, index) => {
+		const axis = norm([...layout[index].pose.lean, 1]);
+		return Array.from({ length: DEPTH_STEPS + 1 }, (_, step) => {
+			const p = add([x * 100, y * 100, 0], axis, step / DEPTH_STEPS * view.length);
+			return { at: [p[0] * scale(p[2]), p[1] * scale(p[2])], z: p[2] };
+		});
+	});
+	/** Whether dart a is nearer the eye than dart b where they come closest on screen. */
+	const inFront = (a, b) => {
+		let best = Infinity, depth = 0;
+		for (const p of lines[a]) for (const q of lines[b]) {
+			const apart = Math.hypot(p.at[0] - q.at[0], p.at[1] - q.at[1]);
+			if (apart < best) [best, depth] = [apart, p.z - q.z];
+		}
+		return depth === 0 ? a > b : depth > 0;
+	};
+	const wins = index => hits.filter((_, other) => other !== index && inFront(index, other)).length;
+	return hits.map((_, index) => index).sort((a, b) => wins(a) - wins(b) || a - b);
 }
 
 /**
