@@ -1751,6 +1751,7 @@ body.dismissing * {
 /* CALCULATOR */
 
 .calc-section {
+	position: relative;
 	height: 40%;
 	flex: none;
 	overflow: hidden;
@@ -1759,11 +1760,16 @@ body.dismissing * {
 	font-weight: 500;
 }
 
+/* Its full size whatever the panel's doing, held to the panel's moving edge, so
+   the keypad slides out of sight as a whole (the keys don't change size). */
 .calc-tbl {
+	position: absolute;
+	top: 0;
+	left: 0;
 	table-layout: fixed;
 	border-spacing: 5px;
 	width: 100%;
-	height: 100%;
+	height: 40vmin;
 	text-align: center;
 	font-size: calc(6 * var(--u));
 	text-shadow: 0 0 calc(0.5 * var(--u)) black;
@@ -3081,6 +3087,8 @@ td.calc-score:not(.disabled) {
 	   the screen's, so the keypad's columns line up with Settings, the darts card, Bust
 	   and Done above them (the table's own 5px gaps count towards it). */
 	.calc-tbl {
+		width: calc(var(--band) * 0.82);
+		height: calc(var(--band) - var(--line)); /* the band's top border is the panel's too */
 		padding: max(0px, calc(var(--side-pad) - 5px));
 	}
 
@@ -3259,6 +3267,11 @@ td.calc-score:not(.disabled) {
 
 	aside.keypad-hidden .scores-section {
 		height: auto;
+	}
+
+	.calc-tbl {
+		width: 100vw;
+		height: var(--band);
 	}
 
 	.calc-section {
