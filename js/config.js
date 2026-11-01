@@ -87,6 +87,9 @@ export const DART_VIEW = Object.freeze({
 // marker or its point to pick that dart up. The marker is 0.03 from its middle to its edge.
 export const MARK_REACH = 0.05;
 
+// Board layout throws three test darts as it opens: the time between them.
+export const TEST_DART_GAP_MS = 220;
+
 // How long a status toast stays on screen.
 export const TOAST_MS = 2200;
 

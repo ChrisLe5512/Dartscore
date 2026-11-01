@@ -94,6 +94,17 @@ export function hitTest(dx, dy, radius, rings = DEFAULT_RINGS) {
 	return makeDart(spot.sector, multiplier);
 }
 
+/** A dart in a random scoring bed, with where it landed (as a fraction of the radius). */
+export function randomDart(rings = DEFAULT_RINGS, random = Math.random) {
+	for (;;) {
+		const angle = random() * 2 * Math.PI;
+		const reach = Math.sqrt(random()); // even over the board's area, not bunched at the middle
+		const [x, y] = [Math.cos(angle) * reach, Math.sin(angle) * reach];
+		const dart = hitTest(x, y, 1, rings);
+		if (dart?.value > 0) return { ...dart, x, y };
+	}
+}
+
 export function isOnBoard(dx, dy, radius) {
 	return Math.hypot(dx, dy) / radius * 100 <= 100;
 }

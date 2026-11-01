@@ -4,9 +4,9 @@
 
 import {
 	BOARD_HIT_COLORS, BOARD_LAYOUT, BOARD_LAYOUT_LIMITS, BOARD_OUTLINE_COLORS, BOARD_OUTLINE_LIMITS, BOARD_WIRE_LIMITS,
-	DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, TOAST_MS,
+	DARTS_PER_TURN, DEFAULT_SETTINGS, MARK_REACH, MAX_LEGS, MAX_NAME_LENGTH, MAX_PLAYERS, MAX_SETS, SCORES_LAYOUT, TEST_DART_GAP_MS, TOAST_MS,
 } from './config.js';
-import { boardRings, hitTest, isOnBoard, locate } from './board.js';
+import { boardRings, hitTest, isOnBoard, locate, randomDart } from './board.js';
 import { getCheckouts } from './checkout.js';
 import { dartLayout, tapDistance } from './dart3d.js';
 import { boardRadius, boardStyle as savedBoardStyle, drawBoard, drawMarks, lightSegments, segmentKey } from './dartboard.js';
@@ -2001,6 +2001,19 @@ function openVisuals() {
 	Object.assign(turn, { darts: [], editing: null });
 	renderDarts();
 	visualsPanel.focus({ preventScroll: true });
+	throwTestDarts();
+}
+
+/** Three darts at random, one after another, to see the board's look with darts in it. */
+function throwTestDarts() {
+	const opened = realDarts;
+	for (let i = 1; i <= DARTS_PER_TURN; i++) {
+		setTimeout(() => {
+			if (realDarts !== opened || turn.darts.length >= DARTS_PER_TURN) return;
+			turn.darts.push(randomDart(rings));
+			renderDarts([turn.darts.length - 1]);
+		}, i * TEST_DART_GAP_MS);
+	}
 }
 
 function closeVisuals() {

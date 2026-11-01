@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { boardRings, DEFAULT_RINGS, hitTest, locate, makeDart } from '../js/board.js';
+import { boardRings, DEFAULT_RINGS, hitTest, locate, makeDart, randomDart } from '../js/board.js';
 import { canCheckout, getCheckouts } from '../js/checkout.js';
 import { boardStyle } from '../js/dartboard.js';
 
@@ -127,4 +127,12 @@ test('board style: darts are solid by default, and older saves get that too', ()
 	assert.equal(boardStyle().seeThrough, false);
 	assert.equal(boardStyle({ outline: 2 }).seeThrough, false);
 	assert.equal(boardStyle({ seeThrough: true }).seeThrough, true);
+});
+
+test('randomDart lands in a scoring bed, where it says it did', () => {
+	for (let i = 0; i < 300; i++) {
+		const dart = randomDart();
+		assert.ok(dart.value > 0);
+		assert.equal(hitTest(dart.x, dart.y, 1).label, dart.label);
+	}
 });
