@@ -2038,7 +2038,8 @@ td.back-score {
 	font-size: 6vmin;
 }
 
-/* The darts card: as tall as its three darts, with Clear across the top. */
+/* The darts card: as tall as what's in it. The player's dart until the first
+   one lands; then Clear across the top and the three slots. */
 .darts {
 	display: flex;
 	flex-direction: column;
@@ -2053,6 +2054,46 @@ td.back-score {
 	background: linear-gradient(#2a2a2a, #161616);
 	border: var(--border-muted);
 	border-radius: var(--radius);
+}
+
+.darts-reveal {
+	display: grid;
+	grid-template-rows: 0fr;
+	width: 100%;
+	opacity: 0;
+	transition: grid-template-rows var(--medium) var(--ease-out), opacity var(--medium) var(--ease-out);
+}
+
+/* Cut off while it unfolds; after that, a slot's glow can reach past the card. */
+.darts-reveal > div {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.darts:not(.has-darts) .darts-idle,
+.darts.has-darts .darts-turn {
+	grid-template-rows: 1fr;
+	opacity: 1;
+}
+
+.darts:not(.has-darts) .darts-idle > div,
+.darts.has-darts .darts-turn > div {
+	animation: darts-unfolded 0s linear var(--medium) forwards;
+}
+
+@keyframes darts-unfolded {
+	to { overflow: visible; }
+}
+
+.idle-dart {
+	display: block;
+	flex: none;
+	height: calc(30 * var(--u));
+	margin: calc(1.2 * var(--u)) 0 calc(0.8 * var(--u));
+	filter: drop-shadow(0 0 calc(0.5 * var(--u)) black);
 }
 
 .darts-clear {

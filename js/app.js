@@ -1008,6 +1008,7 @@ function renderKeypad() {
 // ---- Dartboard and darts column ----------------------------------------------
 
 const board = $('#dartboard');
+const dartsCard = $('.darts');
 const dartSpans = $$('.darts span');
 const doneBtn = $('.done-btn');
 const dartsClearBtn = $('.darts-clear');
@@ -1174,6 +1175,7 @@ function renderDarts(pop = []) {
 	renderMarks(pop);
 
 	const hasDarts = turn.darts.length > 0;
+	dartsCard.classList.toggle('has-darts', hasDarts);
 	dartsClearBtn.disabled = !hasDarts;
 	// Done is a ✓ like the keypad's, with what the darts make beside it.
 	doneTotal.textContent = hasDarts ? mode().dartsValue(game, turn.darts) : '';
