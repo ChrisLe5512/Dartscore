@@ -146,19 +146,29 @@ const BEST_FROM = 2; // visits before the best one is marked
 
 /**
  * Class names for each turn in a history line: 'bust', 'zero', 'finish',
- * 'max' (180), 'ton-forty' (140+), 'ton' (100+)
- * and 'best' (the highest visit so far, once there are a few).
+ * 'max' (180), 'ton-forty' (140+), 'ton' (100+), 'best' (the top visit of its
+ * leg, once there are a few) and 'best-game' (the top visit of all the player's
+ * legs, once there are two). A tie doesn't take it: the first to reach a score
+ * keeps the star until it's beaten.
  */
 export function historyMarks(turns) {
-	const best = turns.length >= BEST_FROM ? Math.max(...turns.map(t => t.score)) : 0;
-	return turns.map(t => {
+	const firstTop = indexes => {
+		const top = Math.max(...indexes.map(i => turns[i].score));
+		return top > 0 ? indexes.find(i => turns[i].score === top) : -1;
+	};
+	const legs = new Map();
+	turns.forEach((t, i) => legs.set(t.leg ?? 0, [...(legs.get(t.leg ?? 0) ?? []), i]));
+	const legBest = new Set([...legs.values()].filter(list => list.length >= BEST_FROM).map(firstTop));
+	const gameBest = legs.size > 1 ? firstTop(turns.map((_, i) => i)) : -1;
+	return turns.map((t, index) => {
 		const marks = [];
 		if (t.bust) marks.push('bust');
 		else if (t.score === 0) marks.push('zero');
 		if (t.checkout) marks.push('finish'); // not 'checkout': that's the suggestion beside the history
 		const tier = TIERS.find(([min]) => t.score >= min);
 		if (tier) marks.push(tier[1]);
-		if (best > 0 && t.score === best) marks.push('best');
+		if (index === gameBest) marks.push('best-game');
+		else if (legBest.has(index)) marks.push('best');
 		return marks;
 	});
 }

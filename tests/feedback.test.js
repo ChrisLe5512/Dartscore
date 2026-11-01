@@ -146,3 +146,21 @@ test('what sending a turn would do has a word for a bust, leg, set and match, no
 	assert.equal(word(onLast({ legs: 1, sets: 2 }), 40), 'Set');
 	assert.equal(word(onLast({ legs: 1, sets: 1 }), 40), 'Game');
 });
+
+test('the star: one per leg, the first to reach the top score, and green for the game once there are two legs', () => {
+	const marks = turns => historyMarks(turns).map(list => list.filter(m => m.startsWith('best')));
+	// A tie doesn't take it.
+	assert.deepEqual(marks([{ score: 60, leg: 0 }, { score: 85, leg: 0 }, { score: 85, leg: 0 }, { score: 85, leg: 0 }]), [[], ['best'], [], []]);
+	// The first leg alone: the leg's star. Then the top of them all goes green; each other leg keeps its own.
+	assert.deepEqual(marks([
+		{ score: 100, leg: 0 }, { score: 40, leg: 0 },
+		{ score: 60, leg: 1 }, { score: 45, leg: 1 },
+	]), [['best-game'], [], ['best'], []]);
+	// Tying the game's top in a later leg: that leg's star only.
+	assert.deepEqual(marks([
+		{ score: 100, leg: 0 }, { score: 40, leg: 0 },
+		{ score: 100, leg: 1 }, { score: 45, leg: 1 },
+	]), [['best-game'], [], ['best'], []]);
+	// Nothing scored: no star.
+	assert.deepEqual(marks([{ score: 0, leg: 0 }, { score: 0, leg: 0 }]), [[], []]);
+});

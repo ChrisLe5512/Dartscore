@@ -3461,13 +3461,13 @@ td.calc-score:not(.disabled) {
 	box-shadow: 0 0 0 calc(0.3vmin * var(--s)) color-mix(in srgb, var(--text-soft) 45%, transparent);
 }
 
-/* The player's best visit: a small star on its corner like a badge, taking
-   no room and leaving its colour alone. */
-.history span.best b {
+/* The player's best visit of the leg: a small star on its corner like a badge,
+   taking no room and leaving its colour alone. Of the game: a green one. */
+.history span:is(.best, .best-game) b {
 	position: relative;
 }
 
-.history span.best b::before {
+.history span:is(.best, .best-game) b::before {
 	content: '\2605';
 	position: absolute;
 	top: -0.22em;
@@ -3477,4 +3477,8 @@ td.calc-score:not(.disabled) {
 	line-height: 1;
 	color: var(--text-soft);
 	text-shadow: none;
+}
+
+.history span.best-game b::before {
+	color: var(--checkout);
 }
