@@ -718,6 +718,12 @@ aside.keypad-instant :is(.scores-section, .calc-section) {
 	background: linear-gradient(var(--go-top), var(--go-bottom));
 }
 
+/* As tall as the legs and sets steppers beside it, so their labels line up too. */
+.match-format {
+	box-sizing: border-box;
+	height: 5.5vmin;
+}
+
 /* Who's playing: Solo is one name; otherwise a list to add to and reorder. */
 .segmented.who {
 	display: flex;
