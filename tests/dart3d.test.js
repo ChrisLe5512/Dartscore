@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DART_VIEW } from '../js/config.js';
-import { dartLayout, dartOrder, dartPose, dartSee, dartShape, drawOrder, lastTouched, tapDistance } from '../js/dart3d.js';
+import { dartLayout, dartOrder, dartPose, dartSee, dartShape, lastTouched, tapDistance } from '../js/dart3d.js';
 
 const straight = { lean: [0, 0], roll: 0 };
 // The middle of the shaft's far end.
@@ -165,13 +165,6 @@ test('dart: the last touched is the highest numbered, whichever slot it is in', 
 	// A past turn's have no numbers.
 	assert.equal(lastTouched([{ x: 0, y: 0 }, { x: 0.1, y: 0 }]), null);
 	assert.equal(lastTouched([]), null);
-});
-
-test('dart: the last touched is drawn on top, and the rest keep their usual order', () => {
-	assert.deepEqual(drawOrder([2, 0, 1], 0), [2, 1, 0]);
-	assert.deepEqual(drawOrder([2, 0, 1], 1), [2, 0, 1]);
-	// None touched: the usual order, untouched.
-	assert.deepEqual(drawOrder([2, 0, 1], null), [2, 0, 1]);
 });
 
 test('dart: where two cross on screen, the nearer the eye there is drawn in front', () => {

@@ -328,11 +328,6 @@ export function dartOrder(hits, layout, view = DART_VIEW) {
 	return hits.map((_, index) => index).sort((a, b) => wins(a) - wins(b) || a - b);
 }
 
-/** The order to draw them in: their usual order, with the last touched (if any) on top for now. */
-export function drawOrder(order, touched) {
-	return touched === null ? order : [...order.filter(index => index !== touched), touched];
-}
-
 /**
  * How far a tap at [px, py] is from a dart (fractions of the radius): from its
  * point, its marker or its body, point to shaft end. The body is narrow, so

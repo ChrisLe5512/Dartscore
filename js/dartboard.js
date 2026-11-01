@@ -4,7 +4,7 @@
 
 import { BOARD_SECTORS, BOARD_STYLE, DART_VIEW } from './config.js';
 import { dartColor, RINGS } from './board.js';
-import { dartLayout, dartOrder, dartSee, dartShape, drawOrder, lastTouched, spotTurns } from './dart3d.js';
+import { dartLayout, dartOrder, dartSee, dartShape, lastTouched, spotTurns } from './dart3d.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -211,19 +211,12 @@ const ellipse = ({ cx, cy, rx, ry, angle }, attrs, parent) =>
 	el('ellipse', { cx: round(cx), cy: round(cy), rx: round(rx), ry: round(Math.max(ry, 0.01)), transform: `rotate(${round(angle)} ${round(cx)} ${round(cy)})`, ...attrs }, parent);
 
 /**
- * Draw a dart into its group (emptied first), back to front: its shadow,
- * point, barrel, shaft, then the flight, nearest the eye. No outlines: the
- * steel is shaded as cylinders lit from the top left, the barrel's end
- * facing you as a shaded disc, and each vane from its root out.
+ * Draw a dart's shadow, point, barrel and shaft, back to front. No outlines:
+ * the steel is shaded as cylinders lit from the top left, the barrel's end
+ * facing you as a shaded disc.
  */
-function paintDart(group, { x, y }, motion = {}) {
-	const shape = dartShape(x, y, group.pose, motion);
-	group.replaceChildren();
-	const defs = el('defs', {}, group);
-	// The dart itself, see-through as one (overlapping pieces don't darken).
-	let body = group;
-	const polygons = (list, attrs) => list.forEach(piece => el('polygon', { points: points(piece), ...attrs }, body));
-	if (!motion.inAir) {
+function paintBody(group, defs, shape, inAir) {
+	if (!inAir) {
 		// The dart's own shape as one flat layer (no darker overlaps), faded
 		// by a mask from the point to nothing before the flight.
 		const fade = fadeMask(defs, [[0, 'white'], [0.4, '#999'], [0.75, '#444'], [1, 'black']], [shape.shadow.from, shape.shadow.to]);
@@ -233,7 +226,9 @@ function paintDart(group, { x, y }, motion = {}) {
 	const across = [shape.across.from, shape.across.to];
 	const steel = gradient(defs, [[0, '#121417'], [0.42, '#3d4249'], [0.72, '#a3a9b1'], [0.86, '#5e646c'], [1, '#202328']], across);
 	const black = gradient(defs, [[0, '#030303'], [0.55, '#18181a'], [0.76, '#4a4c50'], [1, '#0b0b0b']], across);
-	body = el('g', { class: 'dart-body' }, group);
+	// The dart itself, see-through as one (overlapping pieces don't darken).
+	const body = el('g', { class: 'dart-body' }, group);
+	const polygons = (list, attrs) => list.forEach(piece => el('polygon', { points: points(piece), ...attrs }, body));
 	// The point black, so it doesn't look like its shadow.
 	polygons([shape.point], { class: 'dart-point' });
 	polygons([shape.nose, shape.barrel], { class: 'dart-steel', fill: steel });
@@ -249,16 +244,31 @@ function paintDart(group, { x, y }, motion = {}) {
 	// the fins, but still reaches them, so they don't float.
 	const fade = fadeMask(defs, [[0, 'white'], [0.5, '#ccc'], [1, '#777']], [[shape.face.cx, shape.face.cy], [shape.end.cx, shape.end.cy]]);
 	el('polygon', { class: 'dart-shaft', fill: black, mask: fade, points: points(shape.shaft) }, body);
-	// The flight: one see-through layer, so where the vanes meet doesn't darken.
+}
+
+/** Draw a dart's flight: one see-through layer, so where the vanes meet doesn't darken. Each vane is shaded from its root out. */
+function paintFlight(group, defs, shape) {
 	const flight = el('g', { class: 'dart-flight' }, group);
 	for (const { points: vane, root, edge } of shape.vanes) {
 		const fill = gradient(defs, [[0, 'color-mix(in srgb, var(--dart-flight) 45%, black)'], [0.5, 'var(--dart-flight)'], [1, 'color-mix(in srgb, var(--dart-flight) 70%, white)']], [root, edge]);
 		el('polygon', { points: points(vane), fill }, flight);
 	}
+}
+
+/**
+ * Draw a dart into its group (emptied first): body, then flight, or just the
+ * one in group.part ('body' or 'flight') for a dart split into two groups.
+ */
+function paintDart(group, { x, y }, motion = {}) {
+	const shape = dartShape(x, y, group.pose, motion);
+	group.replaceChildren();
+	const defs = el('defs', {}, group);
+	if (group.part !== 'flight') paintBody(group, defs, shape, motion.inAir);
+	if (group.part !== 'body') paintFlight(group, defs, shape);
 	// A past turn's darts are fainter.
 	const faint = group.classList.contains('review') ? 0.6 : 1;
 	group.style.opacity = (motion.opacity ?? 1) * faint;
-	// See-through: lifted, or its flight covering another dart.
+	// See-through: lifted, or its flight on another dart.
 	group.style.setProperty('--see', round(motion.see ?? 0));
 	group.classList.toggle('seeing', (motion.see ?? 0) > 0);
 }
@@ -384,7 +394,10 @@ function startMoving(layer) {
 function takeOut(layer, darts) {
 	if (!darts.length) return;
 	const now = performance.now();
-	darts.sort((a, b) => a.index - b.index).forEach((group, order) => {
+	// A dart in two groups (its body and flight) goes as one.
+	const going = [...new Set(darts.map(group => group.index))].sort((a, b) => a - b);
+	darts.forEach(group => {
+		const order = going.indexOf(group.index);
 		const mark = layer.querySelector(`.mark-place[data-dart="${group.dataset.dart}"]`);
 		if (group.classList.contains('review') || still()) {
 			fadeOut(group);
@@ -430,17 +443,11 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 	const order = dartOrder(hits, layout);
 	const touched = lastTouched(hits);
 	const see = dartSee(hits, layout, order, touched);
-	const drawn = drawOrder(order, touched);
 	// A dart on its way in changes nothing until it lands.
 	const seeFrom = hits.some((_, index) => landing(index)) && !still() ? now + DART_VIEW.flightMs : now;
 	// All the darts first, then all the markers, so no dart covers a number.
-	const darts = hits.map((hit, index) => {
+	const darts = hits.flatMap((hit, index) => {
 		const id = idList[index];
-		const group = el('g', { class: ['dart', ...state(index)].filter(Boolean).join(' '), 'data-dart': id });
-		group.hit = hit;
-		group.pose = layout[index].pose;
-		group.index = index;
-		group.rank = drawn.indexOf(index);
 		if (landing(index) && !still()) thrown.set(id, now);
 		// Picked up: out a little; put back: in again.
 		const lift = editing === index ? DART_VIEW.lift : 0;
@@ -450,11 +457,20 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 		const cover = covering.get(id);
 		if (!cover) covering.set(id, { from: see[index], to: see[index], since: 0 });
 		else if (cover.to !== see[index]) covering.set(id, { from: still() ? see[index] : coverAt(id, now), to: see[index], since: seeFrom });
-		const motion = motionOf(group, now);
-		group.inAir = Boolean(motion.inAir);
-		paintDart(group, hit, motion);
-		if (isMoving(group, now)) startMoving(layer);
-		return group;
+		// The last touched: its flight over every other dart for now, its body at its usual depth.
+		return (index === touched ? ['body', 'flight'] : [null]).map(part => {
+			const group = el('g', { class: ['dart', ...state(index)].filter(Boolean).join(' '), 'data-dart': id });
+			group.hit = hit;
+			group.pose = layout[index].pose;
+			group.index = index;
+			group.part = part;
+			group.rank = part === 'flight' ? hits.length : order.indexOf(index);
+			const motion = motionOf(group, now);
+			group.inAir = Boolean(motion.inAir);
+			paintDart(group, hit, motion);
+			if (isMoving(group, now)) startMoving(layer);
+			return group;
+		});
 	});
 	for (const map of [lifted, covering]) for (const id of map.keys()) if (!ids.has(id)) map.delete(id);
 	layer.style.setProperty('--dart-flight-time', `${DART_VIEW.flightMs}ms`);
