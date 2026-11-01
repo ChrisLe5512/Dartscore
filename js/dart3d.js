@@ -42,6 +42,10 @@ const MARK_ROOM = 7;
 const BODY_ROOM = 4;
 // The angles a marker tries round its point, its best side first.
 const MARK_TURNS = [0, 0.7, -0.7, 1.4, -1.4, 2.1, -2.1, 2.8, -2.8];
+// Points checked along a dart for a flight covering it, and how near that
+// flight's edge (board units) a dart starts going see-through.
+const SEE_STEPS = 8;
+const SEE_EDGE = 3;
 // Points checked along each dart when working out which is in front.
 const DEPTH_STEPS = 16;
 const ROUND = 14; // points round each end of a part
@@ -259,6 +263,37 @@ export function dartLayout(hits, view = DART_VIEW) {
 		marks.push(spots.find(free) ?? spots[0]);
 	});
 	return poses.map((pose, index) => ({ pose, mark: marks[index].map(v => v / 100) }));
+}
+
+/** How far a point is outside a shape's outline (0 inside it). */
+function fromOutline(p, outline) {
+	let inside = false;
+	let nearest = Infinity;
+	outline.forEach((a, index) => {
+		const b = outline[(index + 1) % outline.length];
+		if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < a[0] + (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1])) inside = !inside;
+		nearest = Math.min(nearest, fromSegment(p, a, b));
+	});
+	return inside ? 0 : nearest;
+}
+
+/**
+ * How see-through each dart should be, 0 to 1: a dart goes see-through where
+ * its flight is in front of another dart (its point in the board, its body or
+ * its flight), so what's behind still shows, and fades back in as that clears.
+ * Darts on their own stay solid. layout, order: from dartLayout and dartOrder.
+ */
+export function dartSee(hits, layout, order, view = DART_VIEW) {
+	const shapes = hits.map(({ x, y }, index) => dartShape(x, y, layout[index].pose, {}, view));
+	const spots = shapes.map(({ tip, end, vanes }) => [
+		...Array.from({ length: SEE_STEPS + 1 }, (_, step) => add(tip, add([end.cx, end.cy], tip, -1), step / SEE_STEPS)),
+		...vanes.map(vane => vane.edge),
+	]);
+	return shapes.map(({ vanes }, index) => {
+		const behind = spots.filter((_, other) => order.indexOf(other) < order.indexOf(index)).flat();
+		const nearest = Math.min(Infinity, ...behind.flatMap(spot => vanes.map(vane => fromOutline(spot, vane.points))));
+		return Math.max(0, 1 - nearest / SEE_EDGE);
+	});
 }
 
 /**

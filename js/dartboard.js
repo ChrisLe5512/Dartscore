@@ -4,7 +4,7 @@
 
 import { BOARD_SECTORS, BOARD_STYLE, DART_VIEW } from './config.js';
 import { dartColor, RINGS } from './board.js';
-import { dartLayout, dartOrder, dartShape, spotTurns } from './dart3d.js';
+import { dartLayout, dartOrder, dartSee, dartShape, spotTurns } from './dart3d.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -96,8 +96,7 @@ export function boardStyle(saved = {}) {
  * style: { outline, wire, outlineColor } as in BOARD_STYLE.
  */
 export function drawBoard(svg, rings, style = BOARD_STYLE) {
-	const { outline, outlineColor, wire, seeThrough } = boardStyle(style);
-	svg.classList.toggle('solid-darts', !seeThrough);
+	const { outline, outlineColor, wire } = boardStyle(style);
 	svg.setAttribute('viewBox', `${-VIEW} ${-VIEW} ${VIEW * 2} ${VIEW * 2}`);
 	svg.replaceChildren();
 	const defs = el('defs', {}, svg);
@@ -259,17 +258,19 @@ function paintDart(group, { x, y }, motion = {}) {
 	// A past turn's darts are fainter.
 	const faint = group.classList.contains('review') ? 0.6 : 1;
 	group.style.opacity = (motion.opacity ?? 1) * faint;
-	// Lifted: see-through as it comes out, even if darts are solid.
+	// See-through: lifted, or its flight covering another dart.
 	group.style.setProperty('--see', round(motion.see ?? 0));
 	group.classList.toggle('seeing', (motion.see ?? 0) > 0);
 }
 
 // How each dart is moving, by where it landed (so it keeps moving when the
 // board is redrawn): thrown (when), lifted (picked up to move: how far out,
-// from and to, and since when). Darts being taken out keep theirs on their
-// element (`pulled`), as they're no longer in the list.
+// from and to, and since when), see-through (from and to, and since when).
+// Darts being taken out keep theirs on their element (`pulled`), as they're
+// no longer in the list.
 const thrown = new Map();
 const lifted = new Map();
+const covering = new Map();
 /** Each dart's id: where it landed, and which of the darts there it is. */
 export function dartIds(hits) {
 	const turns = spotTurns(hits);
@@ -298,12 +299,20 @@ function liftAt(id, now) {
 	return lift.from + (lift.to - lift.from) * (1 - (1 - t) ** 2);
 }
 
+/** How see-through a dart is at `now` for covering another. */
+function coverAt(id, now) {
+	const cover = covering.get(id);
+	if (!cover) return 0;
+	const t = Math.max(0, Math.min(1, (now - cover.since) / DART_VIEW.seeMs));
+	return cover.from + (cover.to - cover.from) * t;
+}
+
 /** A dart's motion at `now`: thrown, lifted and being pulled out, added up. Null once it's gone. */
 function motionOf(group, now) {
 	const id = group.dataset.dart;
 	const motion = thrown.has(id) ? throwAt(now - thrown.get(id)) : {};
 	const lift = group.pulled ? group.pulled.from : liftAt(id, now);
-	motion.see = lift / DART_VIEW.lift;
+	motion.see = Math.max(lift / DART_VIEW.lift, group.pulled ? group.pulled.cover : coverAt(id, now));
 	let away = (motion.away ?? 0) + lift;
 	if (group.pulled) {
 		const t = (now - group.pulled.since) / DART_VIEW.pullMs;
@@ -320,9 +329,11 @@ function motionOf(group, now) {
 function isMoving(group, now) {
 	const id = group.dataset.dart;
 	const lift = lifted.get(id);
+	const cover = covering.get(id);
 	return Boolean(group.pulled)
 		|| (thrown.has(id) && now - thrown.get(id) < DART_VIEW.flightMs + DART_VIEW.wobbleMs)
-		|| Boolean(lift && now - lift.since < DART_VIEW.liftMs);
+		|| Boolean(lift && now - lift.since < DART_VIEW.liftMs)
+		|| Boolean(cover && now - cover.since < DART_VIEW.seeMs);
 }
 
 /** Put the darts in depth order, back to front, under the markers; one in the air is nearest of all. */
@@ -381,8 +392,9 @@ function takeOut(layer, darts) {
 			return;
 		}
 		const delay = order * DART_VIEW.pullGap;
-		group.pulled = { since: now + delay, from: liftAt(group.dataset.dart, now) };
+		group.pulled = { since: now + delay, from: liftAt(group.dataset.dart, now), cover: coverAt(group.dataset.dart, now) };
 		lifted.delete(group.dataset.dart);
+		covering.delete(group.dataset.dart);
 		thrown.delete(group.dataset.dart);
 		if (mark) {
 			mark.style.animationDelay = `${delay}ms`;
@@ -416,6 +428,9 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 
 	const layout = dartLayout(hits);
 	const order = dartOrder(hits, layout);
+	const see = dartSee(hits, layout, order);
+	// A dart on its way in changes nothing until it lands.
+	const seeFrom = hits.some((_, index) => landing(index)) && !still() ? now + DART_VIEW.flightMs : now;
 	// All the darts first, then all the markers, so no dart covers a number.
 	const darts = hits.map((hit, index) => {
 		const id = idList[index];
@@ -430,13 +445,16 @@ export function drawMarks(svg, hits, { kind = 'live', pop = [], editing = null }
 		if ((lifted.get(id)?.to ?? 0) !== lift) {
 			lifted.set(id, { from: still() ? lift : liftAt(id, now), to: lift, since: now });
 		}
+		const cover = covering.get(id);
+		if (!cover) covering.set(id, { from: see[index], to: see[index], since: 0 });
+		else if (cover.to !== see[index]) covering.set(id, { from: still() ? see[index] : coverAt(id, now), to: see[index], since: seeFrom });
 		const motion = motionOf(group, now);
 		group.inAir = Boolean(motion.inAir);
 		paintDart(group, hit, motion);
 		if (isMoving(group, now)) startMoving(layer);
 		return group;
 	});
-	for (const id of lifted.keys()) if (!ids.has(id)) lifted.delete(id);
+	for (const map of [lifted, covering]) for (const id of map.keys()) if (!ids.has(id)) map.delete(id);
 	layer.style.setProperty('--dart-flight-time', `${DART_VIEW.flightMs}ms`);
 
 	// Each marker beside its dart's point, a short line pointing at it, so

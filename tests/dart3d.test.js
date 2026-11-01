@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DART_VIEW } from '../js/config.js';
-import { dartLayout, dartOrder, dartPose, dartShape, tapDistance } from '../js/dart3d.js';
+import { dartLayout, dartOrder, dartPose, dartSee, dartShape, tapDistance } from '../js/dart3d.js';
 
 const straight = { lean: [0, 0], roll: 0 };
 // The middle of the shaft's far end.
@@ -113,6 +113,24 @@ test('dart: darts in the same exact spot each have an angle of their own, kept w
 	assert.notDeepEqual(third, first);
 	assert.notDeepEqual(third, second);
 	assert.deepEqual(poses(), [first, second, third]);
+});
+
+test('dart: see-through only where its flight covers a dart behind it', () => {
+	const seeOf = hits => {
+		const layout = dartLayout(hits);
+		return { see: dartSee(hits, layout, dartOrder(hits, layout)), order: dartOrder(hits, layout) };
+	};
+	// Well apart: all solid.
+	assert.deepEqual(seeOf([{ x: -0.6, y: 0.5 }, { x: 0.6, y: 0.5 }, { x: 0, y: -0.6 }]).see, [0, 0, 0]);
+	// In one spot: the one at the back stays solid, the one in front goes see-through.
+	const spot = { x: 0.3, y: -0.4 };
+	const { see, order } = seeOf([spot, spot]);
+	assert.equal(see[order[0]], 0);
+	assert.equal(see[order[1]], 1);
+	// A dart just below another: its tail, up, covers the other's point.
+	const { see: stacked } = seeOf([{ x: 0.1, y: -0.45 }, { x: 0.1, y: -0.3 }]);
+	assert.ok(stacked[1] > 0);
+	assert.equal(stacked[0], 0);
 });
 
 test('dart: where two cross on screen, the nearer the eye there is drawn in front', () => {

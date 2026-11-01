@@ -53,8 +53,7 @@ export const BOARD_LAYOUT_LIMITS = Object.freeze({
 // The white rings around the doubles and the board edge (width in % of the radius).
 // wire: the wires round every bed, how thick (0: none), in the outline's colour.
 // hitColor: the beds lit where darts landed (and everything else in that colour).
-// seeThrough: darts fade towards their fins, so the board shows through them.
-export const BOARD_STYLE = Object.freeze({ outline: 1, wire: 0, outlineColor: '#ffffff', hitColor: '#ffd24d', seeThrough: false });
+export const BOARD_STYLE = Object.freeze({ outline: 1, wire: 0, outlineColor: '#ffffff', hitColor: '#ffd24d' });
 export const BOARD_OUTLINE_LIMITS = Object.freeze([0, 2.5]);
 export const BOARD_WIRE_LIMITS = Object.freeze([0, 1.5]);
 export const BOARD_OUTLINE_COLORS = Object.freeze(['#ffffff', '#c8c8c8', '#808080', '#d4af37', '#000000']);
@@ -80,6 +79,7 @@ export const DART_VIEW = Object.freeze({
 	wobbleMs: 380, // the wobble as it lands
 	lift: 12,      // picked up to move: how far it comes out of the board (clear of it: more than the point in it)
 	liftMs: 140,
+	seeMs: 200,    // going see-through or back, when its flight comes to cover another dart or stops
 	pullOut: 40,   // taken out (the score sent, cleared, removed): how far it's pulled before it's gone
 	pullMs: 240,
 	pullGap: 70,   // between darts 1, 2 and 3 being taken out
